@@ -13,10 +13,14 @@ public class Sword_Skill_Controller : MonoBehaviour
     private bool canRotate = true;
     private bool isReturning;
 
-    public float bounceSpeed;
-    public bool isBouncing = true;
-    public int amountOfBounce = 4;
-    public List<Transform> enemyTarget;
+    [Header("Pierce info")]
+    [SerializeField] private int pierceAmount;
+
+    [Header("Bounce info")]
+    [SerializeField] private float bounceSpeed;
+    private bool isBouncing;
+    private int bounceAmount;
+    private List<Transform> enemyTarget;
     private int targetIndex;
 
     private void Awake()
@@ -28,43 +32,38 @@ public class Sword_Skill_Controller : MonoBehaviour
 
     private void Update()
     {
-        if(canRotate)
+        if (canRotate)
             transform.right = rb.velocity;
 
         if (isReturning)
         {
             transform.position = Vector2.MoveTowards(transform.position, player.transform.position, returnSpeed * Time.deltaTime);
 
-            if(Vector2.Distance(transform.position, player.transform.position) < 1)
+            if (Vector2.Distance(transform.position, player.transform.position) < 1)
                 player.CatchTheSword();
 
         }
 
-        if(isBouncing && enemyTarget.Count > 0)
-        {
-            transform.position = Vector2.MoveTowards(transform.position, enemyTarget[targetIndex].position, bounceSpeed * Time.deltaTime);
-
-            if(Vector2.Distance(transform.position, enemyTarget[targetIndex].position) < .1f)
-            {
-                targetIndex++;
-                amountOfBounce--;
-
-                if(amountOfBounce <= 0)
-                {
-                    isBouncing = false;
-                    isReturning = true;
-                }
-
-                if(targetIndex >= enemyTarget.Count)
-                    targetIndex = 0;
-            }
-        }
+        BounceLogic();
     }
+    public void SetupSword(Vector2 _dir, float _gravityScale, Player _player)
+    {
+        player = _player;
+
+        rb.velocity = _dir;
+        rb.gravityScale = _gravityScale;
+
+        if(pierceAmount <= 0)
+            anim.SetBool("Rotation", true);
+    }
+    
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (isReturning)
             return;
+
+        collision.GetComponent<Enemy>()?.Damage();
 
         if (collision.GetComponent<Enemy>() != null)
         {
@@ -85,6 +84,11 @@ public class Sword_Skill_Controller : MonoBehaviour
 
     private void StckInto(Collider2D collision)
     {
+        if (pierceAmount > 0 && collision.GetComponent<Enemy>() != null)
+        {
+            pierceAmount--;
+            return;
+        }
 
         canRotate = false;
         cd.enabled = false;
@@ -99,14 +103,40 @@ public class Sword_Skill_Controller : MonoBehaviour
         transform.parent = collision.transform;
     }
 
-    public void SetupSword(Vector2 _dir, float _gravityScale, Player _player)
+    public void SetupBounce(bool _isBouncing, int _amountOfBounces)
     {
-        player = _player;
+        isBouncing = _isBouncing;
+        bounceAmount = _amountOfBounces;
 
-        rb.velocity = _dir;
-        rb.gravityScale = _gravityScale;
+        enemyTarget = new List<Transform>();
+    }
 
-        anim.SetBool("Rotation", true);
+    public void SetupPierce(int _pierceAmount)
+    {
+        pierceAmount = _pierceAmount;
+    }
+
+    private void BounceLogic()
+    {
+        if (isBouncing && enemyTarget.Count > 0)
+        {
+            transform.position = Vector2.MoveTowards(transform.position, enemyTarget[targetIndex].position, bounceSpeed * Time.deltaTime);
+
+            if (Vector2.Distance(transform.position, enemyTarget[targetIndex].position) < .1f)
+            {
+                targetIndex++;
+                bounceAmount--;
+
+                if (bounceAmount <= 0)
+                {
+                    isBouncing = false;
+                    isReturning = true;
+                }
+
+                if (targetIndex >= enemyTarget.Count)
+                    targetIndex = 0;
+            }
+        }
     }
 
     public void ReturnSword()
