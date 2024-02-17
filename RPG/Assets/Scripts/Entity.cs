@@ -4,6 +4,18 @@ using UnityEngine;
 
 public class Entity : MonoBehaviour
 {
+    #region Components
+    public Animator anim { get; private set; }
+    public Rigidbody2D rb { get; private set; }
+    public EntityFX fX { get; private set; }
+    public SpriteRenderer sr { get; private set; }
+    #endregion
+
+    [Header("Knockback info")]
+    [SerializeField] protected Vector2 knockbackDirection;
+    [SerializeField] protected float knockbackDuration;
+    protected bool isKnocked;
+
     [Header("Collision info")]
     public Transform attackCheck;
     public float attackCheckRadius;
@@ -16,17 +28,6 @@ public class Entity : MonoBehaviour
     public int facingDir { get; private set; } = 1;
     protected bool facingRight = true;
 
-    #region Components
-    public Animator anim { get; private set; }
-    public Rigidbody2D rb { get; private set; }
-    public EntityFX fX { get; private set; }
-    #endregion
-
-    [Header("Knockback info")]
-    [SerializeField] protected Vector2 knockbackDirection;
-    [SerializeField] protected float knockbackDuration;
-    protected bool isKnocked;
-
     protected virtual void Awake()
     {
 
@@ -35,8 +36,9 @@ public class Entity : MonoBehaviour
     protected virtual void Start()
     {
         fX = GetComponent<EntityFX>();
-        anim = GetComponentInChildren<Animator>();
         rb = GetComponent<Rigidbody2D>();
+        anim = GetComponentInChildren<Animator>();
+        sr = GetComponentInChildren<SpriteRenderer>();
     }
 
     protected virtual void Update()
@@ -107,4 +109,12 @@ public class Entity : MonoBehaviour
             Flip();
     }
     #endregion
+
+    public void MakeTransprent(bool _transprent)
+    {
+        if (_transprent)
+            sr.color = Color.clear;
+        else
+            sr.color = Color.white;
+    }
 }
