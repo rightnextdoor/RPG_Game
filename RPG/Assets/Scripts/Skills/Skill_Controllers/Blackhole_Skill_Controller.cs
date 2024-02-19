@@ -14,9 +14,9 @@ public class Blackhole_Skill_Controller : MonoBehaviour
 
     private bool canGrow = true;
     private bool canShrink;
-    public bool canCreateHotKeys = true;
-    public bool cloneAttackReleased;
-    public bool playerCanDisaper = true;
+    private bool canCreateHotKeys = true;
+    private bool cloneAttackReleased;
+    private bool playerCanDisaper = true;
 
     private int amountOfAttacks = 4;
     private float cloneAttackCooldown = .3f;
@@ -35,6 +35,12 @@ public class Blackhole_Skill_Controller : MonoBehaviour
         amountOfAttacks = _amountOfAttacks;
         cloneAttackCooldown = _cloneAttackCooldown;
         blackholeTimer = _blackholeDuration;
+
+        if (SkillManager.instance.clone.crystalInseadOfClone)
+        {
+            playerCanDisaper = false;
+            Debug.Log("set disaper " + playerCanDisaper);
+        }
     }
 
     private void Update()
@@ -81,7 +87,7 @@ public class Blackhole_Skill_Controller : MonoBehaviour
         DestroyHotKeys();
         cloneAttackReleased = true;
         canCreateHotKeys = false;
-
+        Debug.Log("can dissaper " + playerCanDisaper);
         if (playerCanDisaper)
         {
             playerCanDisaper = false;
@@ -92,7 +98,6 @@ public class Blackhole_Skill_Controller : MonoBehaviour
 
     private void CloneAttackLogic()
     {
-        playerCanDisaper = true;
         if (cloneAttackTimer < 0 && cloneAttackReleased && amountOfAttacks > 0)
         {
             cloneAttackTimer = cloneAttackCooldown;
@@ -106,7 +111,15 @@ public class Blackhole_Skill_Controller : MonoBehaviour
             else
                 xOffset = -2;
 
-            SkillManager.instance.clone.CreateClone(targets[randomIndex], new Vector3(xOffset, 0));
+            if (SkillManager.instance.clone.crystalInseadOfClone)
+            {
+                SkillManager.instance.crystal.CreateCrystal();
+                SkillManager.instance.crystal.CurrentCrystalChooseRandomTarget();
+            }
+            else
+            {
+                SkillManager.instance.clone.CreateClone(targets[randomIndex], new Vector3(xOffset, 0));
+            }
             amountOfAttacks--;
 
             if (amountOfAttacks <= 0)
