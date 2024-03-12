@@ -26,7 +26,7 @@ public class SkeletonStunnedState : EnemyState
     {
         base.Exit();
 
-        enemy.fX.Invoke("CancelRedBlink", 0);
+        enemy.fX.Invoke("CancelColorChange", 0);
     }
 
     public override void Update()

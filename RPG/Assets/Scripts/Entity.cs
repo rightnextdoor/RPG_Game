@@ -37,6 +37,16 @@ public class Entity : MonoBehaviour
 
     }
 
+    public virtual void SlowEntityBy(float _slowPercentage, float _slowDuration)
+    {
+
+    }
+
+    protected virtual void ReturnDefaultSpeed()
+    {
+        anim.speed = 1;
+    }
+
     protected virtual void Start()
     {
         fX = GetComponent<EntityFX>();
