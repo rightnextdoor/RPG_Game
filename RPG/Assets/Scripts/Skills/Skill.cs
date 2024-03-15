@@ -26,13 +26,12 @@ public class Skill : MonoBehaviour
             cooldownTimer = cooldown;
             return true;
         }
-        Debug.Log("Skill is on cooldown");
         return false;
     }
 
     public virtual void UseSkill()
     {
-        Debug.Log("Skill is used");
+
     }
 
     protected virtual Transform FindClosestEnemy(Transform _checkTransform)

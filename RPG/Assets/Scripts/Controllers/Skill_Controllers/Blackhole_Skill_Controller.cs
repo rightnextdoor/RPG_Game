@@ -39,7 +39,6 @@ public class Blackhole_Skill_Controller : MonoBehaviour
         if (SkillManager.instance.clone.crystalInseadOfClone)
         {
             playerCanDisaper = false;
-            Debug.Log("set disaper " + playerCanDisaper);
         }
     }
 
@@ -87,11 +86,12 @@ public class Blackhole_Skill_Controller : MonoBehaviour
         DestroyHotKeys();
         cloneAttackReleased = true;
         canCreateHotKeys = false;
-        Debug.Log("can dissaper " + playerCanDisaper);
+
         if (playerCanDisaper)
         {
             playerCanDisaper = false;
-            PlayerManager.instance.player.MakeTransprent(true);
+
+            PlayerManager.instance.player.fX.MakeTransprent(true);
         }
 
     }
@@ -167,7 +167,6 @@ public class Blackhole_Skill_Controller : MonoBehaviour
     {
         if (keyCodeList.Count <= 0)
         {
-            Debug.LogWarning("Not enough hot keys in a key code list!");
             return;
         }
 
