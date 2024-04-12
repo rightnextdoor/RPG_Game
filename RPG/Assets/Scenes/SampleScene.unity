@@ -1840,7 +1840,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ae4f12fe2a93f22489267794b3982b4b, type: 2}
   - {fileID: 11400000, guid: 78fe1c48fa886db45845d84a92033018, type: 2}
   dropPrefab: {fileID: 7663703077390093099, guid: 2ecceb17b1752e5428f40e73479e555e, type: 3}
-  item: {fileID: 11400000, guid: ae4f12fe2a93f22489267794b3982b4b, type: 2}
 --- !u!114 &454051082
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4676,7 +4675,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ae4f12fe2a93f22489267794b3982b4b, type: 2}
   - {fileID: 11400000, guid: 78fe1c48fa886db45845d84a92033018, type: 2}
   dropPrefab: {fileID: 7663703077390093099, guid: 2ecceb17b1752e5428f40e73479e555e, type: 3}
-  item: {fileID: 11400000, guid: ae4f12fe2a93f22489267794b3982b4b, type: 2}
 --- !u!114 &941328018
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5391,7 +5389,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ae4f12fe2a93f22489267794b3982b4b, type: 2}
   - {fileID: 11400000, guid: 78fe1c48fa886db45845d84a92033018, type: 2}
   dropPrefab: {fileID: 7663703077390093099, guid: 2ecceb17b1752e5428f40e73479e555e, type: 3}
-  item: {fileID: 11400000, guid: ae4f12fe2a93f22489267794b3982b4b, type: 2}
 --- !u!114 &1058740062
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8125,7 +8122,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   strength:
-    baseValue: 2
+    baseValue: 50
     modifiers: 
   agility:
     baseValue: 0
@@ -8229,7 +8226,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ae4f12fe2a93f22489267794b3982b4b, type: 2}
   - {fileID: 11400000, guid: 78fe1c48fa886db45845d84a92033018, type: 2}
   dropPrefab: {fileID: 7663703077390093099, guid: 2ecceb17b1752e5428f40e73479e555e, type: 3}
-  item: {fileID: 11400000, guid: ae4f12fe2a93f22489267794b3982b4b, type: 2}
 --- !u!1 &1623366456
 GameObject:
   m_ObjectHideFlags: 0
@@ -8752,7 +8748,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ae4f12fe2a93f22489267794b3982b4b, type: 2}
   - {fileID: 11400000, guid: 78fe1c48fa886db45845d84a92033018, type: 2}
   dropPrefab: {fileID: 7663703077390093099, guid: 2ecceb17b1752e5428f40e73479e555e, type: 3}
-  item: {fileID: 11400000, guid: ae4f12fe2a93f22489267794b3982b4b, type: 2}
 --- !u!114 &1691589386
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19468,6 +19463,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1fc6223bb8928a43a78c929652976d6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  startingItems:
+  - {fileID: 11400000, guid: b67ec3d788f222040b49c8565308b8a7, type: 2}
+  - {fileID: 11400000, guid: cf4f32d5f7d1d4d41bb79117521f38d2, type: 2}
+  - {fileID: 11400000, guid: b67ec3d788f222040b49c8565308b8a7, type: 2}
+  - {fileID: 11400000, guid: 130342ab73d742f4e87037a8b0e0fe6d, type: 2}
+  - {fileID: 11400000, guid: ae4f12fe2a93f22489267794b3982b4b, type: 2}
+  - {fileID: 11400000, guid: 78fe1c48fa886db45845d84a92033018, type: 2}
+  - {fileID: 11400000, guid: b67ec3d788f222040b49c8565308b8a7, type: 2}
+  - {fileID: 11400000, guid: cf4f32d5f7d1d4d41bb79117521f38d2, type: 2}
   equipment: []
   inventory: []
   stash: []
@@ -19598,6 +19602,7 @@ GameObject:
   - component: {fileID: 1946434055}
   - component: {fileID: 1946434059}
   - component: {fileID: 1946434060}
+  - component: {fileID: 1946434061}
   m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
@@ -19804,6 +19809,23 @@ MonoBehaviour:
   ailmentsDuration: 4
   shockStrikePrefab: {fileID: 6889908486227579018, guid: 78970814a6fb9434a91ec678a0d80fdd, type: 3}
   currentHealth: 0
+--- !u!114 &1946434061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1946434054}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bc79fa9e3c53b64d98eb3b149240046, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  possibleItemDrop: 0
+  possibleDrop: []
+  dropPrefab: {fileID: 7663703077390093099, guid: 2ecceb17b1752e5428f40e73479e555e, type: 3}
+  chanceToLooseItems: 20
+  chanceToLooseMaterials: 75
 --- !u!224 &1947230521 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4557152070007639711, guid: ec75998d1a20f454fafef2c0d803261c, type: 3}
