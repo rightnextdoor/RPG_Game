@@ -10,15 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ef24ad84489d745428194e2911bca6d0, type: 3}
-  m_Name: Ice And Fire
+  m_Name: Healing Flask
   m_EditorClassIdentifier: 
   itemType: 1
-  itemName: Ice And Fire
-  icon: {fileID: 1398721256, guid: a9ca9a41598dd2e44b125928045c518f, type: 3}
-  dropChance: 6
-  equipmentType: 0
+  itemName: Healing Flask
+  icon: {fileID: -410334530, guid: a9ca9a41598dd2e44b125928045c518f, type: 3}
+  dropChance: 0
+  equipmentType: 3
+  itemCooldown: 5
   itemEffects:
-  - {fileID: 11400000, guid: 994104215931268408d702d7c8121460, type: 2}
+  - {fileID: 11400000, guid: aacd1bc1ccac10e4fad7b7bbf8d366c0, type: 2}
   strength: 0
   agility: 0
   intelligence: 0
@@ -30,7 +31,7 @@ MonoBehaviour:
   armor: 0
   evasion: 0
   magicResistance: 0
-  fireDamage: 5
-  iceDamage: 5
+  fireDamage: 0
+  iceDamage: 0
   lightingDamage: 0
   craftingMaterials: []
