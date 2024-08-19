@@ -215,7 +215,6 @@ public class Inventory : MonoBehaviour
     {
         if (inventory.Count >= inventoryItemSlots.Length)
         {
-            Debug.Log("No more space");
             return false;
         }
         return true;
