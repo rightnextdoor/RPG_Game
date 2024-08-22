@@ -8,7 +8,7 @@ public class Dodge_Skill : Skill
     [Header("Dodge")]
     [SerializeField] private UI_SkillTreeSlot unlockDodgeButton;
     [SerializeField] private int evasionAmount;
-    public bool dodgeUnlocked {  get; private set; }
+    public bool dodgeUnlocked;
 
     [Header("Mirage dodge")]
     [SerializeField] private UI_SkillTreeSlot unlockMirageDodge;
@@ -20,6 +20,12 @@ public class Dodge_Skill : Skill
 
         unlockDodgeButton.GetComponent<Button>().onClick.AddListener(UnlockDodge);
         unlockMirageDodge.GetComponent<Button>().onClick.AddListener(UnlockMirageDodge);
+    }
+
+    protected override void CheckUnlock()
+    {
+        UnlockDodge();
+        UnlockMirageDodge();
     }
 
     private void UnlockDodge()

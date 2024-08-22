@@ -7999,7 +7999,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c51fcd06cedea5a4388b8f72b50994b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  skillCost: 0
+  skillCost: 2
   skillName: Dodge
   skillDescription: You have 10% chance to avoid incoming attack.
   lockedSkillColor: {r: 0.59568727, g: 0.42950496, b: 0.42950496, a: 1}
@@ -13847,6 +13847,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 897153298}
   m_CullTransparentMesh: 1
+--- !u!1 &906665535
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 906665537}
+  - component: {fileID: 906665536}
+  m_Layer: 0
+  m_Name: SaveManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &906665536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 906665535}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e611fec65a5a72142a50a42b5ab5bf84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fileName: data.save
+  encryptData: 1
+--- !u!4 &906665537
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 906665535}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -57.099243, y: 0.02492255, z: -0.08082491}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &909867797
 GameObject:
   m_ObjectHideFlags: 0
@@ -26779,6 +26825,7 @@ MonoBehaviour:
   cooldown: 0
   unlockDodgeButton: {fileID: 501259542}
   evasionAmount: 10
+  dodgeUnlocked: 0
   unlockMirageDodge: {fileID: 2069474331}
   dodgeMirageUnlocked: 0
 --- !u!1 &1752610713
@@ -39470,22 +39517,12 @@ MonoBehaviour:
   startingItems:
   - {fileID: 11400000, guid: b67ec3d788f222040b49c8565308b8a7, type: 2}
   - {fileID: 11400000, guid: cf4f32d5f7d1d4d41bb79117521f38d2, type: 2}
-  - {fileID: 11400000, guid: 130342ab73d742f4e87037a8b0e0fe6d, type: 2}
+  - {fileID: 11400000, guid: cf4f32d5f7d1d4d41bb79117521f38d2, type: 2}
+  - {fileID: 11400000, guid: cf4f32d5f7d1d4d41bb79117521f38d2, type: 2}
+  - {fileID: 11400000, guid: cf4f32d5f7d1d4d41bb79117521f38d2, type: 2}
+  - {fileID: 11400000, guid: cf4f32d5f7d1d4d41bb79117521f38d2, type: 2}
+  - {fileID: 11400000, guid: cf4f32d5f7d1d4d41bb79117521f38d2, type: 2}
   - {fileID: 11400000, guid: b67ec3d788f222040b49c8565308b8a7, type: 2}
-  - {fileID: 11400000, guid: b67ec3d788f222040b49c8565308b8a7, type: 2}
-  - {fileID: 11400000, guid: 5011a9c21645ef243914c288c3a45636, type: 2}
-  - {fileID: 11400000, guid: b67ec3d788f222040b49c8565308b8a7, type: 2}
-  - {fileID: 11400000, guid: cf4f32d5f7d1d4d41bb79117521f38d2, type: 2}
-  - {fileID: 11400000, guid: cf4f32d5f7d1d4d41bb79117521f38d2, type: 2}
-  - {fileID: 11400000, guid: cf4f32d5f7d1d4d41bb79117521f38d2, type: 2}
-  - {fileID: 11400000, guid: cf4f32d5f7d1d4d41bb79117521f38d2, type: 2}
-  - {fileID: 11400000, guid: cf4f32d5f7d1d4d41bb79117521f38d2, type: 2}
-  - {fileID: 11400000, guid: 52e74a6278a7d454ab5f6c9cf285deb8, type: 2}
-  - {fileID: 11400000, guid: 2259154627ceb8b489d3599c97e69a90, type: 2}
-  - {fileID: 11400000, guid: 14134e8713416e541a2833143f3a23be, type: 2}
-  - {fileID: 11400000, guid: b21b5689051c1ae44a2b31289c523f0d, type: 2}
-  - {fileID: 11400000, guid: ec669afd8b235a242b0a5d5eec769d17, type: 2}
-  - {fileID: 11400000, guid: 3dce950d56866764f9f4b26ee7171732, type: 2}
   equipment: []
   inventory: []
   stash: []
@@ -39493,6 +39530,8 @@ MonoBehaviour:
   stashSlotParent: {fileID: 1286957797}
   equpmentSlotParent: {fileID: 866887236}
   statSlotParent: {fileID: 1793996267}
+  loadedItems: []
+  loadedEquipment: []
 --- !u!4 &1936772193
 Transform:
   m_ObjectHideFlags: 0
@@ -48843,7 +48882,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c51fcd06cedea5a4388b8f72b50994b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  skillCost: 0
+  skillCost: 10
   skillName: Dodge Mirage
   skillDescription: You can summon Time Image on dodge.
   lockedSkillColor: {r: 0.59568727, g: 0.42950496, b: 0.42950496, a: 1}
@@ -49941,10 +49980,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1605832391}
     m_Modifications:
-    - target: {fileID: 397529414106296828, guid: ec75998d1a20f454fafef2c0d803261c, type: 3}
-      propertyPath: m_Color.a
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 4557152070007639711, guid: ec75998d1a20f454fafef2c0d803261c, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -50339,11 +50374,12 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 712749005}
+  - {fileID: 507619493}
+  - {fileID: 906665537}
+  - {fileID: 1751968135}
   - {fileID: 2041374697}
   - {fileID: 45040702}
   - {fileID: 1946434056}
-  - {fileID: 507619493}
-  - {fileID: 1751968135}
   - {fileID: 311458036}
   - {fileID: 203207687}
   - {fileID: 1936772193}
