@@ -32,10 +32,17 @@ public class Dodge_Skill : Skill
     {
         if (unlockDodgeButton.unlocked && !dodgeUnlocked)
         {
-            player.stats.evasion.AddModifier(evasionAmount);
-            Inventory.instance.UpdateStatsUI();
-            dodgeUnlocked = true;
+            StartCoroutine(UnlockDodgeDelay(.1f));
         }
+    }
+
+    private IEnumerator UnlockDodgeDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        player.stats.evasion.AddModifier(evasionAmount);
+        Inventory.instance.UpdateStatsUI();
+        dodgeUnlocked = true;
     }
 
     private void UnlockMirageDodge()
