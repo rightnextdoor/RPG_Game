@@ -8,6 +8,7 @@ public class UI : MonoBehaviour
     [Header("End screen")]
     [SerializeField] private UI_FadeScreen fadeScreen;
     [SerializeField] private GameObject endText;
+    [SerializeField] private GameObject restartButton;
     [Space]
 
     [SerializeField] private GameObject charcaterUI;
@@ -24,6 +25,7 @@ public class UI : MonoBehaviour
     private void Awake()
     {
         SwitchTo(skillTreeUI); // we need this to assign events on skill tree slots before we assign events on skill scripts
+        fadeScreen.gameObject.SetActive(true);
     }
 
     void Start()
@@ -78,7 +80,7 @@ public class UI : MonoBehaviour
     {
         for (int i = 0; i < transform.childCount; i++)
         {
-            if (transform.GetChild(i).gameObject.activeSelf)
+            if (transform.GetChild(i).gameObject.activeSelf && transform.GetChild(i).GetComponent<UI_FadeScreen>() == null)
                 return;
         }
 
@@ -95,5 +97,9 @@ public class UI : MonoBehaviour
     {
         yield return new WaitForSeconds(1);
         endText.SetActive(true);
+        yield return new WaitForSeconds(1.5f);
+        restartButton.SetActive(true);
     }
+
+    public void RestartGameButton() => GameManager.instance.RestartScene();
 }

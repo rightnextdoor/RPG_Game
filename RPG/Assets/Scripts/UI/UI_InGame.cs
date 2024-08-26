@@ -16,10 +16,12 @@ public class UI_InGame : MonoBehaviour
     [SerializeField] private Image blackHoleImage;
     [SerializeField] private Image flaskImage;
     [SerializeField] private Image flaskCooldownImage;
-
-    [SerializeField] private TextMeshProUGUI currentSouls;
-
     private SkillManager skills;
+
+    [Header("Souls info")]
+    [SerializeField] private TextMeshProUGUI currentSouls;
+    [SerializeField] private float soulsAmount;
+    [SerializeField] private float increaseRate = 100;
 
     void Start()
     {
@@ -31,6 +33,8 @@ public class UI_InGame : MonoBehaviour
 
     void Update()
     {
+        UpdateSoulsUI();
+
         ItemData_Equipment flask = Inventory.instance.GetEquipment(EquipmentType.Flask);
         if (flask != null)
         {
@@ -38,9 +42,7 @@ public class UI_InGame : MonoBehaviour
             flaskCooldownImage.sprite = flask.itemIcon;
         }
 
-        currentSouls.text = PlayerManager.instance.GetCurrency().ToString("#,#");
-
-        if(Input.GetKeyDown(KeyCode.LeftShift) && skills.dash.dashUnlocked)
+        if (Input.GetKeyDown(KeyCode.LeftShift) && skills.dash.dashUnlocked)
             SetCooldownOf(dashImage);
 
         if (Input.GetKeyDown(KeyCode.Q) && skills.parry.parryUnlocked)
@@ -56,7 +58,7 @@ public class UI_InGame : MonoBehaviour
             SetCooldownOf(blackHoleImage);
 
         if (Input.GetKeyDown(KeyCode.Alpha1) && flask != null)
-        {          
+        {
             SetCooldownOf(flaskCooldownImage);
         }
 
@@ -67,6 +69,16 @@ public class UI_InGame : MonoBehaviour
         CheckCooldownOf(blackHoleImage, skills.blackhole.cooldown);
 
         CheckCooldownOf(flaskCooldownImage, Inventory.instance.flaskCooldown);
+    }
+
+    private void UpdateSoulsUI()
+    {
+        if (soulsAmount < PlayerManager.instance.GetCurrency())
+            soulsAmount += Time.deltaTime * increaseRate;
+        else
+            soulsAmount = PlayerManager.instance.GetCurrency();
+
+        currentSouls.text = ((int)soulsAmount).ToString();
     }
 
     private void UpdateHealthUI()
