@@ -13,12 +13,17 @@ public class AudioManager : MonoBehaviour
     public bool playBgm;
     private int bgmIndex;
     private int sfxIndex;
+
+    private bool canPlaySFX;
+
     private void Awake()
     {
         if (instance != null)
             Destroy(instance.gameObject);
         else
             instance = this;
+
+        Invoke("AllowSFX", 1f);
     }
 
     private void Update()
@@ -45,6 +50,9 @@ public class AudioManager : MonoBehaviour
         //if (sfx[sfxIndex].isPlaying)
         //    return;
 
+        if (canPlaySFX == false)
+            return;
+
         if (_source != null && Vector2.Distance(PlayerManager.instance.player.transform.position, _source.position) > sfxMinimumDistance)
             return;
 
@@ -67,6 +75,36 @@ public class AudioManager : MonoBehaviour
         sfx[sfxIndex].Stop();
     }
 
+    public void StopSFXWithTime(string _sfxName)
+    {
+        FindSFXIndex(_sfxName);
+
+        if (sfxIndex == -1)
+        {
+            Debug.LogWarning("No play with sfx with time name: " + _sfxName);
+            return;
+        }
+
+        StartCoroutine(DecreaseVolume(sfx[sfxIndex]));
+    }
+
+    private IEnumerator DecreaseVolume(AudioSource _audio)
+    {
+        float defaultVolume = _audio.volume;
+
+        while (_audio.volume > .1f)
+        {
+            _audio.volume -= _audio.volume * .2f;
+            yield return new WaitForSeconds(.25f);
+
+            if (_audio.volume <= .1f)
+            {
+                _audio.Stop();
+                _audio.volume = defaultVolume;
+                break;
+            }
+        }
+    }
 
     private void FindSFXIndex(string _sfxName)
     {
@@ -112,6 +150,19 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    public void StopBGMWithTime(string _bgmName)
+    {
+        FindBGMIndex(_bgmName);
+
+        if (bgmIndex == -1)
+        {
+            Debug.LogWarning("No play with bgm with time name: " + _bgmName);
+            return;
+        }
+
+        StartCoroutine(DecreaseVolume(bgm[bgmIndex]));
+    }
+
     private void FindBGMIndex(string _bgmName)
     {
         for (int i = 0; i < bgm.Length; i++)
@@ -125,4 +176,6 @@ public class AudioManager : MonoBehaviour
                 sfxIndex = -1;
         }
     }
+
+    private void AllowSFX() => canPlaySFX = true;
 }
