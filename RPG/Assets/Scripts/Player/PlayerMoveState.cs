@@ -7,11 +7,15 @@ public class PlayerMoveState : PlayerGroundedState
     public override void Enter()
     {
         base.Enter();
+        
+        AudioManager.instance.PlaySFX("sfx_footsteps", null);
     }
 
     public override void Exit()
     {
         base.Exit();
+
+        AudioManager.instance.StopSFX("sfx_footsteps");
     }
 
     public override void Update()
