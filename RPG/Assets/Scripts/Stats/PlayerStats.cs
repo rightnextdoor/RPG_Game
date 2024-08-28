@@ -33,6 +33,16 @@ public class PlayerStats : CharacterStats
     {
         base.DecreaseHealthBy(_damage);
 
+        if (_damage > GetMaxHealthValue() * .3f)
+        {   
+            player.SetupKnockbackPower(new Vector2(10,6));
+
+            string[] sound = { "sfx_woman struggle 2", "sfx_woman sigh 2" };
+            int range = Random.Range(0, sound.Length);
+
+            AudioManager.instance.PlaySFX(sound[range], null);
+        }
+
         ItemData_Equipment currentArmor = Inventory.instance.GetEquipment(EquipmentType.Armor);
 
         if (currentArmor != null)
