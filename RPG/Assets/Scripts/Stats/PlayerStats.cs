@@ -36,10 +36,10 @@ public class PlayerStats : CharacterStats
         if (_damage > GetMaxHealthValue() * .3f)
         {   
             player.SetupKnockbackPower(new Vector2(10,6));
+            player.fX.ScreenShake(player.fX.shakeHighDamage);
 
             string[] sound = { "sfx_woman struggle 2", "sfx_woman sigh 2" };
             int range = Random.Range(0, sound.Length);
-
             AudioManager.instance.PlaySFX(sound[range], null);
         }
 

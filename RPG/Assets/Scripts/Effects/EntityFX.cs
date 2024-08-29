@@ -1,10 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cinemachine;
+using TMPro;
 
 public class EntityFX : MonoBehaviour
 {
-    private SpriteRenderer sr;
+    protected Player player;
+    protected SpriteRenderer sr;
+
+    [Header("Pop Up Text")]
+    [SerializeField] private GameObject popUpTextPrefab;
 
     [Header("Flash FX")]
     [SerializeField] private float flashDuration;
@@ -25,13 +31,25 @@ public class EntityFX : MonoBehaviour
     [SerializeField] private GameObject hitFx;
     [SerializeField] private GameObject criticalHitFx;
     
-    [Space]
-    [SerializeField] private ParticleSystem dustFX;
+    
 
-    private void Start()
+    protected virtual void Start()
     {
         sr = GetComponentInChildren<SpriteRenderer>();
+        player = PlayerManager.instance.player;        
         originalMat = sr.material;
+    }
+
+    public void CreatePopUpText(string _text)
+    {
+        float randomX = Random.Range(-1, 1);
+        float randomY = Random.Range(3, 5);
+
+        Vector3 positionOffset = new Vector3(randomX, randomY, 0);
+
+        GameObject newText = Instantiate(popUpTextPrefab, transform.position + positionOffset, Quaternion.identity);
+
+        newText.GetComponent<TextMeshPro>().text = _text;
     }
 
     public void MakeTransprent(bool _transprent)
@@ -144,6 +162,7 @@ public class EntityFX : MonoBehaviour
 
         }
 
+        //GameObject newHitFx = Instantiate(hitPrefab, _target.position + new Vector3(xPosition, yPosition), Quaternion.identity, _target); // move with the target
         GameObject newHitFx = Instantiate(hitPrefab, _target.position + new Vector3(xPosition, yPosition), Quaternion.identity);
 
         newHitFx.transform.Rotate(hitFxRotation);
@@ -151,9 +170,5 @@ public class EntityFX : MonoBehaviour
         Destroy(newHitFx, .5f);
     }
 
-    public void PlayDustFX()
-    {
-        if(dustFX != null)
-            dustFX.Play();
-    }
+    
 }

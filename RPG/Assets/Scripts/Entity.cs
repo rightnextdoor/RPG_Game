@@ -7,7 +7,7 @@ public class Entity : MonoBehaviour
     #region Components
     public Animator anim { get; private set; }
     public Rigidbody2D rb { get; private set; }
-    public EntityFX fX { get; private set; }
+    
     public SpriteRenderer sr { get; private set; }
     public CharacterStats stats { get; private set; }
     public CapsuleCollider2D cd { get; private set; }
@@ -49,8 +49,7 @@ public class Entity : MonoBehaviour
     }
 
     protected virtual void Start()
-    {
-        fX = GetComponent<EntityFX>();
+    {       
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponentInChildren<Animator>();
         sr = GetComponentInChildren<SpriteRenderer>();

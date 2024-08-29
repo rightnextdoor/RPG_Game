@@ -28,12 +28,12 @@ public class AudioManager : MonoBehaviour
 
     private void Update()
     {
-        if(!playBgm)
+        if (!playBgm)
             StopAllBGM();
         else
         {
             if (!bgm[bgmIndex].isPlaying)
-                PlayBGMWithIndex(bgmIndex);
+                PlayRandomBGM();
         }
     }
 

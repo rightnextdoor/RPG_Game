@@ -40,5 +40,7 @@ public class PlayerDashState : PlayerState
 
         if (stateTimer < 0)
             stateMachine.ChangeState(player.idleState);
+
+        player.fX.CreateAfterImage();
     }
 }

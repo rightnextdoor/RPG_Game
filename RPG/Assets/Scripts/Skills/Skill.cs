@@ -33,12 +33,13 @@ public class Skill : MonoBehaviour
             cooldownTimer = cooldown;
             return true;
         }
+        player.fX.CreatePopUpText("Cooldown");
         return false;
     }
 
     public virtual void UseSkill()
     {
-
+        // do some skill 
     }
 
     protected virtual Transform FindClosestEnemy(Transform _checkTransform)
