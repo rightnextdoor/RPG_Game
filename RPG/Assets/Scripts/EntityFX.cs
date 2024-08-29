@@ -24,6 +24,9 @@ public class EntityFX : MonoBehaviour
     [Header("Hit FX")]
     [SerializeField] private GameObject hitFx;
     [SerializeField] private GameObject criticalHitFx;
+    
+    [Space]
+    [SerializeField] private ParticleSystem dustFX;
 
     private void Start()
     {
@@ -146,5 +149,11 @@ public class EntityFX : MonoBehaviour
         newHitFx.transform.Rotate(hitFxRotation);
 
         Destroy(newHitFx, .5f);
+    }
+
+    public void PlayDustFX()
+    {
+        if(dustFX != null)
+            dustFX.Play();
     }
 }

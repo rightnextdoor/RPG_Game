@@ -37,6 +37,7 @@ public class Sword_Skill : Skill
     public bool swordUnlocked {  get; private set; }
     [SerializeField] private GameObject swordPrefab;
     [SerializeField] private Vector2 launchForce;
+    [SerializeField] private float swordGravityDefault;
     [SerializeField] private float swordGravity;
     [SerializeField] private float freezeTimeDuration;
     [SerializeField] private float returnSpeed;
@@ -74,7 +75,9 @@ public class Sword_Skill : Skill
 
     private void SetupGravty()
     {
-        if (swordType == SwordType.Bounce)
+        if (swordType == SwordType.Regular)
+            swordGravity = swordGravityDefault;
+        else if (swordType == SwordType.Bounce)
             swordGravity = bounceGravity;
         else if(swordType == SwordType.Pierce)
             swordGravity = pierceGravity;
@@ -145,25 +148,35 @@ public class Sword_Skill : Skill
         {
             swordType = SwordType.Regular;
             swordUnlocked = true;
+            SetupGravty();
         }
     }
 
     private void UnlockBounceSword()
     {
         if (bounceUnlockButton.unlocked)
+        {
             swordType = SwordType.Bounce;
+            SetupGravty();
+        }
     }
 
     private void UnlockPierceSword()
     {
         if (peirceUnlockButton.unlocked)
+        {
             swordType = SwordType.Pierce;
+            SetupGravty();
+        }
     }
 
     private void UnlockSpinSword()
     {
         if (spinUnlockButton.unlocked)
+        {
             swordType = SwordType.Spin;
+            SetupGravty();
+        }
     }
 
     #endregion
