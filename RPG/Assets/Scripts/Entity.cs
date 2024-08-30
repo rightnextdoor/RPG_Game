@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Entity : MonoBehaviour
@@ -7,7 +6,7 @@ public class Entity : MonoBehaviour
     #region Components
     public Animator anim { get; private set; }
     public Rigidbody2D rb { get; private set; }
-    
+
     public SpriteRenderer sr { get; private set; }
     public CharacterStats stats { get; private set; }
     public CapsuleCollider2D cd { get; private set; }
@@ -49,7 +48,7 @@ public class Entity : MonoBehaviour
     }
 
     protected virtual void Start()
-    {       
+    {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponentInChildren<Animator>();
         sr = GetComponentInChildren<SpriteRenderer>();
@@ -68,7 +67,7 @@ public class Entity : MonoBehaviour
     {
         if (_damageDirection.position.x > transform.position.x)
             KnockbackDir = -1;
-        else if(_damageDirection.position.x < transform.position.x)
+        else if (_damageDirection.position.x < transform.position.x)
             KnockbackDir = 1;
     }
 
@@ -79,9 +78,9 @@ public class Entity : MonoBehaviour
         isKnocked = true;
 
         rb.velocity = new Vector2(knockbackPower.x * KnockbackDir, knockbackPower.y);
-        
+
         yield return new WaitForSeconds(knockbackDuration);
-        isKnocked=false;
+        isKnocked = false;
         SetupZeroKnockbackPower();
     }
 
@@ -91,13 +90,13 @@ public class Entity : MonoBehaviour
     }
 
     #region Velocity
-    public void SetZeroVelocity() 
+    public void SetZeroVelocity()
     {
         if (isKnocked)
             return;
-        
+
         rb.velocity = new Vector2(0, 0);
-    } 
+    }
 
     public void SetVelocity(float _xVelocity, float _yVelocity)
     {
@@ -126,7 +125,7 @@ public class Entity : MonoBehaviour
         facingRight = !facingRight;
         transform.Rotate(0, 180, 0);
 
-        if(onFlipped != null) 
+        if (onFlipped != null)
             onFlipped();
     }
 
@@ -139,7 +138,7 @@ public class Entity : MonoBehaviour
     }
     #endregion
 
-    
+
 
     public virtual void Die()
     {

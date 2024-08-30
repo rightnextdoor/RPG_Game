@@ -8,6 +8,8 @@ public class SaveManager : MonoBehaviour
     public static SaveManager instance;
 
     [SerializeField] private string fileName;
+    //[SerializeField] private string filePath = "idbfs/dfdfdf549645erhh48fh"; // for web game then add some random vaule after the / 
+    [SerializeField] private GameObject skillTreeUI;
     [SerializeField] private bool encryptData;
     private GameData gameData;
     private List<ISaveManager> saveManagers;
@@ -17,6 +19,7 @@ public class SaveManager : MonoBehaviour
     public void DeleteSavedData()
     {
         dataHandler = new FileDataHandler(Application.persistentDataPath, fileName, encryptData);
+        //dataHandler = new FileDataHandler(filePath, fileName, encryptData); // for web
         dataHandler.Delete();
     }
 
@@ -31,6 +34,7 @@ public class SaveManager : MonoBehaviour
     private void Start()
     {
         dataHandler = new FileDataHandler(Application.persistentDataPath, fileName, encryptData);
+        //dataHandler = new FileDataHandler(filePath, fileName, encryptData); // for web
         saveManagers = FindAllSaveMangers();
 
         LoadGame();
@@ -74,7 +78,9 @@ public class SaveManager : MonoBehaviour
 
     private List<ISaveManager> FindAllSaveMangers()
     {
+        skillTreeUI.SetActive(true);
         IEnumerable<ISaveManager> saveManagers = FindObjectsOfType<MonoBehaviour>(true).OfType<ISaveManager>();
+        skillTreeUI.SetActive(false);
 
         return new List<ISaveManager>(saveManagers);
     }

@@ -26,13 +26,13 @@ public class UI : MonoBehaviour, ISaveManager
 
     private void Awake()
     {
-        //SwitchTo(skillTreeUI); // we need this to assign events on skill tree slots before we assign events on skill scripts
+        SwitchTo(skillTreeUI); // we need this to assign events on skill tree slots before we assign events on skill scripts
         fadeScreen.gameObject.SetActive(true);
     }
 
     void Start()
     {
-        SwitchTo(skillTreeUI);
+        //SwitchTo(skillTreeUI);
         SwitchTo(inGameUI);
 
         itemToolTip.gameObject.SetActive(false);

@@ -7,6 +7,12 @@ public class ItemObject : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private ItemData itemData;
 
+    private void OnValidate()
+    {
+        GetComponent<SpriteRenderer>().sprite = itemData.itemIcon;
+        gameObject.name = "Item object - " + itemData.itemName;
+    }
+
     private void SetupVisuals()
     {
         if (itemData == null)
