@@ -26,6 +26,16 @@ public class SkeletonIdleState : SkeletonGroundedState
     {
         base.Update();
 
+        if (enemy.IsPlayerDetected() && !enemy.IsGroundDetected() || enemy.IsWallDetected())
+        {
+            stateMachine.ChangeState(enemy.idleState);
+            return;
+        } 
+        else
+        {
+            stateMachine.ChangeState(enemy.moveState);
+        }
+
         if (stateTimer < 0f)
             stateMachine.ChangeState(enemy.moveState);
 

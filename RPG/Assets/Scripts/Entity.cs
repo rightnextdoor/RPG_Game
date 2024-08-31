@@ -14,6 +14,7 @@ public class Entity : MonoBehaviour
 
     [Header("Knockback info")]
     [SerializeField] protected Vector2 knockbackPower;
+    [SerializeField] protected Vector2 knockbackOffset;
     [SerializeField] protected float knockbackDuration;
     protected bool isKnocked;
 
@@ -77,7 +78,10 @@ public class Entity : MonoBehaviour
     {
         isKnocked = true;
 
-        rb.velocity = new Vector2(knockbackPower.x * KnockbackDir, knockbackPower.y);
+        float xOffset = Random.Range(knockbackOffset.x, knockbackOffset.y);
+
+        if(knockbackPower.x > 0 || knockbackPower.y > 0) //comment out if you want player to freeze
+            rb.velocity = new Vector2((knockbackPower.x + xOffset) * KnockbackDir, knockbackPower.y);
 
         yield return new WaitForSeconds(knockbackDuration);
         isKnocked = false;

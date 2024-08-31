@@ -31,6 +31,12 @@ public class SlimeBattleState : EnemyState
     {
         base.Update();
 
+        if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
+        {
+            stateMachine.ChangeState(enemy.idleState);
+            return;
+        }
+
         if (enemy.IsPlayerDetected())
         {
             stateTimer = enemy.battleTime;
@@ -50,6 +56,9 @@ public class SlimeBattleState : EnemyState
             moveDir = 1;
         else if (player.position.x < enemy.transform.position.x)
             moveDir = -1;
+
+        if (enemy.IsPlayerDetected() && enemy.IsPlayerDetected().distance < enemy.attackDistance - .5f)
+            return;
 
         enemy.SetVelocity(enemy.moveSpeed * moveDir, rb.velocity.y);
     }
