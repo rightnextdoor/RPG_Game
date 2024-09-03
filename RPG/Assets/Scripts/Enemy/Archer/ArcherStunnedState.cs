@@ -2,13 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SlimeStunnedState : EnemyState
+public class ArcherStunnedState : EnemyState
 {
-    private Enemy_Slime enemy;
-
-    public SlimeStunnedState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Slime _enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+    private Enemy_Archer enemy;
+    public ArcherStunnedState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Archer enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
-        this.enemy = _enemy;
+        this.enemy = enemy; 
     }
 
     public override void Enter()
@@ -25,20 +24,13 @@ public class SlimeStunnedState : EnemyState
     public override void Exit()
     {
         base.Exit();
-    
-        enemy.stats.MakeInvincible(false);
+
+        enemy.fX.Invoke("CancelColorChange", 0);
     }
 
     public override void Update()
     {
         base.Update();
-
-        if (rb.velocity.y < .1f && enemy.IsGroundDetected())
-        {
-            enemy.fX.Invoke("CancelColorChange", 0);
-            enemy.anim.SetTrigger("StunFold");
-            enemy.stats.MakeInvincible(true);
-        }
 
         if (stateTimer < 0)
             stateMachine.ChangeState(enemy.idleState);
