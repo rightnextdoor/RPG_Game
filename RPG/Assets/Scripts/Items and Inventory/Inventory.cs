@@ -252,37 +252,36 @@ public class Inventory : MonoBehaviour, ISaveManager
 
     public bool CanCraft(ItemData_Equipment _itemToCraft, List<InventoryItem> _requiredMaterials)
     {
-        List<InventoryItem> materialsToRemove = new List<InventoryItem>();
+       // Check if all required materials are avalible with the required quantity.
 
-        for (int i = 0; i < _requiredMaterials.Count; i++)
+        foreach (var requiredItem in _requiredMaterials)
         {
-            if (stashDictionary.TryGetValue(_requiredMaterials[i].data, out InventoryItem stashValue))
+            if (stashDictionary.TryGetValue(requiredItem.data, out InventoryItem stashItem))
             {
-                if (stashValue.stackSize < _requiredMaterials[i].stackSize)
+                if (stashItem.stackSize < requiredItem.stackSize)
                 {
-                    Debug.Log("not enough materials");
+                    Debug.Log("Not enough materials: " + requiredItem.data.name);
                     return false;
-                }
-                else
-                {
-                    materialsToRemove.Add(stashValue);
                 }
             }
             else
             {
-                Debug.Log("not enough materials");
+                Debug.Log("Materials not found in stash: " + requiredItem.data.name);
                 return false;
             }
         }
+        // If all materials are avalible, remove them from stash.
 
-        for (int i = 0; i < materialsToRemove.Count; i++)
+        foreach (var requiredMaterial in _requiredMaterials)
         {
-            RemoveItem(materialsToRemove[i].data);
+            for (int i = 0; i < requiredMaterial.stackSize; i++)
+            {
+                RemoveItem(requiredMaterial.data);
+            }
         }
 
         AddItem(_itemToCraft);
-        Debug.Log("Here is your item " + _itemToCraft.name);
-
+        Debug.Log("Craft is successful: " + _itemToCraft.name);
         return true;
     }
 

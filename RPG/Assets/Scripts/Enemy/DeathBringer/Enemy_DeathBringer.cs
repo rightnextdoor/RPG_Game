@@ -80,7 +80,7 @@ public class Enemy_DeathBringer : Enemy
         transform.position = new Vector3(x, y);
         transform.position = new Vector3(transform.position.x, transform.position.y - GroundBelow().distance + (cd.size.y / 2));
 
-        if (!GroundBelow() || SomethingIsAround())
+        if (!GroundBelow() && !SomethingIsAround())
         {
             FindPosition();
         }

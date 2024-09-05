@@ -9,8 +9,11 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private float sfxMinimumDistance;
     [SerializeField] private AudioSource[] sfx;
     [SerializeField] private AudioSource[] bgm;
+    private AudioSource[] bgmDefault;
+    private AudioSource[] bgmListChanges;
 
     public bool playBgm;
+    private bool firstPlay;
     private int bgmIndex;
     private int sfxIndex;
 
@@ -26,6 +29,12 @@ public class AudioManager : MonoBehaviour
         Invoke("AllowSFX", 1f);
     }
 
+    private void Start()
+    {
+        bgmDefault = bgm;
+        firstPlay = false;
+    }
+
     private void Update()
     {
         if (!playBgm)
@@ -35,6 +44,9 @@ public class AudioManager : MonoBehaviour
             if (!bgm[bgmIndex].isPlaying)
                 PlayRandomBGM();
         }
+
+        if (Input.GetKeyDown(KeyCode.Y))
+            PlayRandomBGM();
     }
 
     public void PlaySFX(string _sfxName, Transform _source)
@@ -122,8 +134,28 @@ public class AudioManager : MonoBehaviour
 
     public void PlayRandomBGM()
     {
-        bgmIndex = Random.Range(0, bgm.Length);
+        if (bgm.Length == 0)
+            bgm = bgmDefault;
+
+        int index = Random.Range(0, bgm.Length - 1);
+        bgmIndex = index;
         PlayBGMWithIndex(bgmIndex);
+        RemoveIndex(index);
+
+    }
+
+    private void RemoveIndex(int index)
+    {
+        bgmListChanges = new AudioSource[bgm.Length - 1];
+        int count = 0;
+        for (int i = 0; i < bgm.Length; i++)
+        {
+            if (i != index)
+            {
+                bgmListChanges[count] = bgm[i];
+                count++;
+            }
+        }
     }
 
     public void PlayBGMWithIndex(int _bgmIndex)
@@ -148,6 +180,25 @@ public class AudioManager : MonoBehaviour
         {
             bgm[i].Stop();
         }
+        LoadNewBGMList();
+    }
+
+    private void LoadNewBGMList()
+    {
+        if (firstPlay)
+        {
+            if (bgmListChanges.Length == 0)
+            {
+                bgm = new AudioSource[bgmDefault.Length];
+                bgm = bgmDefault;
+            }
+            else
+            {
+                bgm = new AudioSource[bgmListChanges.Length];
+                bgm = bgmListChanges;
+            }
+        }
+        firstPlay = true;
     }
 
     public void StopBGMWithTime(string _bgmName)

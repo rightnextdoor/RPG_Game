@@ -56,7 +56,7 @@ Transform:
   m_GameObject: {fileID: 1811136370598386579}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.132, y: -0.2, z: 0}
+  m_LocalPosition: {x: 0.95, y: -0.2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -121,7 +121,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -261,7 +261,7 @@ MonoBehaviour:
   knockbackOffset: {x: 0.5, y: 2}
   knockbackDuration: 0.07
   attackCheck: {fileID: 3888429274525928104}
-  attackCheckRadius: 1.2
+  attackCheckRadius: 1.38
   groundCheck: {fileID: 5822341731999400053}
   groundCheackDistance: 1
   wallCheck: {fileID: 2377763661008289137}
@@ -296,7 +296,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c39f012491486f543a72744418851d76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  popUpTextPrefab: {fileID: 0}
+  popUpTextPrefab: {fileID: 4704151152020466029, guid: a2b7ae1d86db385449cdd2297dd82294, type: 3}
   flashDuration: 0.2
   hitMat: {fileID: 2100000, guid: 8552047a4ed8e7242bcd0b1c855186d7, type: 2}
   igniteColor:
@@ -341,7 +341,7 @@ MonoBehaviour:
     baseValue: 10
     modifiers: 
   critChance:
-    baseValue: 99
+    baseValue: 0
     modifiers: 
   critPower:
     baseValue: 0
@@ -359,7 +359,7 @@ MonoBehaviour:
     baseValue: 0
     modifiers: 
   fireDamage:
-    baseValue: 1
+    baseValue: 0
     modifiers: 
   iceDamage:
     baseValue: 0
@@ -390,13 +390,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 492d4a67de2351d44a38fbd5115505d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  possibleItemDrop: 2
-  possibleDrop:
+  maxItemsToDrop: 10
+  itemPool:
   - {fileID: 11400000, guid: b67ec3d788f222040b49c8565308b8a7, type: 2}
   - {fileID: 11400000, guid: cf4f32d5f7d1d4d41bb79117521f38d2, type: 2}
-  - {fileID: 11400000, guid: 130342ab73d742f4e87037a8b0e0fe6d, type: 2}
-  - {fileID: 11400000, guid: ae4f12fe2a93f22489267794b3982b4b, type: 2}
   - {fileID: 11400000, guid: 78fe1c48fa886db45845d84a92033018, type: 2}
+  - {fileID: 11400000, guid: 130342ab73d742f4e87037a8b0e0fe6d, type: 2}
   dropPrefab: {fileID: 7663703077390093099, guid: 2ecceb17b1752e5428f40e73479e555e, type: 3}
 --- !u!1 &3325982861166663723
 GameObject:
@@ -546,7 +545,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0.96765494, g: 0.061293464, b: 0.061293464, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -841,7 +840,7 @@ GameObject:
   - component: {fileID: 8994022173557428893}
   - component: {fileID: 6716645523702700571}
   m_Layer: 7
-  m_Name: Animator
+  m_Name: Battle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
