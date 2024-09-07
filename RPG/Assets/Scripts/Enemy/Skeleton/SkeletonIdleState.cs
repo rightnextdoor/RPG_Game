@@ -19,7 +19,7 @@ public class SkeletonIdleState : SkeletonGroundedState
     {
         base.Exit();
 
-        AudioManager.instance.PlaySFX("sfx_skeleton_bones", enemy.transform);
+        AudioManager.instance.PlaySFX("skeleton", enemy.transform);
     }
 
     public override void Update()

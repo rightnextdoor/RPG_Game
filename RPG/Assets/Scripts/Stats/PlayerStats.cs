@@ -40,7 +40,7 @@ public class PlayerStats : CharacterStats
 
             string[] sound = { "sfx_woman struggle 2", "sfx_woman sigh 2" };
             int range = Random.Range(0, sound.Length);
-            AudioManager.instance.PlaySFX(sound[range], null);
+            //AudioManager.instance.PlaySFX(sound[range], null);
         }
 
         ItemData_Equipment currentArmor = Inventory.instance.GetEquipment(EquipmentType.Armor);

@@ -38,8 +38,8 @@ public class ItemObject : MonoBehaviour
             PlayerManager.instance.player.fX.CreatePopUpText("Inventory is full");
             return;
         }
-        
-        AudioManager.instance.PlaySFX("sfx_item pickup", transform);
+
+        AudioManager.instance.PlaySFX("item", transform);
         Inventory.instance.AddItem(itemData);
         Destroy(gameObject);
     }
