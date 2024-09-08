@@ -13,10 +13,11 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private SoundFX[] soundFX;
     [SerializeField] private BGM[] bgm;
     [SerializeField] private BGM_Random[] bgmRandom;
+    public bool playRandomBgm;
 
     private BGM_Random[] bgmChange;
 
-    public bool playBgm;
+    private BGM playBGM;
     private bool canPlaySFX;
     private bool isPlaying;
 
@@ -41,10 +42,8 @@ public class AudioManager : MonoBehaviour
     {
         foreach (SoundFX s in soundFX)
         {
-
             s.source = gameObject.AddComponent<AudioSource>();
             s.source.clip = s.clip;
-
             s.source.volume = s.volume;
             s.source.pitch = s.pitch;
             s.source.loop = s.loop;
@@ -53,10 +52,8 @@ public class AudioManager : MonoBehaviour
 
         foreach (BGM_Random s in bgmRandom)
         {
-
             s.source = gameObject.AddComponent<AudioSource>();
             s.source.clip = s.clip;
-
             s.source.volume = s.volume;
             s.source.pitch = s.pitch;
             s.source.loop = s.loop;
@@ -65,10 +62,8 @@ public class AudioManager : MonoBehaviour
 
         foreach (BGM s in bgm)
         {
-
             s.source = gameObject.AddComponent<AudioSource>();
             s.source.clip = s.clip;
-
             s.source.volume = s.volume;
             s.source.pitch = s.pitch;
             s.source.loop = s.loop;
@@ -83,21 +78,17 @@ public class AudioManager : MonoBehaviour
 
     private void Update()
     {
-        if (!playBgm)
+        if (playBGM != null)
         {
-            StopAllBGM();
-        }
-        else
-        {
-            if (!isPlaying)
-            {
-                PlayRandomBGM();
-            }
+            if (!playBGM.source.isPlaying)
+                playRandomBgm = true;
         }
 
-        //for testing
-        if (Input.GetKeyDown(KeyCode.Y))
-            PlayRandomBGM();
+        if (playRandomBgm)
+        {
+            if(!isPlaying)
+                PlayRandomBGM();
+        }
     }
 
     #region SoundFX
@@ -133,10 +124,10 @@ public class AudioManager : MonoBehaviour
 
     public void StopSFXWithTime(string _sfxName)
     {
-        SoundFX s = Array.Find(soundFX, sound => sound.name == name);
+        SoundFX s = Array.Find(soundFX, sound => sound.name == _sfxName);
         if (s == null)
         {
-            Debug.LogWarning("Sounds: " + name + " not found");
+            Debug.LogWarning("Sounds: " + _sfxName + " not found");
             return;
         }
 
@@ -152,24 +143,27 @@ public class AudioManager : MonoBehaviour
 
     public void PlayBGM(string _name)
     {
+        playRandomBgm = false;
         StopAllBGM();
 
-        BGM s = Array.Find(bgm, random => random.name == name);
+        BGM s = Array.Find(bgm, random => random.name == _name);
         if (s == null)
         {
-            Debug.LogWarning("Sounds: " + name + " not found");
+            Debug.LogWarning("Sounds: " + _name + " not found");
             return;
         }
 
         s.source.volume = s.volume;
         s.source.pitch = s.pitch;
         s.source.loop = s.loop;
+
         s.source.Play();
-        isPlaying = true;
+        playBGM = s;
     }
 
     public void PlayRandomBGM()
     {
+        playRandomBgm = true;
         StopAllBGM();
         
         int index = Random.Range(0, bgmChange.Length); // added -1 for index out of range.
@@ -185,7 +179,7 @@ public class AudioManager : MonoBehaviour
         s.source.volume = s.volume;
         s.source.pitch = s.pitch;
         s.source.loop = s.loop;
-        Debug.Log("name " + s.name);
+
         s.source.Play();
         isPlaying = true;
     }
@@ -209,7 +203,6 @@ public class AudioManager : MonoBehaviour
         isPlaying = false;
 
         RemoveBGMFromList(name);
-
     }
 
     private void RemoveBGMFromList(string name)
@@ -237,18 +230,6 @@ public class AudioManager : MonoBehaviour
             bgmChange = new BGM_Random[_bgmList.Length];
             bgmChange = _bgmList;
         }
-    }
-
-    public void StopBGMWithTime(string _bgmName)
-    {
-        BGM s = Array.Find(bgm, random => random.name == name);
-        if (s == null)
-        {
-            Debug.LogWarning("Sounds: " + name + " not found");
-            return;
-        }
-
-        StartCoroutine(DecreaseVolume(s.source));
     }
 
     #endregion
