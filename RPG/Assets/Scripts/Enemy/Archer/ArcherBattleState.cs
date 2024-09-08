@@ -33,7 +33,8 @@ public class ArcherBattleState : EnemyState
 
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {
-            stateMachine.ChangeState(enemy.idleState);
+            enemy.Flip();
+            stateMachine.ChangeState(enemy.moveState);
             return;
         }
 

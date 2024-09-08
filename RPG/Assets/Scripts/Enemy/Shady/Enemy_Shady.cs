@@ -11,6 +11,7 @@ public class Enemy_Shady : Enemy
     [SerializeField] private GameObject explosivePrefab;
     [SerializeField] private float growSpeed;
     [SerializeField] private float maxSize;
+    private bool playExplosion;
 
     #region States
     public ShadyIdleState idleState { get; private set; }
@@ -36,6 +37,7 @@ public class Enemy_Shady : Enemy
         base.Start();
 
         stateMachine.Initialize(idleState);
+        playExplosion = true;
     }
 
     public override bool CanBeStunned()
@@ -55,10 +57,15 @@ public class Enemy_Shady : Enemy
     }
 
     public override void AnimationSpecialAttackTrigger()
-    {
-        GameObject newExplosive = Instantiate(explosivePrefab, attackCheck.position, Quaternion.identity);
-        newExplosive.GetComponent<Explosive_Controller>().SetupExplosive(stats, growSpeed, maxSize, attackCheckRadius);
-
+    {        
+        if (playExplosion)
+        {
+            GameObject newExplosive = Instantiate(explosivePrefab, attackCheck.position, Quaternion.identity);
+            newExplosive.GetComponent<Explosive_Controller>().SetupExplosive(stats, growSpeed, maxSize, attackCheckRadius);
+            AudioManager.instance.PlaySFX("Explosion", transform);
+            playExplosion = false;
+        }
+        
         cd.enabled = false;
         rb.gravityScale = 0;
     }

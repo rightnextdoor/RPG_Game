@@ -19,6 +19,7 @@ public class Sword_Skill : Skill
     [SerializeField] private int bounceAmount;
     [SerializeField] private float bounceGravity;
     [SerializeField] private float bounceSpeed;
+    public bool bounce {  get; private set; }
 
     [Header("Peirce info")]
     [SerializeField] private UI_SkillTreeSlot peirceUnlockButton;
@@ -112,6 +113,15 @@ public class Sword_Skill : Skill
             newSwordScript.SetupSpin(true, maxTravelDistance, spinDuration, hitCooldown);
 
         newSwordScript.SetupSword(finalDir, swordGravity, player, freezeTimeDuration, returnSpeed);
+        
+        if (swordType == SwordType.Pierce)
+        {
+            AudioManager.instance.PlaySFX("PierceSword", null);
+        }
+        else
+        {
+            AudioManager.instance.PlaySFX("SwordThrow", null);
+        }
 
         player.AssignNewSword(newSword);
 
@@ -157,6 +167,7 @@ public class Sword_Skill : Skill
         if (bounceUnlockButton.unlocked)
         {
             swordType = SwordType.Bounce;
+            bounce = true;
             SetupGravty();
         }
     }

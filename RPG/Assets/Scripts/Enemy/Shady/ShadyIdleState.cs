@@ -19,7 +19,6 @@ public class ShadyIdleState : ShadyGroundedState
     {
         base.Exit();
 
-        //AudioManager.instance.PlaySFX("sfx_skeleton_bones", enemy.transform);
     }
 
     public override void Update()

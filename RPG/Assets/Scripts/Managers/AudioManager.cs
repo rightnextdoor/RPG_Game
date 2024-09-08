@@ -47,6 +47,7 @@ public class AudioManager : MonoBehaviour
             s.source.volume = s.volume;
             s.source.pitch = s.pitch;
             s.source.loop = s.loop;
+            s.source.playOnAwake = s.playOnAwake;
             s.source.outputAudioMixerGroup = s.output;
         }
 
@@ -109,6 +110,7 @@ public class AudioManager : MonoBehaviour
 
         s.source.volume = s.volume;
         s.source.pitch = Random.Range(.85f, 1.1f);
+        s.source.playOnAwake = s.playOnAwake;
         s.source.loop = s.loop;
         s.source.Play();
     }

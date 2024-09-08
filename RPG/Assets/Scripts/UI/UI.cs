@@ -104,13 +104,16 @@ public class UI : MonoBehaviour, ISaveManager
     public void SwitchOnEndScreen()
     {
         fadeScreen.FadeOut();
+        
         StartCoroutine(EndScreenCorutione());
     }
 
     IEnumerator EndScreenCorutione()
     {
-        yield return new WaitForSeconds(1);
-        endText.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        endText.SetActive(true);  
+        AudioManager.instance.PlaySFX("GameOver", null);
+
         yield return new WaitForSeconds(1.5f);
         restartButton.SetActive(true);
     }

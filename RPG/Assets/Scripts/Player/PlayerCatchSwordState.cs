@@ -18,6 +18,8 @@ public class PlayerCatchSwordState : PlayerState
         player.fX.PlayDustFX();
         player.fX.ScreenShake(player.fX.shakeSwordImpact);
 
+        AudioManager.instance.StopSFX("SwordSpin");
+
         if (player.transform.position.x > sword.position.x && player.facingDir == 1)
             player.Flip();
         else if (player.transform.position.x < sword.position.x && player.facingDir == -1)

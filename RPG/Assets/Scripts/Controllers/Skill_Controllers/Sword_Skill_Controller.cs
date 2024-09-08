@@ -37,12 +37,18 @@ public class Sword_Skill_Controller : MonoBehaviour
     private float hitCooldown;
 
     private float spinDirection;
+    private bool playSound;
 
     private void Awake()
     {
         anim = GetComponentInChildren<Animator>();
         rb = GetComponent<Rigidbody2D>();
         cd = GetComponent<CircleCollider2D>();
+    }
+
+    private void Start()
+    {
+        playSound = true;
     }
 
     private void Update()
@@ -116,10 +122,11 @@ public class Sword_Skill_Controller : MonoBehaviour
         {
             Enemy enemy = collision.GetComponent<Enemy>();
             SwordSkillDamage(enemy);
+            
         }
         SetupTargetsForBounce(collision);
 
-        StckInto(collision);
+        StuckInto(collision);
     }
 
     private void SwordSkillDamage(Enemy enemy)
@@ -128,7 +135,10 @@ public class Sword_Skill_Controller : MonoBehaviour
 
         player.stats.DoDamage(enemyStats);
 
-        if(player.skill.sword.timeStopUnlocked)
+        if(player.skill.sword.bounce)
+            AudioManager.instance.PlaySFX("SwordBounce", null);
+
+        if (player.skill.sword.timeStopUnlocked)
             enemy.FreezeTimeFor(freezeTimeDuration);
 
         if (player.skill.sword.vulnerableUnlocked)
@@ -143,13 +153,12 @@ public class Sword_Skill_Controller : MonoBehaviour
     private void SetupTargetsForBounce(Collider2D collision)
     {
         if (collision.GetComponent<Enemy>() != null)
-        {
+        {      
             if (isBouncing && enemyTarget.Count <= 0)
             {
-                Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 10);
-
+                Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 10);             
                 foreach (var hit in colliders)
-                {
+                {                 
                     if (hit.GetComponent<Enemy>() != null)
                         enemyTarget.Add(hit.transform);
                 }
@@ -157,7 +166,7 @@ public class Sword_Skill_Controller : MonoBehaviour
         }
     }
 
-    private void StckInto(Collider2D collision)
+    private void StuckInto(Collider2D collision)
     {
         if (pierceAmount > 0 && collision.GetComponent<Enemy>() != null)
         {
@@ -220,9 +229,15 @@ public class Sword_Skill_Controller : MonoBehaviour
     private void SpinLogic()
     {
         if (isSpinning)
-        {
-            if (Vector2.Distance(player.transform.position, transform.position) > maxTravelDistance && !wasStopped)
+        {        
+            if (playSound)
             {
+                Debug.Log("play sound");
+                AudioManager.instance.PlaySFX("SwordSpin", null);
+                playSound = false;
+            }
+            if (Vector2.Distance(player.transform.position, transform.position) > maxTravelDistance && !wasStopped)
+            {              
                 StopWhenSpinning();
             }
             if (wasStopped)
@@ -233,7 +248,7 @@ public class Sword_Skill_Controller : MonoBehaviour
                 if (spinTimer < 0)
                 {
                     isReturning = true;
-                    isSpinning = false;
+                    isSpinning = false;                  
                 }
 
                 hitTimer -= Time.deltaTime;

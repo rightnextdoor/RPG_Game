@@ -9,14 +9,14 @@ public class PlayerMoveState : PlayerGroundedState
     {
         base.Enter();
 
-        AudioManager.instance.PlaySFX("footsteps", null);
+        AudioManager.instance.PlaySFX("Footsteps", null);
     }
 
     public override void Exit()
     {
         base.Exit();
 
-        AudioManager.instance.StopSFX("footsteps");
+        AudioManager.instance.StopSFX("Footsteps");
     }
 
     public override void Update()

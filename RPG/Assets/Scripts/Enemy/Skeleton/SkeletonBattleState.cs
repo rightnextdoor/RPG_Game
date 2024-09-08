@@ -40,7 +40,8 @@ public class SkeletonBattleState : EnemyState
 
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {
-            stateMachine.ChangeState(enemy.idleState);
+            enemy.Flip();
+            stateMachine.ChangeState(enemy.moveState);
             return;
         }
 
@@ -49,8 +50,11 @@ public class SkeletonBattleState : EnemyState
             stateTimer = enemy.battleTime;
             if(enemy.IsPlayerDetected().distance < enemy.attackDistance) 
             {
-                if(CanAttack())
+                if (CanAttack())
+                {
                     stateMachine.ChangeState(enemy.attackState);
+                    AudioManager.instance.PlaySFX("SkeletonAttack", enemy.transform);
+                }
             }
         }
         else
@@ -67,17 +71,15 @@ public class SkeletonBattleState : EnemyState
 
         //float distanceToPlayerX = Mathf.Abs(player.position.x - enemy.transform.position.x);
         //if(distanceToPlayerX < 1f)
-        //    return;
-
-        if (enemy.IsPlayerDetected() && enemy.IsPlayerDetected().distance < enemy.attackDistance - .8f)
-            return;
+        //    return;  
 
         if (player.position.x > enemy.transform.position.x) 
             moveDir = 1;
         else if (player.position.x < enemy.transform.position.x)
             moveDir = -1;
 
-        
+        if (enemy.IsPlayerDetected() && enemy.IsPlayerDetected().distance < enemy.attackDistance - .8f)
+            return;
 
         enemy.SetVelocity(enemy.moveSpeed * moveDir, rb.velocity.y);
     }

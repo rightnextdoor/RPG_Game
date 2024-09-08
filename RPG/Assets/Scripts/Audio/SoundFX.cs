@@ -14,6 +14,7 @@ public class SoundFX
     public float volume = 1;
     [Range(.1f, 3f)]
     public float pitch = 1;
+    public bool playOnAwake;
 
     public bool loop;
 

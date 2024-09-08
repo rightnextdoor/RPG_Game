@@ -37,7 +37,7 @@ public class Explosive_Controller : MonoBehaviour
     private void AnimationExplodeEvent()
     {
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
-
+      
         foreach (var hit in colliders)
         {
             if (hit.GetComponent<CharacterStats>() != null)

@@ -67,6 +67,7 @@ public class Enemy_Archer : Enemy
     {
         GameObject newArrow = Instantiate(arrowPrefab, attackCheck.position,Quaternion.identity);
         newArrow.GetComponent<Arrow_Controller>().SetupArrow(arrowSpeed * facingDir, stats);
+        AudioManager.instance.PlaySFX("ArcherAttack", transform);
     }
 
     public bool GroundBehind() => Physics2D.BoxCast(groundBehindCheck.position, groundBehindCheckSize, 0, Vector2.zero, 0, whatIsGround);

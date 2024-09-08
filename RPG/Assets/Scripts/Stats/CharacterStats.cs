@@ -23,32 +23,42 @@ public class CharacterStats : MonoBehaviour
 {
     private EntityFX fx;
 
+    [Header("Stats")]
+    public Stat maxHealth;
+    public int currentHealth;
+    public Stat damage;
+
+    [Space]
     [Header("Major stats")]
     public Stat strength; // 1 point increase damage by 1 and crit. power by 1%
     public Stat agility; // 1 point increase evasion by 1% and crit. chance by 1%
     public Stat intelligence; // 1 point increase magic damage by 1 and magic resistance by 3
     public Stat vitality; // 1 point increase health by 3 or 5 points
 
+    [Space]
     [Header("Offensive stats")]
-    public Stat damage;
     public Stat critChance;
     public Stat critPower;
 
+    [Space]
     [Header("Defensive stats")]
-    public Stat maxHealth;
     public Stat armor;
     public Stat evasion;
     public Stat magicResistance;
 
+    [Space]
     [Header("Magic stats")]
     public Stat fireDamage;
     public Stat iceDamage;
     public Stat lightingDamage;
-
+    
+    [HideInInspector]
     public bool isIgnited; // does damage over time
+    [HideInInspector]
     public bool isChilled; // reduce armor by 20%
+    [HideInInspector]
     public bool isShocked; // reduce accuracy by 20%
-
+    [Space]
     [SerializeField] private float ailmentsDuration = 4;
     private float ignitedTimer;
     private float chilledTimer;
@@ -58,9 +68,7 @@ public class CharacterStats : MonoBehaviour
     private float igniteDamageTimer;
     private int igniteDamage;
     [SerializeField] private GameObject shockStrikePrefab;
-    private int shockDamage;
-
-    public int currentHealth;
+    private int shockDamage;   
 
     public System.Action onHealthChanged;
     public bool isDead { get; private set; }
