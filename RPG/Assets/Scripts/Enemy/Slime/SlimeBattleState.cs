@@ -44,7 +44,10 @@ public class SlimeBattleState : EnemyState
             if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
             {
                 if (CanAttack())
+                {
                     stateMachine.ChangeState(enemy.attackState);
+                    AudioManager.instance.PlaySFX("SlimeAttack", enemy.transform);
+                }
             }
         }
         else

@@ -84,6 +84,7 @@ public class Enemy_DeathBringer : Enemy
         {
             FindPosition();
         }
+        AudioManager.instance.PlaySFX("DeathBringerTeleport2", null);
     }
 
     private RaycastHit2D GroundBelow() => Physics2D.Raycast(transform.position, Vector2.down, 100, whatIsGround);

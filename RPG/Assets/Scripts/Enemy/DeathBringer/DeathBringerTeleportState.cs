@@ -14,13 +14,14 @@ public class DeathBringerTeleportState : EnemyState
     {
         base.Enter();
 
+        AudioManager.instance.PlaySFX("DeathBringerLaugh", null);
+        AudioManager.instance.PlaySFX("DeathBringerTeleport", null);                        
         enemy.stats.MakeInvincible(true);
     }
 
     public override void Exit()
     {
-        base.Exit();
-
+        base.Exit();       
         enemy.stats.MakeInvincible(false);
     }
 

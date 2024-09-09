@@ -177,7 +177,7 @@ public class AudioManager : MonoBehaviour
             Debug.LogWarning("Sounds: " + name + " not found");
             return;
         }
-
+        Debug.Log(s.name);
         s.source.volume = s.volume;
         s.source.pitch = s.pitch;
         s.source.loop = s.loop;

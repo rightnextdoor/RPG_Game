@@ -14,6 +14,7 @@ public class ArcherJumpState : EnemyState
     {
         base.Enter();
 
+        AudioManager.instance.PlaySFX("ArcherJump", enemy.transform);
         rb.velocity = new Vector2(enemy.jumpVelocity.x * -enemy.facingDir, enemy.jumpVelocity.y);
     }
 

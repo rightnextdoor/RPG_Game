@@ -12,7 +12,7 @@ public class PlayerCounterAttackState : PlayerState
     public override void Enter()
     {
         base.Enter();
-
+    
         canCreateClone = true;
         stateTimer = player.counterAttackDuration;
         player.anim.SetBool("SuccessfulCounterAttack", false);
@@ -32,7 +32,7 @@ public class PlayerCounterAttackState : PlayerState
         Collider2D[] colliders = Physics2D.OverlapCircleAll(player.attackCheck.position, player.attackCheckRadius);
 
         foreach (var hit in colliders)
-        {
+        {          
             if (hit.GetComponent<Arrow_Controller>() != null)
             {
                 hit.GetComponent<Arrow_Controller>().FlipArrow();
@@ -62,6 +62,7 @@ public class PlayerCounterAttackState : PlayerState
 
     private void SuccesfulCounterAttack()
     {
+        AudioManager.instance.PlaySFX("Parry", null);
         stateTimer = 10; // any value bigger than 1
         player.anim.SetBool("SuccessfulCounterAttack", true);
     }

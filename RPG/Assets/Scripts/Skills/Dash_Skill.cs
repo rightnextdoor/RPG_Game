@@ -20,12 +20,13 @@ public class Dash_Skill : Skill
     public override void UseSkill()
     {     
         base.UseSkill();
+        AudioManager.instance.PlaySFX("Dash", null);
     }
 
     protected override void Start()
     {
         base.Start();
-
+      
         dashUnlockButton.GetComponent<Button>().onClick.AddListener(UnlockDash);
         cloneOnDashUnlockButton.GetComponent<Button>().onClick.AddListener(UnlockCloneOnDash);
         cloneOnArrivalUnlockButton.GetComponent<Button>().onClick.AddListener(UnlockCloneOnArrival);

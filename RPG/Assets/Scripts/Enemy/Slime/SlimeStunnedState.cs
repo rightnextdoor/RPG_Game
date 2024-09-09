@@ -15,6 +15,7 @@ public class SlimeStunnedState : EnemyState
     {
         base.Enter();
 
+        AudioManager.instance.PlaySFX("SlimeStunned", enemy.transform);
         enemy.fX.InvokeRepeating("RedColorBlink", 0, .1f);
 
         stateTimer = enemy.stunDuration;

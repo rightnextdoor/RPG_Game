@@ -42,7 +42,10 @@ public class DeathBringerBattleState : EnemyState
             if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
             {
                 if (CanAttack())
+                {
+                    AudioManager.instance.PlaySFX("DeathBringerAttack", null);
                     stateMachine.ChangeState(enemy.attackState);
+                }
                 else
                     stateMachine.ChangeState(enemy.idleState);
             }

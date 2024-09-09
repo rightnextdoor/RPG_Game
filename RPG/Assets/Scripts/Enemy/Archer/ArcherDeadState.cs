@@ -14,6 +14,7 @@ public class ArcherDeadState : EnemyState
     {
         base.Enter();
 
+        AudioManager.instance.PlaySFX("ArcherDie", enemy.transform);
         enemy.anim.SetBool(enemy.lastAnimBoolName, true);
         enemy.anim.speed = 0;
         enemy.cd.enabled = false;

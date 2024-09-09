@@ -25,7 +25,7 @@ public class DeathBringerSpellCastState : EnemyState
     {
         base.Exit();
 
-        enemy.lastTimeCast = Time.time;
+        enemy.lastTimeCast = Time.time;        
     }
 
     public override void Update()
@@ -35,10 +35,16 @@ public class DeathBringerSpellCastState : EnemyState
         spellTimer -= Time.deltaTime;
 
         if (CanCast())
+        {
             enemy.CastSpell();
+            AudioManager.instance.PlaySFX("DeathBringerSpellAttack", null);
+        }
        
-        if(amountOfSpells <= 0)
+        if (amountOfSpells <= 0)
+        {
+            AudioManager.instance.StopSFX("DeathBringerSpellUP");
             stateMachine.ChangeState(enemy.teleportState);
+        }
     }
 
     private bool CanCast()

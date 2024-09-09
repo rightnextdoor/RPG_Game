@@ -226,6 +226,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3941635242805e4ba89dd67e5b092c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxHealth:
+    baseValue: 75
+    modifiers: 
+  currentHealth: 0
+  damage:
+    baseValue: 30
+    modifiers: 
   strength:
     baseValue: 0
     modifiers: 
@@ -238,17 +245,11 @@ MonoBehaviour:
   vitality:
     baseValue: 0
     modifiers: 
-  damage:
-    baseValue: 30
-    modifiers: 
   critChance:
     baseValue: 0
     modifiers: 
   critPower:
     baseValue: 0
-    modifiers: 
-  maxHealth:
-    baseValue: 75
     modifiers: 
   armor:
     baseValue: 0
@@ -273,7 +274,6 @@ MonoBehaviour:
   isShocked: 0
   ailmentsDuration: 4
   shockStrikePrefab: {fileID: 6889908486227579018, guid: 78970814a6fb9434a91ec678a0d80fdd, type: 3}
-  currentHealth: 0
   soulsDropAmount:
     baseValue: 0
     modifiers: 
@@ -320,8 +320,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 492d4a67de2351d44a38fbd5115505d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  possibleItemDrop: 0
-  possibleDrop: []
+  maxItemsToDrop: 0
+  itemPool: []
   dropPrefab: {fileID: 7663703077390093099, guid: 2ecceb17b1752e5428f40e73479e555e, type: 3}
 --- !u!114 &2759031306130948418
 MonoBehaviour:
@@ -365,7 +365,7 @@ MonoBehaviour:
   slimeType: 1
   slimesToCreate: 4
   slimePrefab: {fileID: 8025110283429093556, guid: 34bdf33f512c96f4fb6d299226e12194, type: 3}
-  minCreationVelocity: {x: 14, y: 12}
+  minCreationVelocity: {x: 10, y: 10}
   maxCreationVelocity: {x: 18, y: 16}
 --- !u!1 &1796645267043239611
 GameObject:
