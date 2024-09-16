@@ -65,7 +65,7 @@ public class UI : MonoBehaviour, ISaveManager
 
         if (_menu != null)
         {
-            //AudioManager.instance.PlaySFX("sfx_click", null);
+            AudioManager.instance.PlaySFX("MenuClick", null);
             _menu.SetActive(true);
         }
 

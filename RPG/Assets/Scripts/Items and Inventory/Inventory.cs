@@ -311,6 +311,7 @@ public class Inventory : MonoBehaviour, ISaveManager
 
         if (canUseFlask)
         {
+            AudioManager.instance.PlaySFX("Flask", null);
             flaskCooldown = currentFlask.itemCooldown;
             currentFlask.Effect(null);
             lastTimeUsedFlask = Time.time;
