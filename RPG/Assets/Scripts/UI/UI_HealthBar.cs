@@ -7,12 +7,12 @@ public class UI_HealthBar : MonoBehaviour
 {
     private Entity entity => GetComponentInParent<Entity>();
     private CharacterStats myStats => GetComponentInParent<CharacterStats>();
-    private RectTransform myTransform;
+    private RectTransform myTransform => GetComponent<RectTransform>();
     private Slider slider;
 
     private void Start()
     {
-        myTransform = GetComponent<RectTransform>();
+        //myTransform = GetComponent<RectTransform>();
         slider = GetComponentInChildren<Slider>();
         
         UpdateHealthUI();

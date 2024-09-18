@@ -7,8 +7,14 @@ using UnityEngine.UI;
 public class UI_InGame : MonoBehaviour
 {
     [SerializeField] private PlayerStats playerStats;
-    [SerializeField] private Slider slider;
+    [Header("HealthBar")]
+    [SerializeField] private Slider sliderFrontBar;
+    [SerializeField] private Slider sliderBackbar;
+    [SerializeField] private Image backHealhBarImage;
+    [SerializeField] private float chipSpeed = 10;
+    [SerializeField] private TextMeshProUGUI healthText;
 
+    [Space]
     [SerializeField] private Image dashImage;
     [SerializeField] private Image parryImage;
     [SerializeField] private Image crystalImage;
@@ -29,12 +35,18 @@ public class UI_InGame : MonoBehaviour
             playerStats.onHealthChanged += UpdateHealthUI;
 
         skills = SkillManager.instance;
+
+        sliderFrontBar.maxValue = playerStats.GetMaxHealthValue();
+        sliderFrontBar.value = playerStats.currentHealth;
+        sliderBackbar.maxValue = playerStats.GetMaxHealthValue();
+        sliderBackbar.value = playerStats.currentHealth;
     }
 
     void Update()
     {
         UpdateSoulsUI();
-
+        UpdateHealthUI();
+       
         ItemData_Equipment flask = Inventory.instance.GetEquipment(EquipmentType.Flask);
         if (flask != null)
         {
@@ -83,8 +95,29 @@ public class UI_InGame : MonoBehaviour
 
     private void UpdateHealthUI()
     {
-        slider.maxValue = playerStats.GetMaxHealthValue();
-        slider.value = playerStats.currentHealth;
+        float fillF = sliderFrontBar.value;
+        float fillB = sliderBackbar.value;
+
+        if (fillB > playerStats.currentHealth)
+        {
+            sliderFrontBar.value = playerStats.currentHealth;
+            backHealhBarImage.color = Color.red;
+            playerStats.lerpTimer += Time.deltaTime;
+            float percentComplete = playerStats.lerpTimer / chipSpeed;
+            percentComplete = percentComplete * percentComplete;
+            sliderBackbar.value = Mathf.Lerp(fillB, playerStats.currentHealth, percentComplete);
+        }
+
+        if (fillF < playerStats.currentHealth)
+        {
+            backHealhBarImage.color = Color.green;
+            sliderBackbar.value = playerStats.currentHealth;
+            playerStats.lerpTimer += Time.deltaTime;
+            float percentComplete = playerStats.lerpTimer / chipSpeed;
+            percentComplete = percentComplete * percentComplete;
+            sliderFrontBar.value = Mathf.Lerp(fillF, playerStats.currentHealth, percentComplete);
+        }
+        healthText.text = Mathf.Round(playerStats.currentHealth) + "/" + Mathf.Round(playerStats.GetMaxHealthValue());
     }
 
     private void SetCooldownOf(Image _image)

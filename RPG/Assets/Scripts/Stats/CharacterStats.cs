@@ -23,6 +23,7 @@ public class CharacterStats : MonoBehaviour
 {
     private EntityFX fx;
 
+    [HideInInspector] public float lerpTimer;
     [Header("Stats")]
     public Stat maxHealth;
     public int currentHealth;
@@ -313,6 +314,7 @@ public class CharacterStats : MonoBehaviour
             return;
 
         DecreaseHealthBy(_damage);
+        lerpTimer = 0f;
 
         GetComponent<Entity>().DamageImpact();
         fx.StartCoroutine("FlashFX");
@@ -330,6 +332,7 @@ public class CharacterStats : MonoBehaviour
 
         if(onHealthChanged != null)
             onHealthChanged();
+        lerpTimer = 0f;
     }
 
     protected virtual void DecreaseHealthBy(int _damage)
