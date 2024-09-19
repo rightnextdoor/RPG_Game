@@ -24,10 +24,6 @@ public class PlayerStats : CharacterStats
         player.Die();
 
         AudioManager.instance.PlaySFX("PlayerDeath", null);
-        GameManager.instance.lostCurrencyAmount = PlayerManager.instance.currency;
-        PlayerManager.instance.currency = 0;
-
-        GetComponent<PlayerItemDrop>()?.GenerateDrop();
     }
 
     protected override void DecreaseHealthBy(int _damage)

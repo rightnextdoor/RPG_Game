@@ -6,17 +6,18 @@ public class EnemyStats : CharacterStats
 {
     private Enemy enemy;
     private ItemDrop myDropSystem;
-    public Stat soulsDropAmount;
-
-    [Header("Level details")]
+    
+    [Header("Leveling details")]
     [SerializeField] private int level = 1;
+    [SerializeField] private int xpGain = 100;
+    public Stat xpAmount;
 
     [Range(0f, 1f)]
     [SerializeField] private float percantageModifier = .4f;
 
     protected override void Start()
     {
-        soulsDropAmount.SetDefaultValue(100);
+        xpAmount.SetDefaultValue(xpGain);
         ApplyLevelModifiers();
 
         base.Start();
@@ -45,7 +46,7 @@ public class EnemyStats : CharacterStats
         Modify(iceDamage);
         Modify(lightingDamage);
 
-        Modify(soulsDropAmount);
+        Modify(xpAmount);
     }
 
     private void Modify(Stat _stat)
@@ -67,8 +68,8 @@ public class EnemyStats : CharacterStats
     {
         base.Die();
         enemy.Die();
-
-        PlayerManager.instance.currency += soulsDropAmount.GetValue();
+        PlayerManager.instance.GainXP(xpAmount.GetValue(), level);
+        Debug.Log("xp " + xpAmount.GetValue());
         myDropSystem.GenerateDrop();
 
         Destroy(gameObject, 5f);

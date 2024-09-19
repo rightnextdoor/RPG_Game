@@ -5477,7 +5477,6 @@ GameObject:
   - component: {fileID: 6979793287042937243}
   - component: {fileID: 6231234708013107995}
   - component: {fileID: 6505600653464153832}
-  - component: {fileID: 1761402517690297927}
   - component: {fileID: 8355479855558127824}
   m_Layer: 6
   m_Name: Player
@@ -5655,6 +5654,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 900830c27134aab429f9258d6f3c813c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lerpTimer: 0
+  maxHealth:
+    baseValue: 200
+    modifiers: 
+  currentHealth: 0
+  damage:
+    baseValue: 10
+    modifiers: 
   strength:
     baseValue: 0
     modifiers: 
@@ -5667,17 +5674,11 @@ MonoBehaviour:
   vitality:
     baseValue: 5
     modifiers: 
-  damage:
-    baseValue: 10
-    modifiers: 
   critChance:
     baseValue: 15
     modifiers: 
   critPower:
     baseValue: 0
-    modifiers: 
-  maxHealth:
-    baseValue: 200
     modifiers: 
   armor:
     baseValue: 20
@@ -5702,24 +5703,6 @@ MonoBehaviour:
   isShocked: 0
   ailmentsDuration: 4
   shockStrikePrefab: {fileID: 6889908486227579018, guid: 78970814a6fb9434a91ec678a0d80fdd, type: 3}
-  currentHealth: 0
---- !u!114 &1761402517690297927
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9155777809501709256}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1bc79fa9e3c53b64d98eb3b149240046, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxItemsToDrop: 0
-  itemPool: []
-  dropPrefab: {fileID: 7663703077390093099, guid: 2ecceb17b1752e5428f40e73479e555e, type: 3}
-  chanceToLooseItems: 20
-  chanceToLooseMaterials: 75
 --- !u!114 &8355479855558127824
 MonoBehaviour:
   m_ObjectHideFlags: 0

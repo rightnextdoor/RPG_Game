@@ -24,11 +24,6 @@ public class UI_InGame : MonoBehaviour
     [SerializeField] private Image flaskCooldownImage;
     private SkillManager skills;
 
-    [Header("Souls info")]
-    [SerializeField] private TextMeshProUGUI currentSouls;
-    [SerializeField] private float soulsAmount;
-    [SerializeField] private float increaseRate = 100;
-
     void Start()
     {
         if (playerStats != null)
@@ -44,7 +39,6 @@ public class UI_InGame : MonoBehaviour
 
     void Update()
     {
-        UpdateSoulsUI();
         UpdateHealthUI();
        
         ItemData_Equipment flask = Inventory.instance.GetEquipment(EquipmentType.Flask);
@@ -82,17 +76,6 @@ public class UI_InGame : MonoBehaviour
 
         CheckCooldownOf(flaskCooldownImage, Inventory.instance.flaskCooldown);
     }
-
-    private void UpdateSoulsUI()
-    {
-        if (soulsAmount < PlayerManager.instance.GetCurrency())
-            soulsAmount += Time.deltaTime * increaseRate;
-        else
-            soulsAmount = PlayerManager.instance.GetCurrency();
-
-        currentSouls.text = ((int)soulsAmount).ToString();
-    }
-
     private void UpdateHealthUI()
     {
         float fillF = sliderFrontBar.value;

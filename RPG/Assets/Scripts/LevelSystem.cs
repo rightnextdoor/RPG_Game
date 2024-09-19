@@ -4,11 +4,7 @@ using TMPro;
 
 public class LevelSystem : MonoBehaviour
 {
-    [SerializeField] private PlayerStats playerStats;
-    public int level;
-    public float currentXp;
-    public float requiredXp;
-
+    //[SerializeField] private PlayerStats playerStats;
     private float lerptimer;
     private float delayTimer = 0;
     public int delaySpeed = 4;
@@ -18,7 +14,7 @@ public class LevelSystem : MonoBehaviour
     [SerializeField] private Image backXpBarImage;
     [SerializeField] private TextMeshProUGUI levelText;
     [SerializeField] private TextMeshProUGUI xpText;
-    
+
     [Header("Multipliers")]
     [Range(1f, 300f)]
     public float additionMultiplier = 300;
@@ -26,35 +22,50 @@ public class LevelSystem : MonoBehaviour
     public float powerMultiplier = 2;
     [Range(7f, 14f)]
     public float divisionMultiplier = 7;
-    
- 
+
+    private bool start = false;
+
+
     void Start()
     {
-        frontXpBarSlider.value = currentXp / requiredXp;
-        backXpBarSlider.value = currentXp / requiredXp;
-        requiredXp = CalculateRequiredXp();
-        levelText.text = "Level " + level;
+        start = true;
+
+        PlayerManager.instance.requiredXp = CalculateRequiredXp();
+        levelText.text = "Level " + PlayerManager.instance.level;
     }
 
 
     void Update()
     {
-        UpdateXpUI();
-
-        if (Input.GetKeyDown(KeyCode.Y))
+        if (start)
         {
-            GainExperienceFlatRate(20);
+            SetUp();
         }
 
-        if (currentXp > requiredXp)
+        UpdateXpUI();
+
+        if (PlayerManager.instance.currentXp > PlayerManager.instance.requiredXp)
         {
             LevelUp();
         }
     }
 
+    private void SetUp()
+    {
+        if (PlayerManager.instance.level == 0)
+        {
+            PlayerManager.instance.level = 1;
+            PlayerManager.instance.requiredXp = CalculateRequiredXp();
+        }
+        frontXpBarSlider.value = PlayerManager.instance.currentXp / PlayerManager.instance.requiredXp;
+        backXpBarSlider.value = PlayerManager.instance.currentXp / PlayerManager.instance.requiredXp;
+        levelText.text = "Level " + PlayerManager.instance.level;
+        start = false;
+    }
+
     public void UpdateXpUI()
     {
-        float xpFraction = currentXp / requiredXp;
+        float xpFraction = PlayerManager.instance.currentXp / PlayerManager.instance.requiredXp;
         float FXP = frontXpBarSlider.value;
 
         if (FXP < xpFraction)
@@ -69,26 +80,26 @@ public class LevelSystem : MonoBehaviour
                 frontXpBarSlider.value = Mathf.Lerp(FXP, backXpBarSlider.value, percentComplete);
             }
         }
-        xpText.text = currentXp + "/" + requiredXp;
+        xpText.text = PlayerManager.instance.currentXp + "/" + PlayerManager.instance.requiredXp;
     }
 
     public void GainExperienceFlatRate(float xpGained)
     {
-        currentXp += xpGained;
+        PlayerManager.instance.currentXp += xpGained;
         lerptimer = 0f;
         delayTimer = 0f;
     }
 
     public void GainExperienceScalable(float _xpGained, int _passedLevel)
     {
-        if (_passedLevel < level)
+        if (_passedLevel < PlayerManager.instance.level)
         {
-            float multiplier = 1 + (level - _passedLevel) * 0.1f;
-            currentXp += _xpGained * multiplier;
+            float multiplier = 1 + (PlayerManager.instance.level - _passedLevel) * 0.1f;
+            PlayerManager.instance.currentXp += _xpGained * multiplier;
         }
         else
         {
-            currentXp += _xpGained;
+            PlayerManager.instance.currentXp += _xpGained;
         }
         lerptimer = 0f;
         delayTimer = 0f;
@@ -96,19 +107,20 @@ public class LevelSystem : MonoBehaviour
 
     public void LevelUp()
     {
-        level++;
+        PlayerManager.instance.level++;
+        PlayerManager.instance.skillsPoint++;
         frontXpBarSlider.value = 0;
         backXpBarSlider.value = 0;
-        currentXp = Mathf.RoundToInt(currentXp - requiredXp);
+        PlayerManager.instance.currentXp = Mathf.RoundToInt(PlayerManager.instance.currentXp - PlayerManager.instance.requiredXp);
         //gain skills points and stats
-        requiredXp = CalculateRequiredXp();
-        levelText.text = "Level " + level;
+        PlayerManager.instance.requiredXp = CalculateRequiredXp();
+        levelText.text = "Level " + PlayerManager.instance.level;
     }
 
     private int CalculateRequiredXp()
     {
         int solveForRequiredXp = 0;
-        for (int levelCycle = 1; levelCycle <= level; levelCycle++)
+        for (int levelCycle = 1; levelCycle <= PlayerManager.instance.level; levelCycle++)
         {
             solveForRequiredXp += (int)Mathf.Floor(levelCycle + additionMultiplier * Mathf.Pow(powerMultiplier, levelCycle / divisionMultiplier));
         }

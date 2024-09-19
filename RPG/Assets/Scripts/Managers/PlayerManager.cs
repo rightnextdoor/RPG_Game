@@ -1,13 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 public class PlayerManager : MonoBehaviour, ISaveManager
 {
     public static PlayerManager instance;
     public Player player;
 
-    public int currency;
+    public int skillsPoint = 0;
+    public int level = 1;
+    public float currentXp = 0;
+    public float requiredXp = 0;
 
     private void Awake()
     {
@@ -15,29 +20,42 @@ public class PlayerManager : MonoBehaviour, ISaveManager
             Destroy(instance.gameObject);
         else
             instance = this;
+
     }
 
-    public bool HaveEnoughMoney(int _price)
+    public void GainXP(float _xpGained, int _passedLevel)
     {
-        if (_price > currency)
+        GetComponent<LevelSystem>().GainExperienceScalable(_xpGained, _passedLevel);
+    }
+
+    public bool HaveEnoughSkillsPoints(int _price)
+    {
+        if (_price > skillsPoint)
         {
-            Debug.Log("Not enough money");
+            Debug.Log("Not enough skills points");
             return false;
         }
 
-        currency = currency - _price;
+        skillsPoint = skillsPoint - _price;
         return true;
     }
 
-    public int GetCurrency() => currency;
+    public int GetSkillsPoints() => skillsPoint;
 
     public void LoadData(GameData _data)
     {
-        this.currency = _data.currency;
+        this.skillsPoint = _data.skillsPoints;
+        this.level = _data.level;
+        this.currentXp = _data.currentXp;
+        this.requiredXp = _data.requiredXp;
+
     }
 
     public void SaveData(ref GameData _data)
     {
-        _data.currency = this.currency;
+        _data.skillsPoints = this.skillsPoint;
+        _data.level = this.level;
+        _data.currentXp = this.currentXp;
+        _data.requiredXp = this.requiredXp;
     }
 }

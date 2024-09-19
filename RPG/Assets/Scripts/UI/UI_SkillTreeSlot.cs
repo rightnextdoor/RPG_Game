@@ -44,7 +44,7 @@ public class UI_SkillTreeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
     public void UnlockSkillslot()
     {
-        if(PlayerManager.instance.HaveEnoughMoney(skillCost) == false)
+        if(PlayerManager.instance.HaveEnoughSkillsPoints(skillCost) == false)
             return;
 
         for (int i = 0; i < shouldBeUnlocked.Length; i++)

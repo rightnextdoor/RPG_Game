@@ -12,12 +12,6 @@ public class GameManager : MonoBehaviour, ISaveManager
     [SerializeField] private Checkpoint[] checkpoints;
     [SerializeField] private string closestCheckpointId;
 
-    [Header("Lost currency")]
-    [SerializeField] private GameObject lostCurrencyPrefab;
-    public int lostCurrencyAmount;
-    [SerializeField] private float lostCurrencyX;
-    [SerializeField] private float lostCurrencyY;
-
     private void Awake()
     {
         if (instance != null)
@@ -54,20 +48,7 @@ public class GameManager : MonoBehaviour, ISaveManager
         }
     }
 
-    private void LoadLostCurrency(GameData _data)
-    {
-        lostCurrencyAmount = _data.lostCurrencyAmount;
-        lostCurrencyX = _data.lostCurrencyX;
-        lostCurrencyY = _data.lostCurrencyY;
 
-        if (lostCurrencyAmount > 0)
-        {
-            GameObject newLostCurrency = Instantiate(lostCurrencyPrefab, new Vector3(lostCurrencyX, lostCurrencyY), Quaternion.identity);
-            newLostCurrency.GetComponent<LostCurrencyController>().currency = lostCurrencyAmount;
-        }
-
-        lostCurrencyAmount = 0;
-    }
 
     private IEnumerator LoadWithDelay(GameData _data)
     {
@@ -75,15 +56,10 @@ public class GameManager : MonoBehaviour, ISaveManager
 
         LoadCheckpoints(_data);
         LoadClosestCheckpoint(_data);
-        LoadLostCurrency(_data);
     }
 
     public void SaveData(ref GameData _data)
     {
-        _data.lostCurrencyAmount = lostCurrencyAmount;
-        _data.lostCurrencyX = player.position.x;
-        _data.lostCurrencyY = player.position.y;
-
         if(FindClosestCheckpoint() != null)
             _data.closestCheckpointId = FindClosestCheckpoint().id;
 
