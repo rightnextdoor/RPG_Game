@@ -29,7 +29,6 @@ public class PopUpTextFX : MonoBehaviour
         if (textTimer < 0)
         {
             float alpha = myText.color.a - colorDisappearingSpeed * Time.deltaTime;
-
             myText.color = new Color(myText.color.r, myText.color.g, myText.color.b, alpha);
 
             if (myText.color.a < 50)

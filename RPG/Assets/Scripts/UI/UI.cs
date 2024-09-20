@@ -16,6 +16,7 @@ public class UI : MonoBehaviour, ISaveManager
     [SerializeField] private GameObject craftUI;
     [SerializeField] private GameObject optionsUI;
     [SerializeField] private GameObject inGameUI;
+    
 
     public UI_SkillToolTip skillToolTip;
     public UI_ItemToolTip itemToolTip;
@@ -36,7 +37,7 @@ public class UI : MonoBehaviour, ISaveManager
         SwitchTo(inGameUI);
 
         itemToolTip.gameObject.SetActive(false);
-        statToolTip.gameObject.SetActive(false);
+        statToolTip.gameObject.SetActive(false);      
     }
 
     void Update()

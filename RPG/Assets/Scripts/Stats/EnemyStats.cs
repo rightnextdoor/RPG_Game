@@ -69,7 +69,7 @@ public class EnemyStats : CharacterStats
         base.Die();
         enemy.Die();
         PlayerManager.instance.GainXP(xpAmount.GetValue(), level);
-        Debug.Log("xp " + xpAmount.GetValue());
+
         myDropSystem.GenerateDrop();
 
         Destroy(gameObject, 5f);
