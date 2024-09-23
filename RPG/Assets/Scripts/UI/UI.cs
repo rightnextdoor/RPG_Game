@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UI : MonoBehaviour, ISaveManager
 {
@@ -17,6 +18,8 @@ public class UI : MonoBehaviour, ISaveManager
     [SerializeField] private GameObject optionsUI;
     [SerializeField] private GameObject inGameUI;
     [SerializeField] private GameObject statsUI;
+
+    [SerializeField] private Button closeButton;
     
 
     public UI_SkillToolTip skillToolTip;
@@ -38,7 +41,8 @@ public class UI : MonoBehaviour, ISaveManager
         SwitchTo(inGameUI);
 
         itemToolTip.gameObject.SetActive(false);
-        statToolTip.gameObject.SetActive(false);      
+        statToolTip.gameObject.SetActive(false); 
+        closeButton.gameObject.SetActive(false);
     }
 
     void Update()
@@ -57,6 +61,25 @@ public class UI : MonoBehaviour, ISaveManager
         
         if (Input.GetKeyDown(KeyCode.Y))
             SwitchWithKeyTo(statsUI);
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (inGameUI.activeSelf)
+            {
+                SwitchWithKeyTo(charcaterUI);
+            } else
+            {
+                CloseMenu();
+            }
+        }
+    }
+
+    public void CloseMenu()
+    {
+        if (!inGameUI.activeSelf)
+        {
+            SwitchTo(inGameUI);
+        }
     }
 
     public void SwitchTo(GameObject _menu)
@@ -76,10 +99,16 @@ public class UI : MonoBehaviour, ISaveManager
 
         if (GameManager.instance != null)
         {
-            if(_menu == inGameUI)
+            if (_menu == inGameUI)
+            {
                 GameManager.instance.PauseGame(false);
+                closeButton.gameObject.SetActive(false);
+            }
             else
+            {
                 GameManager.instance.PauseGame(true);
+                closeButton.gameObject.SetActive(true);
+            }
         }
     }
 
