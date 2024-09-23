@@ -21,7 +21,7 @@ public class EnemyStats : CharacterStats
         ApplyLevelModifiers();
 
         base.Start();
-
+        currentHealth = GetMaxHealthValue();
         enemy = GetComponent<Enemy>();
         myDropSystem = GetComponent<ItemDrop>();
     }

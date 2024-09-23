@@ -24,6 +24,8 @@ public class UI_InGame : MonoBehaviour
     [SerializeField] private Image flaskCooldownImage;
     private SkillManager skills;
 
+    private bool setupValue = false;
+
     void Start()
     {
         if (playerStats != null)
@@ -31,10 +33,7 @@ public class UI_InGame : MonoBehaviour
 
         skills = SkillManager.instance;
 
-        sliderFrontBar.maxValue = playerStats.GetMaxHealthValue();
-        sliderFrontBar.value = playerStats.currentHealth;
-        sliderBackbar.maxValue = playerStats.GetMaxHealthValue();
-        sliderBackbar.value = playerStats.currentHealth;
+        setupValue = true;
     }
 
     void Update()
@@ -78,6 +77,15 @@ public class UI_InGame : MonoBehaviour
     }
     private void UpdateHealthUI()
     {
+        sliderFrontBar.maxValue = playerStats.GetMaxHealthValue();
+        sliderBackbar.maxValue = playerStats.GetMaxHealthValue();
+        
+        if (setupValue)
+        {
+            SetupCurrentValue();
+            setupValue = false;
+        }
+
         float fillF = sliderFrontBar.value;
         float fillB = sliderBackbar.value;
 
@@ -101,6 +109,12 @@ public class UI_InGame : MonoBehaviour
             sliderFrontBar.value = Mathf.Lerp(fillF, playerStats.currentHealth, percentComplete);
         }
         healthText.text = Mathf.Round(playerStats.currentHealth) + "/" + Mathf.Round(playerStats.GetMaxHealthValue());
+    }
+
+    private void SetupCurrentValue()
+    {
+        sliderFrontBar.value = playerStats.currentHealth;
+        sliderBackbar.value = playerStats.currentHealth;
     }
 
     private void SetCooldownOf(Image _image)

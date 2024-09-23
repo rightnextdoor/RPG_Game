@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerStats : CharacterStats
+public class PlayerStats : CharacterStats, ISaveManager
 {
     private Player player;
 
@@ -11,6 +11,8 @@ public class PlayerStats : CharacterStats
         base.Start();
 
         player = GetComponent<Player>();
+
+        currentHealth = GetMaxHealthValue();
     }
 
     public override void TakeDamage(int _damage)
@@ -70,5 +72,16 @@ public class PlayerStats : CharacterStats
         _targetStats.TakeDamage(totalDamage);
 
         DoMagicalDamage(_targetStats); // remove if you don't want to apply magic hit on primary attack
+    }
+
+    public void LoadData(GameData _data)
+    {
+        maxHealth.SetDefaultValue(_data.maxHealth);
+        currentHealth = _data.maxHealth;
+    }
+
+    public void SaveData(ref GameData _data)
+    {
+        _data.maxHealth = maxHealth.GetValue();
     }
 }

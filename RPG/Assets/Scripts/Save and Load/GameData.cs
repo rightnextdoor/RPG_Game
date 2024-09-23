@@ -11,6 +11,8 @@ public class GameData
     public float currentXp;
     public float requiredXp;
 
+    public int maxHealth;
+
     public SerializableDictionary<string, bool> skillTree;
     public SerializableDictionary<string, int> inventory;
     public List<string> equipmentId;
@@ -22,6 +24,9 @@ public class GameData
 
     public GameData()
     {
+        skillsPoints = 0;
+        maxHealth = 100;
+
         skillTree = new SerializableDictionary<string, bool>();
         inventory = new SerializableDictionary<string, int>();
         equipmentId = new List<string>();
