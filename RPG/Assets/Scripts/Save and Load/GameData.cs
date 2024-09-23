@@ -6,6 +6,7 @@ using UnityEngine;
 public class GameData 
 {
     public int skillsPoints;
+    public int statsPoints;
     public int level;
     public float currentXp;
     public float requiredXp;

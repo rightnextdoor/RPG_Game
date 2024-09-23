@@ -25,7 +25,6 @@ public class LevelSystem : MonoBehaviour
 
     private bool start = false;
 
-
     void Start()
     {
         start = true;
@@ -109,6 +108,8 @@ public class LevelSystem : MonoBehaviour
     {
         PlayerManager.instance.level++;
         PlayerManager.instance.skillsPoint++;
+        PlayerManager.instance.statsPoints += 5;
+
         frontXpBarSlider.value = 0;
         backXpBarSlider.value = 0;
         PlayerManager.instance.currentXp = Mathf.RoundToInt(PlayerManager.instance.currentXp - PlayerManager.instance.requiredXp);
