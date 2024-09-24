@@ -12,6 +12,19 @@ public class GameData
     public float requiredXp;
 
     public int maxHealth;
+    public int damage;
+    public int strength;
+    public int agility;
+    public int intelligence;
+    public int vitality;
+    public int critChance;
+    public int critPower;
+    public int armor;
+    public int evasion;
+    public int magicResistance;
+    public int fireDamage;
+    public int iceDamage;
+    public int lightingDamage;
 
     public SerializableDictionary<string, bool> skillTree;
     public SerializableDictionary<string, int> inventory;
@@ -26,6 +39,7 @@ public class GameData
     {
         skillsPoints = 0;
         maxHealth = 100;
+        damage = 50;
 
         skillTree = new SerializableDictionary<string, bool>();
         inventory = new SerializableDictionary<string, int>();

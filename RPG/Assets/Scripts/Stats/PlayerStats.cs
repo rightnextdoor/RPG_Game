@@ -78,10 +78,36 @@ public class PlayerStats : CharacterStats, ISaveManager
     {
         maxHealth.SetDefaultValue(_data.maxHealth);
         currentHealth = _data.maxHealth;
+        damage.SetDefaultValue(_data.damage);
+        strength.SetDefaultValue(_data.strength);
+        agility.SetDefaultValue(_data.agility);
+        intelligence.SetDefaultValue(_data.intelligence);
+        vitality.SetDefaultValue(_data.vitality);
+        critChance.SetDefaultValue(_data.critChance);
+        critPower.SetDefaultValue(_data.critPower);
+        armor.SetDefaultValue(_data.armor);
+        evasion.SetDefaultValue(_data.evasion);
+        magicResistance.SetDefaultValue(_data.magicResistance);
+        fireDamage.SetDefaultValue(_data.fireDamage);
+        iceDamage.SetDefaultValue(_data.iceDamage);
+        lightingDamage.SetDefaultValue(_data.lightingDamage);
     }
 
     public void SaveData(ref GameData _data)
     {
         _data.maxHealth = maxHealth.GetValue();
+        _data.damage = damage.GetValue();
+        _data.strength = strength.GetValue();
+        _data.agility = agility.GetValue();
+        _data.intelligence = intelligence.GetValue();
+        _data.vitality = vitality.GetValue();
+        _data.critChance = critChance.GetValue();
+        _data.critPower = critPower.GetValue();
+        _data.armor = armor.GetValue();
+        _data.evasion = evasion.GetValue();
+        _data.magicResistance = magicResistance.GetValue();
+        _data.fireDamage = fireDamage.GetValue();
+        _data.iceDamage = iceDamage.GetValue();
+        _data.lightingDamage = lightingDamage.GetValue();
     }
 }
