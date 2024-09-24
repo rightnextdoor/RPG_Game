@@ -130,17 +130,13 @@ public class UI_Stats : MonoBehaviour
         statsPointText.text = "Stats Points: " + statsPoints;
 
         startingPoints = PlayerManager.instance.statsPoints;
-        //statsPoints += startingPoints - pointsToAdd;
 
         SetupStatText();
 
         if (Input.GetKeyDown(KeyCode.T))
         {
-            //UpdateStartingPoints(PlayerManager.instance.statsPoints += 5);
             PlayerManager.instance.statsPoints += 5;
             UpdateStartingPoints(5);
-            //startingPoints = PlayerManager.instance.statsPoints; 
-            //statsPoints += startingPoints - pointsToAdd;
         }
     }
 
@@ -188,20 +184,20 @@ public class UI_Stats : MonoBehaviour
 
     private void SetupStats()
     {
-        health = stats.GetMaxHealthValue();
-        damage = stats.damage.GetValue();
-        strength = stats.strength.GetValue();
-        agility = stats.agility.GetValue();
-        intelligence = stats.intelligence.GetValue();
-        vitality = stats.vitality.GetValue();
-        critChance = stats.critChance.GetValue();
-        critPower = stats.critPower.GetValue();
-        armor = stats.armor.GetValue();
-        evasion = stats.evasion.GetValue();
-        magicResistance = stats.magicResistance.GetValue();
-        fireDamage = stats.fireDamage.GetValue();
-        iceDamage = stats.iceDamage.GetValue();
-        lightingDamage = stats.lightingDamage.GetValue();
+        health = stats.maxHealth.GetBaseValue();
+        damage = stats.damage.GetBaseValue();
+        strength = stats.strength.GetBaseValue();
+        agility = stats.agility.GetBaseValue();
+        intelligence = stats.intelligence.GetBaseValue();
+        vitality = stats.vitality.GetBaseValue();
+        critChance = stats.critChance.GetBaseValue();
+        critPower = stats.critPower.GetBaseValue();
+        armor = stats.armor.GetBaseValue();
+        evasion = stats.evasion.GetBaseValue();
+        magicResistance = stats.magicResistance.GetBaseValue();
+        fireDamage = stats.fireDamage.GetBaseValue();
+        iceDamage = stats.iceDamage.GetBaseValue();
+        lightingDamage = stats.lightingDamage.GetBaseValue();
     }
 
     public void ApplyStats()
@@ -233,21 +229,21 @@ public class UI_Stats : MonoBehaviour
 
     private void UpdateStats()
     {
-        stats.maxHealth.SetDefaultValue(healthPoint + stats.maxHealth.GetValue());
+        stats.maxHealth.SetDefaultValue(healthPoint + stats.maxHealth.GetBaseValue());
         stats.currentHealth += healthPoint;
-        stats.damage.SetDefaultValue(damagePoint + stats.damage.GetValue());
-        stats.strength.SetDefaultValue(stats.strength.GetValue() + strengthPoint);
-        stats.agility.SetDefaultValue(stats.agility.GetValue() + agilityPoint);
-        stats.intelligence.SetDefaultValue(stats.intelligence.GetValue() + intelligencePoint);
-        stats.vitality.SetDefaultValue(stats.vitality.GetValue() + vitalityPoint);
-        stats.critChance.SetDefaultValue(stats.critChance.GetValue() + critChancePoint);
-        stats.critPower.SetDefaultValue(stats.critPower.GetValue() + critPowerPoint);
-        stats.armor.SetDefaultValue(stats.armor.GetValue() + armorPoint);
-        stats.evasion.SetDefaultValue(stats.evasion.GetValue() + evasionPoint);
-        stats.magicResistance.SetDefaultValue(stats.magicResistance.GetValue() + magicResistancePoint);
-        stats.fireDamage.SetDefaultValue(stats.fireDamage.GetValue() + fireDamagePoint);
-        stats.iceDamage.SetDefaultValue(stats.iceDamage.GetValue() + iceDamagePoint);
-        stats.lightingDamage.SetDefaultValue(stats.lightingDamage.GetValue() + lightingDamagePoint);
+        stats.damage.SetDefaultValue(damagePoint + stats.damage.GetBaseValue());
+        stats.strength.SetDefaultValue(stats.strength.GetBaseValue() + strengthPoint);
+        stats.agility.SetDefaultValue(stats.agility.GetBaseValue() + agilityPoint);
+        stats.intelligence.SetDefaultValue(stats.intelligence.GetBaseValue() + intelligencePoint);
+        stats.vitality.SetDefaultValue(stats.vitality.GetBaseValue() + vitalityPoint);
+        stats.critChance.SetDefaultValue(stats.critChance.GetBaseValue() + critChancePoint);
+        stats.critPower.SetDefaultValue(stats.critPower.GetBaseValue() + critPowerPoint);
+        stats.armor.SetDefaultValue(stats.armor.GetBaseValue() + armorPoint);
+        stats.evasion.SetDefaultValue(stats.evasion.GetBaseValue() + evasionPoint);
+        stats.magicResistance.SetDefaultValue(stats.magicResistance.GetBaseValue() + magicResistancePoint);
+        stats.fireDamage.SetDefaultValue(stats.fireDamage.GetBaseValue() + fireDamagePoint);
+        stats.iceDamage.SetDefaultValue(stats.iceDamage.GetBaseValue() + iceDamagePoint);
+        stats.lightingDamage.SetDefaultValue(stats.lightingDamage.GetBaseValue() + lightingDamagePoint);
     }
 
     public void IncreasedStats(string _stats)

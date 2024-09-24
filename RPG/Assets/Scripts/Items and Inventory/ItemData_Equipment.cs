@@ -74,6 +74,8 @@ public class ItemData_Equipment : ItemData
         playerStats.fireDamage.AddModifier(fireDamage);
         playerStats.iceDamage.AddModifier(iceDamage);
         playerStats.lightingDamage.AddModifier(lightingDamage);
+
+        playerStats.currentHealth += health; 
     }
 
     public void RemoveModifiers()
@@ -97,6 +99,15 @@ public class ItemData_Equipment : ItemData
         playerStats.fireDamage.RemoveModifier(fireDamage);
         playerStats.iceDamage.RemoveModifier(iceDamage);
         playerStats.lightingDamage.RemoveModifier(lightingDamage);
+
+        if (playerStats.currentHealth - health < 1)
+        {
+            playerStats.currentHealth = 1;
+        }else
+        {
+            playerStats.currentHealth -= health;
+        }
+        
     }
 
     public override string GetDescription()

@@ -9,6 +9,8 @@ public class Stat
 
     public List<int> modifiers;
 
+    public int GetBaseValue() => baseValue;
+
     public int GetValue() 
     { 
         int finalValue = baseValue;

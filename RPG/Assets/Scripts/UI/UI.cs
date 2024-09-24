@@ -18,10 +18,7 @@ public class UI : MonoBehaviour, ISaveManager
     [SerializeField] private GameObject optionsUI;
     [SerializeField] private GameObject inGameUI;
     [SerializeField] private GameObject statsUI;
-
-    [SerializeField] private Button closeButton;
     
-
     public UI_SkillToolTip skillToolTip;
     public UI_ItemToolTip itemToolTip;
     public UI_StatToolTip statToolTip;
@@ -42,7 +39,6 @@ public class UI : MonoBehaviour, ISaveManager
 
         itemToolTip.gameObject.SetActive(false);
         statToolTip.gameObject.SetActive(false); 
-        closeButton.gameObject.SetActive(false);
     }
 
     void Update()
@@ -101,7 +97,7 @@ public class UI : MonoBehaviour, ISaveManager
         {
             if (_menu == inGameUI)
             {
-                GameManager.instance.PauseGame(false);
+                GameManager.instance.PauseGame(false);              
             }
             else
             {
@@ -114,12 +110,12 @@ public class UI : MonoBehaviour, ISaveManager
     {
         if (_menu != null && _menu.activeSelf)
         {
-            _menu.SetActive(false);
+            _menu.SetActive(false);           
             CheckForInGameUI();
             return;
         }
-
         SwitchTo(_menu);
+        
     }
 
     private void CheckForInGameUI()

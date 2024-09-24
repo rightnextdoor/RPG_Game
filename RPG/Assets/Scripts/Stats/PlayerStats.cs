@@ -95,19 +95,19 @@ public class PlayerStats : CharacterStats, ISaveManager
 
     public void SaveData(ref GameData _data)
     {
-        _data.maxHealth = maxHealth.GetValue();
-        _data.damage = damage.GetValue();
-        _data.strength = strength.GetValue();
-        _data.agility = agility.GetValue();
-        _data.intelligence = intelligence.GetValue();
-        _data.vitality = vitality.GetValue();
-        _data.critChance = critChance.GetValue();
-        _data.critPower = critPower.GetValue();
-        _data.armor = armor.GetValue();
-        _data.evasion = evasion.GetValue();
-        _data.magicResistance = magicResistance.GetValue();
-        _data.fireDamage = fireDamage.GetValue();
-        _data.iceDamage = iceDamage.GetValue();
-        _data.lightingDamage = lightingDamage.GetValue();
+        _data.maxHealth = maxHealth.GetBaseValue();
+        _data.damage = damage.GetBaseValue();
+        _data.strength = strength.GetBaseValue();
+        _data.agility = agility.GetBaseValue();
+        _data.intelligence = intelligence.GetBaseValue();
+        _data.vitality = vitality.GetBaseValue();
+        _data.critChance = critChance.GetBaseValue();
+        _data.critPower = critPower.GetBaseValue();
+        _data.armor = armor.GetBaseValue();
+        _data.evasion = evasion.GetBaseValue();
+        _data.magicResistance = magicResistance.GetBaseValue();
+        _data.fireDamage = fireDamage.GetBaseValue();
+        _data.iceDamage = iceDamage.GetBaseValue();
+        _data.lightingDamage = lightingDamage.GetBaseValue();
     }
 }
