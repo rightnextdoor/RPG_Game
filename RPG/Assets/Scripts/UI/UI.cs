@@ -102,12 +102,10 @@ public class UI : MonoBehaviour, ISaveManager
             if (_menu == inGameUI)
             {
                 GameManager.instance.PauseGame(false);
-                closeButton.gameObject.SetActive(false);
             }
             else
             {
                 GameManager.instance.PauseGame(true);
-                closeButton.gameObject.SetActive(true);
             }
         }
     }

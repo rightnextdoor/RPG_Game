@@ -118,23 +118,40 @@ public class UI_Stats : MonoBehaviour
         stats = PlayerManager.instance.player.stats;
         ZeroOutStats();
         SetupStats();
+
+        statsPoints = PlayerManager.instance.statsPoints;
+        startingPoints = statsPoints;
     }
 
     
 
     private void Update()
     {
-        statsPoints = PlayerManager.instance.statsPoints;
-        startingPoints = statsPoints;
-
         statsPointText.text = "Stats Points: " + statsPoints;
+
+        startingPoints = PlayerManager.instance.statsPoints;
+        //statsPoints += startingPoints - pointsToAdd;
 
         SetupStatText();
 
         if (Input.GetKeyDown(KeyCode.T))
         {
+            //UpdateStartingPoints(PlayerManager.instance.statsPoints += 5);
             PlayerManager.instance.statsPoints += 5;
+            UpdateStartingPoints(5);
+            //startingPoints = PlayerManager.instance.statsPoints; 
+            //statsPoints += startingPoints - pointsToAdd;
         }
+    }
+
+    public void UpdateStartingPoints(int _points)
+    {
+        //statsPoints += startingPoints - pointsToAdd;
+        statsPoints += _points;
+        //startingPoints = statsPoints;
+        Debug.Log("points to add in update " + pointsToAdd);
+        Debug.Log("stats to add in update " + statsPoints);
+        Debug.Log("starting points in update " + statsPoints);
     }
 
     private void SetupStatText()
@@ -219,7 +236,7 @@ public class UI_Stats : MonoBehaviour
         stats.maxHealth.SetDefaultValue(healthPoint + stats.maxHealth.GetValue());
         stats.currentHealth += healthPoint;
         stats.damage.SetDefaultValue(damagePoint + stats.damage.GetValue());
-        stats.strength.SetDefaultValue(stats.strength.GetValue() + startingPoints);
+        stats.strength.SetDefaultValue(stats.strength.GetValue() + strengthPoint);
         stats.agility.SetDefaultValue(stats.agility.GetValue() + agilityPoint);
         stats.intelligence.SetDefaultValue(stats.intelligence.GetValue() + intelligencePoint);
         stats.vitality.SetDefaultValue(stats.vitality.GetValue() + vitalityPoint);
@@ -235,6 +252,8 @@ public class UI_Stats : MonoBehaviour
 
     public void IncreasedStats(string _stats)
     {
+        Debug.Log("points to add " + pointsToAdd);
+        Debug.Log("starting points " + statsPoints);
         if (pointsToAdd < startingPoints)
         {
             if (_stats == "Health")
@@ -378,7 +397,7 @@ public class UI_Stats : MonoBehaviour
 
         if (_stats == "Strength")
         {
-            if (startingPoints > 0)
+            if (strengthPoint > 0)
             {
                 pointsToAdd--;
                 statsPoints++;

@@ -110,6 +110,8 @@ public class LevelSystem : MonoBehaviour
         PlayerManager.instance.skillsPoint++;
         PlayerManager.instance.statsPoints += 5;
 
+        //GetComponent<UI_Stats>().UpdateStartingPoints(PlayerManager.instance.statsPoints);
+
         frontXpBarSlider.value = 0;
         backXpBarSlider.value = 0;
         PlayerManager.instance.currentXp = Mathf.RoundToInt(PlayerManager.instance.currentXp - PlayerManager.instance.requiredXp);
