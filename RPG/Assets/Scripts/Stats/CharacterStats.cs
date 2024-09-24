@@ -362,12 +362,13 @@ public class CharacterStats : MonoBehaviour
     #region Stat calculations
     protected int CheckTargetArmor(CharacterStats _targetStats, int totalDamage)
     {
-        if(_targetStats.isChilled)
-            totalDamage -= Mathf.RoundToInt(_targetStats.armor.GetValue() * .8f);
-        else
-            totalDamage -= _targetStats.armor.GetValue();
+        float armorValue = 100 + _targetStats.armor.GetValue();
 
-        totalDamage = Mathf.Clamp(totalDamage, 0, int.MaxValue);
+        totalDamage = Mathf.RoundToInt(totalDamage * (100 / armorValue));
+
+        if (_targetStats.isChilled)
+            totalDamage = Mathf.RoundToInt(totalDamage * .8f);
+
         return totalDamage;
     }
 

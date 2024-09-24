@@ -132,22 +132,11 @@ public class UI_Stats : MonoBehaviour
         startingPoints = PlayerManager.instance.statsPoints;
 
         SetupStatText();
-
-        if (Input.GetKeyDown(KeyCode.T))
-        {
-            PlayerManager.instance.statsPoints += 5;
-            UpdateStartingPoints(5);
-        }
     }
 
     public void UpdateStartingPoints(int _points)
     {
-        //statsPoints += startingPoints - pointsToAdd;
         statsPoints += _points;
-        //startingPoints = statsPoints;
-        Debug.Log("points to add in update " + pointsToAdd);
-        Debug.Log("stats to add in update " + statsPoints);
-        Debug.Log("starting points in update " + statsPoints);
     }
 
     private void SetupStatText()

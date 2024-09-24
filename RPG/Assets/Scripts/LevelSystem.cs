@@ -4,7 +4,6 @@ using TMPro;
 
 public class LevelSystem : MonoBehaviour
 {
-    //[SerializeField] private PlayerStats playerStats;
     private float lerptimer;
     private float delayTimer = 0;
     public int delaySpeed = 4;
