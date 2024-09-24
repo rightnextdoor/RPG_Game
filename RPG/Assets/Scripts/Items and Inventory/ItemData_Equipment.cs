@@ -75,7 +75,7 @@ public class ItemData_Equipment : ItemData
         playerStats.iceDamage.AddModifier(iceDamage);
         playerStats.lightingDamage.AddModifier(lightingDamage);
 
-        playerStats.currentHealth += health; 
+        playerStats.currentHealth += health + (vitality * 5); 
     }
 
     public void RemoveModifiers()
@@ -100,12 +100,12 @@ public class ItemData_Equipment : ItemData
         playerStats.iceDamage.RemoveModifier(iceDamage);
         playerStats.lightingDamage.RemoveModifier(lightingDamage);
 
-        if (playerStats.currentHealth - health < 1)
+        if (playerStats.currentHealth - health + (vitality * 5) < 1)
         {
             playerStats.currentHealth = 1;
         }else
         {
-            playerStats.currentHealth -= health;
+            playerStats.currentHealth -= health + (vitality * 5);
         }
         
     }

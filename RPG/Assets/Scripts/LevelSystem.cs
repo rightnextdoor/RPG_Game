@@ -7,7 +7,7 @@ public class LevelSystem : MonoBehaviour
     private float lerptimer;
     private float delayTimer = 0;
     public int delaySpeed = 4;
-    [SerializeField] private int skillsPoints = 5;
+    [SerializeField] private int statsPoints = 5;
     [Header("UI")]
     [SerializeField] private Slider frontXpBarSlider;
     [SerializeField] private Slider backXpBarSlider;
@@ -108,10 +108,10 @@ public class LevelSystem : MonoBehaviour
     {
         PlayerManager.instance.level++;
         PlayerManager.instance.skillsPoint++;
-        PlayerManager.instance.statsPoints += skillsPoints;
+        PlayerManager.instance.statsPoints += statsPoints;
 
         if(GetComponent<UI_Stats>() != null)
-            GetComponent<UI_Stats>().UpdateStartingPoints(skillsPoints);
+            GetComponent<UI_Stats>().UpdateStartingPoints(statsPoints);
 
         frontXpBarSlider.value = 0;
         backXpBarSlider.value = 0;
