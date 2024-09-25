@@ -49,6 +49,12 @@ public class Arrow_Controller : MonoBehaviour
         rb.constraints = RigidbodyConstraints2D.FreezeAll;
         transform.parent = collision.transform;
 
+        if (myStats.isDead)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         Destroy(gameObject, Random.Range(5, 7));
     }
 

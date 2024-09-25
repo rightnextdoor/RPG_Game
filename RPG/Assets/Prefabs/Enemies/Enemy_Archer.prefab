@@ -568,6 +568,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3941635242805e4ba89dd67e5b092c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lerpTimer: 0
+  maxHealth:
+    baseValue: 10
+    modifiers: 
+  currentHealth: 0
+  damage:
+    baseValue: 1
+    modifiers: 
   strength:
     baseValue: 0
     modifiers: 
@@ -580,17 +588,11 @@ MonoBehaviour:
   vitality:
     baseValue: 0
     modifiers: 
-  damage:
-    baseValue: 25
-    modifiers: 
   critChance:
     baseValue: 0
     modifiers: 
   critPower:
     baseValue: 0
-    modifiers: 
-  maxHealth:
-    baseValue: 150
     modifiers: 
   armor:
     baseValue: 0
@@ -615,11 +617,11 @@ MonoBehaviour:
   isShocked: 0
   ailmentsDuration: 4
   shockStrikePrefab: {fileID: 0}
-  currentHealth: 0
-  soulsDropAmount:
+  level: 1
+  xpGain: 100
+  xpAmount:
     baseValue: 0
     modifiers: 
-  level: 1
   percantageModifier: 0.4
 --- !u!114 &5297159358993753526
 MonoBehaviour:
@@ -662,8 +664,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 492d4a67de2351d44a38fbd5115505d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  possibleItemDrop: 0
-  possibleDrop: []
+  maxItemsToDrop: 0
+  itemPool: []
   dropPrefab: {fileID: 7663703077390093099, guid: 2ecceb17b1752e5428f40e73479e555e, type: 3}
 --- !u!114 &8424249175281791491
 MonoBehaviour:
@@ -711,7 +713,7 @@ MonoBehaviour:
   safeDistance: 3
   lastTimeJumped: 0
   groundBehindCheck: {fileID: 4152947364758406094}
-  groundBehindCheckSize: {x: 3.05, y: 5}
+  groundBehindCheckSize: {x: 1.79, y: 5}
 --- !u!1 &6160635913531510251
 GameObject:
   m_ObjectHideFlags: 0

@@ -37,7 +37,7 @@ public class Enemy_Archer : Enemy
         battleState = new ArcherBattleState(this, stateMachine, "Idle", this);
         attackState = new ArcherAttackState(this, stateMachine, "Attack", this);
         stunnedState = new ArcherStunnedState(this, stateMachine, "Stunned", this);
-        deadState = new ArcherDeadState(this, stateMachine, "Idle", this);
+        deadState = new ArcherDeadState(this, stateMachine, "Die", this);
         jumpState = new ArcherJumpState(this, stateMachine, "Jump", this);
     }
 
@@ -60,6 +60,14 @@ public class Enemy_Archer : Enemy
     public override void Die()
     {
         base.Die();
+        if (stats.isDeadZone)
+        {
+            deadState = new ArcherDeadState(this, stateMachine, "Idle", this);
+            anim.SetBool(lastAnimBoolName, true);
+            anim.speed = 0;
+            cd.enabled = false;
+        }
+
         stateMachine.ChangeState(deadState);
     }
 
