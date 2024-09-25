@@ -275,7 +275,7 @@ MonoBehaviour:
   stunDuration: 1
   stunDirection: {x: 10, y: 12}
   counterImage: {fileID: 4676605648977866115}
-  moveSpeed: 1.5
+  moveSpeed: 2.5
   idleTime: 2
   battleTime: 4
   agroDistance: 2
@@ -325,15 +325,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3941635242805e4ba89dd67e5b092c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lerpTimer: 0
   maxHealth:
-    baseValue: 250
+    baseValue: 100
     modifiers: 
   currentHealth: 0
   damage:
     baseValue: 10
     modifiers: 
   strength:
-    baseValue: 20
+    baseValue: 0
     modifiers: 
   agility:
     baseValue: 0
@@ -342,7 +343,7 @@ MonoBehaviour:
     baseValue: 0
     modifiers: 
   vitality:
-    baseValue: 10
+    baseValue: 0
     modifiers: 
   critChance:
     baseValue: 0
@@ -373,10 +374,11 @@ MonoBehaviour:
   isShocked: 0
   ailmentsDuration: 4
   shockStrikePrefab: {fileID: 6889908486227579018, guid: 78970814a6fb9434a91ec678a0d80fdd, type: 3}
-  soulsDropAmount:
-    baseValue: 0
-    modifiers: 
   level: 1
+  xpGain: 100
+  xpAmount:
+    baseValue: 100
+    modifiers: 
   percantageModifier: 0.4
 --- !u!114 &3296688780848460315
 MonoBehaviour:

@@ -103,7 +103,7 @@ public class CharacterStats : MonoBehaviour
             ApplyIgniteDamage();
     }
 
-    public void IsDeadZone()
+    public void DeadZone()
     {
         isDeadZone = true;
     }
@@ -299,7 +299,7 @@ public class CharacterStats : MonoBehaviour
         {
             DecreaseHealthBy(igniteDamage);
 
-            if (currentHealth < 0 && !isDead)
+            if (currentHealth <= 0 && !isDead)
                 Die();
 
             igniteDamageTimer = igniteDamageCooldown;
@@ -321,7 +321,7 @@ public class CharacterStats : MonoBehaviour
         GetComponent<Entity>().DamageImpact();
         fx.StartCoroutine("FlashFX");
 
-        if (currentHealth < 0 && !isDead)
+        if (currentHealth <= 0 && !isDead)
             Die();
     }
 

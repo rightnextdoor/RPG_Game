@@ -8,7 +8,7 @@ public class DeadZone : MonoBehaviour
     {
         if (collision.GetComponent<CharacterStats>() != null)
         {
-            collision.GetComponent<CharacterStats>().IsDeadZone();
+            collision.GetComponent<CharacterStats>().DeadZone();
             collision.GetComponent<CharacterStats>().KillEntity();
         }
         else

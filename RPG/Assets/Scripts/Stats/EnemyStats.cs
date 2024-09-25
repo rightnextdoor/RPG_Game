@@ -72,6 +72,6 @@ public class EnemyStats : CharacterStats
 
         myDropSystem.GenerateDrop();
 
-        Destroy(gameObject, 5f);
+        Destroy(gameObject, 2f);
     }
 }

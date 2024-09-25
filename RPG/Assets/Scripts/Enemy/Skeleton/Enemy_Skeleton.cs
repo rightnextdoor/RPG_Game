@@ -22,7 +22,7 @@ public class Enemy_Skeleton : Enemy
         battleState = new SkeletonBattleState(this, stateMachine, "Battle", this);
         attackState = new SkeletonAttackState(this, stateMachine, "Attack", this);
         stunnedState = new SkeletonStunnedState(this, stateMachine, "Stunned", this);
-        deadState = new SkeletonDeadState(this, stateMachine, "Idle", this);
+        deadState = new SkeletonDeadState(this, stateMachine, "Die", this);
     }
 
     protected override void Start()
@@ -44,6 +44,15 @@ public class Enemy_Skeleton : Enemy
     public override void Die()
     {
         base.Die();
+
+        if (stats.isDeadZone)
+        {
+            deadState = new SkeletonDeadState(this, stateMachine, "Idle", this);
+            anim.SetBool(lastAnimBoolName, true);
+            anim.speed = 0;
+            cd.enabled = false;
+        }
+
         stateMachine.ChangeState(deadState);
     }
 }
