@@ -16,18 +16,14 @@ public class SlimeDeadState : EnemyState
         base.Enter();
 
         AudioManager.instance.PlaySFX("SlimeDie", enemy.transform);
-        enemy.anim.SetBool(enemy.lastAnimBoolName, true);
-        enemy.anim.speed = 0;
-        enemy.cd.enabled = false;
-
-        stateTimer = .15f;
+        enemy.stats.MakeInvincible(true);
     }
 
     public override void Update()
     {
         base.Update();
 
-        if (stateTimer > 0)
-            rb.velocity = new Vector2(0, 10);
+        if (!enemy.stats.isDeadZone)
+            enemy.SetZeroVelocity();
     }
 }

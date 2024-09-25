@@ -39,7 +39,7 @@ public class Enemy_Slime : Enemy
         battleState = new SlimeBattleState(this, stateMachine, "Move", this);
         attackState = new SlimeAttackState(this, stateMachine, "Attack", this);
         stunnedState = new SlimeStunnedState(this, stateMachine, "Stunned", this);
-        deadState = new SlimeDeadState(this, stateMachine, "Idle", this);
+        deadState = new SlimeDeadState(this, stateMachine, "Die", this);
     }
 
     protected override void Start()
@@ -61,6 +61,15 @@ public class Enemy_Slime : Enemy
     public override void Die()
     {
         base.Die();
+
+        if (stats.isDeadZone)
+        {
+            deadState = new SlimeDeadState(this, stateMachine, "Idle", this);
+            anim.SetBool(lastAnimBoolName, true);
+            anim.speed = 0;
+            cd.enabled = false;
+        }
+
         stateMachine.ChangeState(deadState);
 
         if (slimeType == SlimeType.small)
