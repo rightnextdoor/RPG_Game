@@ -6,6 +6,7 @@ public class PlayerDeadState : PlayerState
 {
     public PlayerDeadState(Player _player, PlayerStateMachine _stateMachine, string animBoolName) : base(_player, _stateMachine, animBoolName)
     {
+        this.player = _player;
     }
 
     public override void AnimationFinishTrigger()
@@ -28,6 +29,7 @@ public class PlayerDeadState : PlayerState
     public override void Update()
     {
         base.Update();
-        player.SetZeroVelocity();
+        if(!player.stats.isDeadZone) 
+            player.SetZeroVelocity();
     }
 }

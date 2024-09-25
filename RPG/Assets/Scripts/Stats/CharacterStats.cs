@@ -73,6 +73,7 @@ public class CharacterStats : MonoBehaviour
 
     public System.Action onHealthChanged;
     public bool isDead { get; private set; }
+    public bool isDeadZone { get; private set; }
     public bool isInvincible { get; private set; }
     private bool isVulnerable;
 
@@ -102,6 +103,10 @@ public class CharacterStats : MonoBehaviour
             ApplyIgniteDamage();
     }
 
+    public void IsDeadZone()
+    {
+        isDeadZone = true;
+    }
     public void MakeVulnerableFor(float _duration) => StartCoroutine(VulnerableCorutine(_duration));
 
     private IEnumerator VulnerableCorutine(float _duartion)

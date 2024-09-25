@@ -161,8 +161,15 @@ public class Player : Entity
     public override void Die()
     {
         base.Die();
+        if (stats.isDeadZone)
+        {
+            deadState = new PlayerDeadState(this, stateMachine, "Idle");
+            anim.speed = 0;
+            cd.enabled = false;
+        }
 
         stateMachine.ChangeState(deadState);
+
     }
 
     protected override void SetupZeroKnockbackPower()
