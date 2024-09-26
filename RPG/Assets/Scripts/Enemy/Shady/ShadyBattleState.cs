@@ -19,9 +19,6 @@ public class ShadyBattleState : EnemyState
     {
         base.Enter();
 
-        defaultSpeed = enemy.moveSpeed;
-        enemy.moveSpeed = enemy.battleStateMoveSpeed;
-
         player = PlayerManager.instance.player.transform;
 
         if (player.GetComponent<PlayerStats>().isDead)
@@ -32,7 +29,7 @@ public class ShadyBattleState : EnemyState
     {
         base.Exit();
 
-        enemy.moveSpeed = defaultSpeed;
+        //enemy.moveSpeed = defaultSpeed;
     }
 
     public override void Update()
@@ -49,8 +46,12 @@ public class ShadyBattleState : EnemyState
         if (enemy.IsPlayerDetected())
         {
             stateTimer = enemy.battleTime;
+
             if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
-                enemy.stats.KillEntity(); // this enter dead state which triggers explosion + drop items
+            {
+                if (CanAttack())
+                    stateMachine.ChangeState(enemy.attackState);
+            }
         }
         else
         {

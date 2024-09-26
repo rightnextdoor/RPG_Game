@@ -13,13 +13,15 @@ public class ShadyDeadState : EnemyState
     public override void Enter()
     {
         base.Enter();
+        AudioManager.instance.PlaySFX("ShadyDead", enemy.transform);
+        enemy.stats.MakeInvincible(true);
     }
 
     public override void Update()
     {
         base.Update();
 
-        if(triggerCalled)
-            enemy.SelfDestroy();
+        if (!enemy.stats.isDeadZone)
+            enemy.SetZeroVelocity();
     }
 }

@@ -13202,11 +13202,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1364194705466181665, guid: 6c4de4743cbdd8c459b57a54812c1c45, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1364194705466181665, guid: 6c4de4743cbdd8c459b57a54812c1c45, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5634098935937987302, guid: 6c4de4743cbdd8c459b57a54812c1c45, type: 3}
       propertyPath: m_Name
@@ -13214,7 +13214,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5634098935937987302, guid: 6c4de4743cbdd8c459b57a54812c1c45, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -59734,6 +59734,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4657462551170313670, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5145552673677281695, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: m_Name
       value: Enemy_Archer
@@ -60390,11 +60394,39 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2711789263224693478, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2711789263224693478, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6982403007833585609, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
+      propertyPath: idleTime
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6982403007833585609, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
+      propertyPath: growSpeed
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 6982403007833585609, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
+      propertyPath: moveSpeed
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6982403007833585609, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
+      propertyPath: attackDistance
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 6982403007833585609, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
+      propertyPath: explosionTimer
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6982403007833585609, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
+      propertyPath: maxAttackCooldown
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6982403007833585609, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
+      propertyPath: minAttackCooldown
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 6991040809912671778, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
       propertyPath: m_Name
@@ -60402,11 +60434,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6991040809912671778, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8552441180548029045, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
       propertyPath: damage.baseValue
-      value: 100
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 8552441180548029045, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
       propertyPath: maxHealth.baseValue
@@ -60492,7 +60524,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
       propertyPath: soundFX.Array.size
-      value: 36
+      value: 37
       objectReference: {fileID: 0}
     - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
       propertyPath: bgm.Array.data[0].volume
@@ -60795,6 +60827,14 @@ PrefabInstance:
       value: WindAreaSound
       objectReference: {fileID: 0}
     - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[36].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: ab990401400e0744291aab03566cfe6d, type: 3}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[36].name
+      value: ShadyDead
+      objectReference: {fileID: 0}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
       propertyPath: soundFX.Array.data[4].pitch
       value: 1
       objectReference: {fileID: 0}
@@ -60932,6 +60972,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
       propertyPath: soundFX.Array.data[35].pitch
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[36].pitch
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
@@ -61192,6 +61236,14 @@ PrefabInstance:
       objectReference: {fileID: -8458497694684626364, guid: b7725e6b8fda8d845bed26b071ee56d1, type: 2}
     - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
       propertyPath: soundFX.Array.data[35].volume
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[36].output
+      value: 
+      objectReference: {fileID: -8458497694684626364, guid: b7725e6b8fda8d845bed26b071ee56d1, type: 2}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[36].volume
       value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}

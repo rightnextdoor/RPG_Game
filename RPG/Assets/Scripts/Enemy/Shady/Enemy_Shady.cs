@@ -9,9 +9,12 @@ public class Enemy_Shady : Enemy
     public float battleStateMoveSpeed;
 
     [SerializeField] private GameObject explosivePrefab;
+    private GameObject currentBall;
     [SerializeField] private float growSpeed;
     [SerializeField] private float maxSize;
-    private bool playExplosion;
+
+    [SerializeField] private float explosionSpeed = 7;
+    [SerializeField] private float explosionTimer = 3;
 
     #region States
     public ShadyIdleState idleState { get; private set; }
@@ -19,6 +22,7 @@ public class Enemy_Shady : Enemy
     public ShadyBattleState battleState { get; private set; }
     public ShadyStunnedState stunnedState { get; private set; }
     public ShadyDeadState deadState { get; private set; }
+    public ShadyAttackState attackState { get; private set; }
     #endregion
 
     protected override void Awake()
@@ -27,17 +31,16 @@ public class Enemy_Shady : Enemy
 
         idleState = new ShadyIdleState(this, stateMachine, "Idle", this);
         moveState = new ShadyMoveState(this, stateMachine, "Move", this);
-        battleState = new ShadyBattleState(this, stateMachine, "MoveFast", this);
+        battleState = new ShadyBattleState(this, stateMachine, "Idle", this);
         stunnedState = new ShadyStunnedState(this, stateMachine, "Stunned", this);
-        deadState = new ShadyDeadState(this, stateMachine, "Dead", this);
+        deadState = new ShadyDeadState(this, stateMachine, "Die", this);
+        attackState = new ShadyAttackState(this, stateMachine, "Attack", this);
     }
 
     protected override void Start()
     {
         base.Start();
-
         stateMachine.Initialize(idleState);
-        playExplosion = true;
     }
 
     public override bool CanBeStunned()
@@ -53,21 +56,26 @@ public class Enemy_Shady : Enemy
     public override void Die()
     {
         base.Die();
+        if (stats.isDeadZone)
+        {
+            deadState = new ShadyDeadState(this, stateMachine, "Idle", this);
+            anim.SetBool(lastAnimBoolName, true);
+            anim.speed = 0;
+            cd.enabled = false;
+        }
         stateMachine.ChangeState(deadState);
     }
 
     public override void AnimationSpecialAttackTrigger()
-    {        
-        if (playExplosion)
-        {
-            GameObject newExplosive = Instantiate(explosivePrefab, attackCheck.position, Quaternion.identity);
-            newExplosive.GetComponent<Explosive_Controller>().SetupExplosive(stats, growSpeed, maxSize, attackCheckRadius);
-            AudioManager.instance.PlaySFX("Explosion", transform);
-            playExplosion = false;
-        }
-        
-        cd.enabled = false;
-        rb.gravityScale = 0;
+    {
+        CreateBall();
+        currentBall.GetComponent<Explosive_Controller>().SetupExplosive(stats, growSpeed, maxSize, attackCheckRadius, explosionSpeed, explosionTimer);
+    }
+
+    private void CreateBall()
+    {
+        currentBall = Instantiate(explosivePrefab, attackCheck.position, Quaternion.identity);
+        currentBall.transform.position = attackCheck.position;
     }
 
     public void SelfDestroy() => Destroy(gameObject);

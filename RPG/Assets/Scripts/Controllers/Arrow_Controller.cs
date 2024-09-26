@@ -10,7 +10,7 @@ public class Arrow_Controller : MonoBehaviour
     [SerializeField] private float xVelocity;
     [SerializeField] private Rigidbody2D rb;
 
-    [SerializeField] private bool canMove;
+    [SerializeField] private bool canMove = true;
     [SerializeField] private bool flipped;
 
     private CharacterStats myStats;
