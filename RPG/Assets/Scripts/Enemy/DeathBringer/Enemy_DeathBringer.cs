@@ -41,7 +41,7 @@ public class Enemy_DeathBringer : Enemy
         idleState = new DeathBringerIdleState(this, stateMachine, "Idle", this);
         battleState = new DeathBringerBattleState(this, stateMachine, "Move", this);
         attackState = new DeathBringerAttackState(this, stateMachine, "Attack", this);
-        deadState = new DeathBringerDeadState(this, stateMachine, "Idle", this);
+        deadState = new DeathBringerDeadState(this, stateMachine, "Die", this);
         teleportState = new DeathBringerTeleportState(this, stateMachine, "Teleport", this);
         spellCastState = new DeathBringerSpellCastState(this, stateMachine, "SpellCast", this);
     }
@@ -54,6 +54,15 @@ public class Enemy_DeathBringer : Enemy
     public override void Die()
     {
         base.Die();
+
+        if (stats.isDeadZone)
+        {
+            deadState = new DeathBringerDeadState(this, stateMachine, "Idle", this);
+            anim.SetBool(lastAnimBoolName, true);
+            anim.speed = 0;
+            cd.enabled = false;
+        }
+
         stateMachine.ChangeState(deadState);
     }
 
