@@ -9,6 +9,8 @@ using UnityEngine;
 public class Enemy : Entity
 {
     [SerializeField] protected LayerMask whatIsPlayer;
+    [Header("Player detected")]
+    [SerializeField] private float playerDistance = 10;
 
     [Header("Stunned info")]
     public float stunDuration = 1;
@@ -128,8 +130,15 @@ public class Enemy : Entity
 
     public virtual RaycastHit2D IsPlayerDetected()
     {
-        RaycastHit2D playerDetected = Physics2D.Raycast(wallCheck.position, Vector2.right * facingDir, 50, whatIsPlayer);
-        RaycastHit2D wallDetected = Physics2D.Raycast(wallCheck.position, Vector2.right * facingDir, 50, whatIsGround);
+        RaycastHit2D playerDetected = Physics2D.Raycast(wallCheck.position, Vector2.right * facingDir, playerDistance, whatIsPlayer);
+        RaycastHit2D playerBack = Physics2D.Raycast(wallCheck.position, Vector2.right * -facingDir, playerDistance, whatIsPlayer);
+        RaycastHit2D wallDetected = Physics2D.Raycast(wallCheck.position, Vector2.right * facingDir, playerDistance, whatIsGround);
+
+        if (playerBack)
+        {
+            Flip();
+            return playerBack;
+        }
 
         if (wallDetected)
         {

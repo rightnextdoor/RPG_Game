@@ -67,6 +67,7 @@ public class EnemyStats : CharacterStats
     protected override void Die()
     {
         base.Die();
+        enemy.CloseCounterAttackWindow();
         enemy.Die();
         PlayerManager.instance.GainXP(xpAmount.GetValue(), level);
 
