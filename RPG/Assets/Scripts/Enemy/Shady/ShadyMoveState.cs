@@ -29,5 +29,6 @@ public class ShadyMoveState : ShadyGroundedState
             enemy.Flip();
             stateMachine.ChangeState(enemy.idleState);
         }
+
     }
 }

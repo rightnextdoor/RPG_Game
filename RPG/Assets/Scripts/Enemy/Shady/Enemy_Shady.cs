@@ -7,6 +7,9 @@ public class Enemy_Shady : Enemy
 {
     [Header("Shady specific")]
     public float battleStateMoveSpeed;
+    public float specialAttackDistance = 2;
+    public Transform specialAttack;
+    public float specialAttackRadius = 1.2f;
 
     [SerializeField] private GameObject explosivePrefab;
     private GameObject currentBall;
@@ -23,6 +26,7 @@ public class Enemy_Shady : Enemy
     public ShadyStunnedState stunnedState { get; private set; }
     public ShadyDeadState deadState { get; private set; }
     public ShadyAttackState attackState { get; private set; }
+    public ShadyMeleeAttack meleeAttack { get; private set; }
     #endregion
 
     protected override void Awake()
@@ -35,6 +39,7 @@ public class Enemy_Shady : Enemy
         stunnedState = new ShadyStunnedState(this, stateMachine, "Stunned", this);
         deadState = new ShadyDeadState(this, stateMachine, "Die", this);
         attackState = new ShadyAttackState(this, stateMachine, "Attack", this);
+        meleeAttack = new ShadyMeleeAttack(this, stateMachine, "Melee", this);
     }
 
     protected override void Start()
@@ -69,13 +74,19 @@ public class Enemy_Shady : Enemy
     public override void AnimationSpecialAttackTrigger()
     {
         CreateBall();
-        currentBall.GetComponent<Explosive_Controller>().SetupExplosive(stats, growSpeed, maxSize, attackCheckRadius, explosionSpeed, explosionTimer);
+        currentBall.GetComponent<Explosive_Controller>().SetupExplosive(stats, growSpeed, maxSize, specialAttackRadius, explosionSpeed, explosionTimer);
     }
 
     private void CreateBall()
     {
-        currentBall = Instantiate(explosivePrefab, attackCheck.position, Quaternion.identity);
-        currentBall.transform.position = attackCheck.position;
+        currentBall = Instantiate(explosivePrefab, specialAttack.position, Quaternion.identity);
+        currentBall.transform.position = specialAttack.position;
+    }
+
+    protected override void OnDrawGizmos()
+    {
+        base.OnDrawGizmos();
+        Gizmos.DrawWireSphere(specialAttack.position, specialAttackRadius);
     }
 
     public void SelfDestroy() => Destroy(gameObject);

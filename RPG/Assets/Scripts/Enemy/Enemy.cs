@@ -130,6 +130,11 @@ public class Enemy : Entity
 
     public virtual RaycastHit2D IsPlayerDetected()
     {
+        Transform player = PlayerManager.instance.player.transform;
+        if (player.GetComponent<PlayerStats>().isDead)
+            return default(RaycastHit2D);
+
+
         RaycastHit2D playerDetected = Physics2D.Raycast(wallCheck.position, Vector2.right * facingDir, playerDistance, whatIsPlayer);
         RaycastHit2D playerBack = Physics2D.Raycast(wallCheck.position, Vector2.right * -facingDir, playerDistance, whatIsPlayer);
         RaycastHit2D wallDetected = Physics2D.Raycast(wallCheck.position, Vector2.right * facingDir, playerDistance, whatIsGround);

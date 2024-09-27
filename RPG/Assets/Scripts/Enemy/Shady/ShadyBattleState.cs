@@ -50,6 +50,11 @@ public class ShadyBattleState : EnemyState
             if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
             {
                 if (CanAttack())
+                    stateMachine.ChangeState(enemy.meleeAttack);
+            } else if (enemy.IsPlayerDetected().distance < enemy.specialAttackDistance && 
+                enemy.IsPlayerDetected().distance > enemy.attackDistance + 5)
+            {
+                if (CanAttack())
                     stateMachine.ChangeState(enemy.attackState);
             }
         }
@@ -64,7 +69,7 @@ public class ShadyBattleState : EnemyState
         else if (player.position.x < enemy.transform.position.x)
             moveDir = -1;
 
-        if (enemy.IsPlayerDetected() && enemy.IsPlayerDetected().distance < enemy.attackDistance - .5f)
+        if (enemy.IsPlayerDetected() && enemy.IsPlayerDetected().distance < enemy.attackDistance - 1f)
             return;
 
         enemy.SetVelocity(enemy.moveSpeed * moveDir, rb.velocity.y);
