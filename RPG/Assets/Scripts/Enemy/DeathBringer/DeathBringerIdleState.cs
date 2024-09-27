@@ -28,11 +28,15 @@ public class DeathBringerIdleState : EnemyState
     {
         base.Update();
 
-        if(Vector2.Distance(player.transform.position, enemy.transform.position) < 7)
-            enemy.bossFightStart = true;
+        if (enemy.IsPlayerDetected() && !enemy.IsGroundDetected() || enemy.IsWallDetected())
+        {
+            enemy.Flip();
+            stateMachine.ChangeState(enemy.idleState);
+            return;
+        }
 
-        if(Input.GetKey(KeyCode.V)) 
-            stateMachine.ChangeState(enemy.teleportState);
+        if (Vector2.Distance(player.transform.position, enemy.transform.position) < 7)
+            enemy.bossFightStart = true;
 
         if(stateTimer < 0 && enemy.bossFightStart)
             stateMachine.ChangeState(enemy.battleState);

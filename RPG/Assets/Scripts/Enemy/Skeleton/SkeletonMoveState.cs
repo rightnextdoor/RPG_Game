@@ -11,6 +11,7 @@ public class SkeletonMoveState : SkeletonGroundedState
     public override void Enter()
     {
         base.Enter();
+        stateTimer = enemy.moveTime;
     }
 
     public override void Exit()
@@ -27,6 +28,14 @@ public class SkeletonMoveState : SkeletonGroundedState
         if(enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {
             enemy.Flip();
+            stateMachine.ChangeState(enemy.idleState);
+        }
+
+        if (stateTimer < 0f)
+        {
+            int flip = Random.Range(1, 3);
+            if(flip == 2)
+                enemy.Flip();
             stateMachine.ChangeState(enemy.idleState);
         }
     }
