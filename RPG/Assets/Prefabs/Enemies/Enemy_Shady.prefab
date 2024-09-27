@@ -234,6 +234,37 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &3494640042400452541
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 38657904299698884}
+  m_Layer: 7
+  m_Name: SpeicalAttackCheck
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &38657904299698884
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3494640042400452541}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.35, y: 0.49, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1358090553352642076}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4285482932844598797
 GameObject:
   m_ObjectHideFlags: 0
@@ -618,7 +649,7 @@ Transform:
   m_GameObject: {fileID: 6692319436246689548}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.221, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -663,6 +694,7 @@ Transform:
   - {fileID: 1975732497559895039}
   - {fileID: 4722591029749023282}
   - {fileID: 6470586918352121113}
+  - {fileID: 38657904299698884}
   - {fileID: 477571324323126142}
   - {fileID: 7181802811663822395}
   - {fileID: 7940291018733334865}
@@ -744,6 +776,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3941635242805e4ba89dd67e5b092c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lerpTimer: 0
+  maxHealth:
+    baseValue: 100
+    modifiers: 
+  currentHealth: 0
+  damage:
+    baseValue: 10
+    modifiers: 
   strength:
     baseValue: 0
     modifiers: 
@@ -756,17 +796,11 @@ MonoBehaviour:
   vitality:
     baseValue: 0
     modifiers: 
-  damage:
-    baseValue: 75
-    modifiers: 
   critChance:
     baseValue: 0
     modifiers: 
   critPower:
     baseValue: 0
-    modifiers: 
-  maxHealth:
-    baseValue: 50
     modifiers: 
   armor:
     baseValue: 0
@@ -791,11 +825,11 @@ MonoBehaviour:
   isShocked: 0
   ailmentsDuration: 4
   shockStrikePrefab: {fileID: 6889908486227579018, guid: 78970814a6fb9434a91ec678a0d80fdd, type: 3}
-  currentHealth: 0
-  soulsDropAmount:
+  level: 1
+  xpGain: 100
+  xpAmount:
     baseValue: 0
     modifiers: 
-  level: 1
   percantageModifier: 0.4
 --- !u!114 &4765033392636222738
 MonoBehaviour:
@@ -838,8 +872,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 492d4a67de2351d44a38fbd5115505d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  possibleItemDrop: 0
-  possibleDrop: []
+  maxItemsToDrop: 0
+  itemPool: []
   dropPrefab: {fileID: 7663703077390093099, guid: 2ecceb17b1752e5428f40e73479e555e, type: 3}
 --- !u!114 &6982403007833585609
 MonoBehaviour:
@@ -857,33 +891,40 @@ MonoBehaviour:
   knockbackOffset: {x: 0.5, y: 2}
   knockbackDuration: 0.07
   attackCheck: {fileID: 477571324323126142}
-  attackCheckRadius: 2.5
+  attackCheckRadius: 0.94
   groundCheck: {fileID: 6470586918352121113}
   groundCheackDistance: 1
   wallCheck: {fileID: 7181802811663822395}
-  wallCheckDistance: 0.8
+  wallCheckDistance: 1.13
   whatIsGround:
     serializedVersion: 2
     m_Bits: 8
   whatIsPlayer:
     serializedVersion: 2
     m_Bits: 64
+  playerDistance: 10
   stunDuration: 1
   stunDirection: {x: 10, y: 12}
   counterImage: {fileID: 556552288427255572}
-  moveSpeed: 1.5
+  moveSpeed: 5
   idleTime: 2
-  battleTime: 7
+  moveTime: 2
+  battleTime: 4
   agroDistance: 5
-  attackDistance: 1.4
-  attackCooldown: 0
+  attackDistance: 2
+  attackCooldown: 0.4
   minAttackCooldown: 1
   maxAttackCooldown: 2
   lastTimeAttacked: 0
   battleStateMoveSpeed: 6
+  specialAttackDistance: 15
+  specialAttack: {fileID: 38657904299698884}
+  specialAttackRadius: 2.5
   explosivePrefab: {fileID: 6716726427099878741, guid: bc464ad7b7b86d74b832331ef517693b, type: 3}
-  growSpeed: 15
+  growSpeed: 10
   maxSize: 7
+  explosionSpeed: 7
+  explosionTimer: 2
 --- !u!1 &7274081805827016418
 GameObject:
   m_ObjectHideFlags: 0
@@ -909,7 +950,7 @@ Transform:
   m_GameObject: {fileID: 7274081805827016418}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.53, y: -1.16, z: 0}
+  m_LocalPosition: {x: 0.85, y: -1.16, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -940,7 +981,7 @@ Transform:
   m_GameObject: {fileID: 8502676293713678273}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.34, y: 0.49, z: 0}
+  m_LocalPosition: {x: 0.05, y: -0.28, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

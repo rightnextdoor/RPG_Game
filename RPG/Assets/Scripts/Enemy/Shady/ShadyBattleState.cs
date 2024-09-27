@@ -42,7 +42,6 @@ public class ShadyBattleState : EnemyState
             stateMachine.ChangeState(enemy.moveState);
             return;
         }
-
         if (enemy.IsPlayerDetected())
         {
             stateTimer = enemy.battleTime;
@@ -50,12 +49,17 @@ public class ShadyBattleState : EnemyState
             if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
             {
                 if (CanAttack())
+                {
                     stateMachine.ChangeState(enemy.meleeAttack);
+                    AudioManager.instance.PlaySFX("ShadyAttack", enemy.transform);
+                }
             } else if (enemy.IsPlayerDetected().distance < enemy.specialAttackDistance && 
                 enemy.IsPlayerDetected().distance > enemy.attackDistance + 5)
             {
                 if (CanAttack())
+                {
                     stateMachine.ChangeState(enemy.attackState);
+                }
             }
         }
         else

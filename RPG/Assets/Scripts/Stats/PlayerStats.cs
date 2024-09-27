@@ -77,7 +77,7 @@ public class PlayerStats : CharacterStats, ISaveManager
     public void LoadData(GameData _data)
     {
         maxHealth.SetDefaultValue(_data.maxHealth);
-        currentHealth = _data.maxHealth;
+        currentHealth = _data.maxHealth + _data.vitality * 5;
         damage.SetDefaultValue(_data.damage);
         strength.SetDefaultValue(_data.strength);
         agility.SetDefaultValue(_data.agility);
