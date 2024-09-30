@@ -20,6 +20,7 @@ public class Enemy : Entity
 
     [Header("Move info")]
     public float moveSpeed = 1.5f;
+    public float runSpeed = 5;
     public float idleTime = 2;
     public float moveTime = 5;
     public float battleTime= 7;
