@@ -2,8 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum KnightType
+{
+    Female,
+    Male
+}
+
 public class Enemy_Knight : Enemy
 {
+    [Header("Knight info")]
+    public KnightType knightType;
+    public float blockDuration = .2f;
+
     #region States
     public KnightIdleState idleState { get; private set; }
     public KnightMoveState moveState { get; private set; }

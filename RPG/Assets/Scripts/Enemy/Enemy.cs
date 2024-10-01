@@ -34,6 +34,13 @@ public class Enemy : Entity
     public float maxAttackCooldown = 2;
     [HideInInspector] public float lastTimeAttacked;
 
+    [Header("Block info")]
+    public float blockCooldown;
+    public float minBlockCooldown = 1;
+    public float maxBlockCooldown = 2;
+    [HideInInspector] public float lastTimeBlock;
+
+
     public EnemyStateMachine stateMachine { get; private set; }
     public EntityFX fX { get; private set; }
     public string lastAnimBoolName {  get; private set; }

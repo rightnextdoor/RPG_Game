@@ -5,7 +5,7 @@ using UnityEngine;
 public class KnightBattleState : EnemyState
 {
     private Enemy_Knight enemy;
-    private Transform player;
+    private Player player;
     private int moveDir;
     private bool flippedOnce;
     private float defaultSpeed;
@@ -17,7 +17,7 @@ public class KnightBattleState : EnemyState
     public override void Enter()
     {
         base.Enter();
-        player = PlayerManager.instance.player.transform;
+        player = PlayerManager.instance.player;
 
         defaultSpeed = enemy.moveSpeed;
 
@@ -57,8 +57,13 @@ public class KnightBattleState : EnemyState
                 if (CanAttack())
                 {
                     stateMachine.ChangeState(enemy.attackState);
-                    //AudioManager.instance.PlaySFX("SkeletonAttack", enemy.transform);
+                    AudioManager.instance.PlaySFX("KnightAttack", enemy.transform);
                 }
+                // TODO: fix block to make player knockback
+                //if (CanBlock())
+                //{
+                //    stateMachine.ChangeState(enemy.blockState);
+                //}
             }
         }
         else
@@ -77,9 +82,9 @@ public class KnightBattleState : EnemyState
         //if(distanceToPlayerX < 1f)
         //    return;  
 
-        if (player.position.x > enemy.transform.position.x)
+        if (player.transform.position.x > enemy.transform.position.x)
             moveDir = 1;
-        else if (player.position.x < enemy.transform.position.x)
+        else if (player.transform.position.x < enemy.transform.position.x)
             moveDir = -1;
 
         if (enemy.IsPlayerDetected() && enemy.IsPlayerDetected().distance < enemy.attackDistance - .8f)
@@ -96,6 +101,21 @@ public class KnightBattleState : EnemyState
             enemy.lastTimeAttacked = Time.time;
             return true;
         }
+        return false;
+    }
+
+    private bool CanBlock()
+    {
+        if (player != null)
+        {
+            if (Time.time >= enemy.lastTimeBlock + enemy.blockCooldown)
+            {
+                enemy.blockCooldown = Random.Range(enemy.minBlockCooldown, enemy.maxBlockCooldown);
+                enemy.lastTimeBlock = Time.time;
+                return true;
+            }
+        }
+        
         return false;
     }
 }

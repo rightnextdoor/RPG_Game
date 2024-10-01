@@ -14,7 +14,7 @@ public class KnightDeadState : EnemyState
     {
         base.Enter();
 
-        //AudioManager.instance.PlaySFX("SkeletonDie", enemy.transform);
+        AudioManager.instance.PlaySFX("KnightDie" + enemy.knightType, enemy.transform);
         enemy.stats.MakeInvincible(true);
 
     }

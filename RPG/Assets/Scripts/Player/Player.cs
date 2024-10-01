@@ -20,6 +20,10 @@ public class Player : Entity
     public float dashSpeed;
     public float dashDuration;
     private float defaultDashSpeed;
+
+    [Header("Block info")]
+    public bool canBeBlock;
+    public float blockDuration = 1f;
     public float dashDir {  get; private set; }
 
     public SkillManager skill {  get; private set; }
@@ -135,6 +139,31 @@ public class Player : Entity
         isBusy = true;
         yield return new WaitForSeconds(_seconds);
         isBusy = false;
+    }
+
+    #region Block Attack Window
+    public virtual void OpenBlockAttackWindow()
+    {
+        canBeBlock = true;
+    }
+    public virtual void CloseBlockAttackWindow()
+    {
+        canBeBlock = false;
+    }
+    #endregion
+
+    public virtual bool CanBeBlocked()
+    {
+        if (canBeBlock)
+        {
+            SetupKnockbackPower(new Vector2(10, 15));
+            SetupKnockbackDir(transform);
+            DamageImpact();
+            CloseBlockAttackWindow();
+            //stateMachine.ChangeState(blockState);
+            return true;
+        }
+        return false;
     }
 
     public void AnimationTrigger() => stateMachine.currentState.AnimationFinishTrigger();
