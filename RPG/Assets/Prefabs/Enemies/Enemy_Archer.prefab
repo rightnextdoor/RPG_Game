@@ -316,7 +316,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1240692613789147434
 Transform:
   m_ObjectHideFlags: 0
@@ -574,7 +574,7 @@ MonoBehaviour:
     modifiers: 
   currentHealth: 0
   damage:
-    baseValue: 1
+    baseValue: 10
     modifiers: 
   strength:
     baseValue: 0
@@ -616,7 +616,7 @@ MonoBehaviour:
   isChilled: 0
   isShocked: 0
   ailmentsDuration: 4
-  shockStrikePrefab: {fileID: 0}
+  shockStrikePrefab: {fileID: 6889908486227579018, guid: 78970814a6fb9434a91ec678a0d80fdd, type: 3}
   level: 1
   xpGain: 100
   xpAmount:
@@ -694,11 +694,14 @@ MonoBehaviour:
   whatIsPlayer:
     serializedVersion: 2
     m_Bits: 64
+  playerDistance: 10
   stunDuration: 1
   stunDirection: {x: 10, y: 12}
   counterImage: {fileID: 8440869614352377318}
   moveSpeed: 5
+  runSpeed: 5
   idleTime: 2
+  moveTime: 5
   battleTime: 7
   agroDistance: 2
   attackDistance: 15
@@ -706,6 +709,10 @@ MonoBehaviour:
   minAttackCooldown: 1
   maxAttackCooldown: 2
   lastTimeAttacked: 0
+  blockCooldown: 0
+  minBlockCooldown: 1
+  maxBlockCooldown: 2
+  lastTimeBlock: 0
   arrowPrefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
   arrowSpeed: 7
   jumpVelocity: {x: 20, y: 15}

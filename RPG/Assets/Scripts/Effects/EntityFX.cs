@@ -115,7 +115,8 @@ public class EntityFX : MonoBehaviour
 
     public void ShockFxFor(float _seconds)
     {
-        shockFX.Play();
+        if(shockFX != null)
+            shockFX.Play();
 
         InvokeRepeating("ShockColorFx", 0, .3f);
         Invoke("CancelColorChange", _seconds);
