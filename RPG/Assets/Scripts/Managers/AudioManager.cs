@@ -116,6 +116,38 @@ public class AudioManager : MonoBehaviour
         s.source.Play();
     }
 
+    public void DelaySoundFX(string _sfxName, Transform _source, float dealyTime)
+    {
+        SoundFX s = Array.Find(soundFX, sound => sound.name == _sfxName);
+        if (s == null)
+        {
+            Debug.LogWarning("Sounds: " + _sfxName + " not found");
+            return;
+        }
+
+        if (canPlaySFX == false)
+            return;
+
+        if (_source != null && Vector2.Distance(PlayerManager.instance.player.transform.position, _source.position) > sfxMinimumDistance)
+            return;
+
+        s.source.volume = s.volume;
+        s.source.pitch = Random.Range(.85f, 1.1f);
+        s.source.playOnAwake = s.playOnAwake;
+        s.source.loop = s.loop;
+
+        StartCoroutine(DelaySound(s.source, dealyTime));
+    }
+
+    private IEnumerator DelaySound(AudioSource _audio, float delayTime)
+    {
+        yield return new WaitForSeconds(delayTime);
+        if (_audio != null)
+        {
+            _audio.Play();
+        }
+    }
+
     public void StopSFX(string _sfxName)
     {
         foreach (SoundFX s in soundFX)

@@ -2,12 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class JumperBattleState : EnemyState
+public class OctopusBattleState : EnemyState
 {
-    private Enemy_Jumper enemy;
+    private Enemy_Octopus enemy;
     private Transform player;
     private int moveDir;
-    public JumperBattleState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Jumper enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+
+    private bool flippedOnce;
+    public OctopusBattleState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Octopus enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
     }
@@ -18,7 +20,7 @@ public class JumperBattleState : EnemyState
         player = PlayerManager.instance.player.transform;
 
         if (player.GetComponent<PlayerStats>().isDead)
-            stateMachine.ChangeState(enemy.idleState);
+            stateMachine.ChangeState(enemy.moveState);
     }
 
     public override void Exit()
@@ -30,44 +32,45 @@ public class JumperBattleState : EnemyState
     {
         base.Update();
 
-        enemy.Attack();
-
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {
             enemy.Flip();
-            stateMachine.ChangeState(enemy.idleState);
+            stateMachine.ChangeState(enemy.moveState);
             return;
         }
 
         if (enemy.IsPlayerDetected())
         {
             stateTimer = enemy.battleTime;
-            if (CanJump())
+
+            if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
             {
-                stateMachine.ChangeState(enemy.jumpState);
-                AudioManager.instance.PlaySFX("JumperJump", enemy.transform);
+                enemy.SetZeroVelocity();
+                enemy.anim.SetFloat("Battle", 0);
+                if (CanAttack())
+                {
+                    stateMachine.ChangeState(enemy.attackState);
+                    AudioManager.instance.PlaySFX("OctopusAttack", enemy.transform);
+                }
             }
-            
         }
         else
         {
             if (stateTimer < 0 || Vector2.Distance(player.transform.position, enemy.transform.position) > 10)
-                stateMachine.ChangeState(enemy.idleState);
+                stateMachine.ChangeState(enemy.moveState);
         }
+
     }
 
-    private bool CanJump()
+    private bool CanAttack()
     {
-        if (enemy.GroundBehind() == false || enemy.WallBehind() == true)
-            return false;
-
-        if (Time.time >= enemy.lastTimeJumped + enemy.attackCooldown)
+        if (Time.time >= enemy.lastTimeAttacked + enemy.attackCooldown)
         {
             enemy.attackCooldown = Random.Range(enemy.minAttackCooldown, enemy.maxAttackCooldown);
-            enemy.lastTimeJumped = Time.time;
+            enemy.lastTimeAttacked = Time.time;
             return true;
         }
-
         return false;
     }
+
 }

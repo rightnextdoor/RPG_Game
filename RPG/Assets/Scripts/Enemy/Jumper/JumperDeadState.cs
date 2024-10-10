@@ -14,7 +14,7 @@ public class JumperDeadState : EnemyState
     {
         base.Enter();
 
-        //AudioManager.instance.PlaySFX("SlugDie", enemy.transform);
+        AudioManager.instance.PlaySFX("JumperDie", enemy.transform);
         enemy.anim.SetBool(enemy.lastAnimBoolName, true);
         enemy.anim.speed = 0;
         enemy.cd.enabled = false;

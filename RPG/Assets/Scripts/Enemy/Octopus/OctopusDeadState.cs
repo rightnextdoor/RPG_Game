@@ -2,10 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CrabDeadState : EnemyState
+public class OctopusDeadState : EnemyState
 {
-    private Enemy_Crab enemy;
-    public CrabDeadState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Crab enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+    private Enemy_Octopus enemy;
+    public OctopusDeadState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Octopus enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
     }
@@ -14,7 +14,7 @@ public class CrabDeadState : EnemyState
     {
         base.Enter();
 
-        AudioManager.instance.PlaySFX("CrabDie", enemy.transform);
+        AudioManager.instance.PlaySFX("OctopusDie", enemy.transform);
         enemy.anim.SetBool(enemy.lastAnimBoolName, true);
         enemy.anim.speed = 0;
         enemy.cd.enabled = false;

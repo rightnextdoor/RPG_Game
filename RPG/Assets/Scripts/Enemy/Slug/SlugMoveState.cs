@@ -13,7 +13,7 @@ public class SlugMoveState : EnemyState
     public override void Enter()
     {
         base.Enter();
-        stateTimer = 0;
+        stateTimer = enemy.moveTime;
     }
 
     public override void Exit()
@@ -32,6 +32,15 @@ public class SlugMoveState : EnemyState
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {
             enemy.Flip();
+            stateMachine.ChangeState(enemy.moveState);
+        }
+
+        if (stateTimer < 0f)
+        {
+            int flip = Random.Range(1, 3);
+            if (flip == 2)
+                enemy.Flip();
+            stateMachine.ChangeState(enemy.moveState);
         }
     }
 
