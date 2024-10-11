@@ -12,7 +12,7 @@ public class OctopusWaterState : EnemyState
     private float fallTimer;
 
     private bool once;
-    public OctopusWaterState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Octopus enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+    public OctopusWaterState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Octopus enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
     }

@@ -7,7 +7,7 @@ public class DeathBringerBattleState : EnemyState
     private Enemy_DeathBringer enemy;
     private Transform player;
     private int moveDir;
-    public DeathBringerBattleState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_DeathBringer _enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+    public DeathBringerBattleState(Enemy_Boss _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_DeathBringer _enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = _enemy;
     }

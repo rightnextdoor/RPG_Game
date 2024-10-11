@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Enemy_Crab : Enemy
+public class Enemy_Crab : Enemy_Regular
 {
     [Header("Crab info")]
     public float hitTimer = 1f;

@@ -7,7 +7,7 @@ public class JumperBattleState : EnemyState
     private Enemy_Jumper enemy;
     private Transform player;
     private int moveDir;
-    public JumperBattleState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Jumper enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+    public JumperBattleState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Jumper enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
     }

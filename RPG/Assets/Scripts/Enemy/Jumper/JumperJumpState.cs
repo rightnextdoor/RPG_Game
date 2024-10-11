@@ -5,7 +5,7 @@ using UnityEngine;
 public class JumperJumpState : EnemyState
 {
     private Enemy_Jumper enemy;
-    public JumperJumpState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Jumper enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+    public JumperJumpState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Jumper enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
     }

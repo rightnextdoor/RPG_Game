@@ -4,8 +4,9 @@ using System.Xml;
 using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
 
-public class Enemy_DeathBringer : Enemy
+public class Enemy_DeathBringer : Enemy_Boss
 {
+    [Header("Death Bringer info")]
     public bool bossFightStart;
 
     [Header("Spell cast details")]

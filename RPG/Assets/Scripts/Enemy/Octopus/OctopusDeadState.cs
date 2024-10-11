@@ -5,7 +5,7 @@ using UnityEngine;
 public class OctopusDeadState : EnemyState
 {
     private Enemy_Octopus enemy;
-    public OctopusDeadState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Octopus enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+    public OctopusDeadState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Octopus enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
     }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class Enemy_Octopus : Enemy
+public class Enemy_Octopus : Enemy_Regular
 {
     [Header("Octopus info")]
     [SerializeField] private GameObject bubblePrefab;

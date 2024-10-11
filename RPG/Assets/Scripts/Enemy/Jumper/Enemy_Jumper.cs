@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Enemy_Jumper : Enemy
+public class Enemy_Jumper : Enemy_Regular
 {
     [Header("Jumper info")]
     public float hitTimer = 1f;

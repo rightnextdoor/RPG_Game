@@ -9,7 +9,7 @@ public enum SlimeType
     small
 }
 
-public class Enemy_Slime : Enemy
+public class Enemy_Slime : Enemy_Regular
 {
     [Header("Slime specific")]
     [SerializeField] private SlimeType slimeType;

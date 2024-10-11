@@ -6,7 +6,7 @@ public class KnightBlockState : EnemyState
 {
     private Enemy_Knight enemy;
     private Player player;
-    public KnightBlockState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Knight enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+    public KnightBlockState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Knight enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
     }

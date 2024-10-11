@@ -6,7 +6,7 @@ public class PiranhaPlantIdleState : EnemyState
 {
     private Enemy_PiranhaPlant enemy;
     private Transform player;
-    public PiranhaPlantIdleState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_PiranhaPlant enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+    public PiranhaPlantIdleState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_PiranhaPlant enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
     }

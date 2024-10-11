@@ -12,12 +12,6 @@ public class Enemy : Entity
     [Header("Player detected")]
     [SerializeField] private float playerDistance = 10;
 
-    [Header("Stunned info")]
-    public float stunDuration = 1;
-    public Vector2 stunDirection = new Vector2(10,12);
-    protected bool canBeStunned;
-    [SerializeField] protected GameObject counterImage;
-
     [Header("Move info")]
     public float moveSpeed = 1.5f;
     public float runSpeed = 5;
@@ -39,7 +33,6 @@ public class Enemy : Entity
     public float minBlockCooldown = 1;
     public float maxBlockCooldown = 2;
     [HideInInspector] public float lastTimeBlock;
-
 
     public EnemyStateMachine stateMachine { get; private set; }
     public EntityFX fX { get; private set; }
@@ -107,30 +100,6 @@ public class Enemy : Entity
         FreezeTime(false);
     }
 
-    #region Counter Attack Window
-    public virtual void OpenCounterAttackWindow()
-    {
-        canBeStunned = true;
-        counterImage.SetActive(true);
-    }
-
-    public virtual void CloseCounterAttackWindow()
-    {
-        canBeStunned = false;
-        counterImage.SetActive(false);
-    }
-    #endregion
-
-    public virtual bool CanBeStunned()
-    {
-        if (canBeStunned)
-        {
-            CloseCounterAttackWindow();
-            return true;
-        }
-        return false;
-    }
-
     public virtual void AnimationFinishTrigger() => stateMachine.currentState.AnimationFinishTrigger();
     public virtual void AnimationSpecialAttackTrigger()
     {
@@ -161,13 +130,22 @@ public class Enemy : Entity
         }
         return playerDetected;
     }
-
-
     protected override void OnDrawGizmos()
     {
         base.OnDrawGizmos();
 
         Gizmos.color = Color.yellow;
         Gizmos.DrawLine(transform.position, new Vector3(transform.position.x + attackDistance * facingDir, transform.position.y));
+    }
+    public virtual bool CanBeStunned()
+    {
+        return false;
+    }
+    public virtual void OpenCounterAttackWindow()
+    {
+    }
+
+    public virtual void CloseCounterAttackWindow()
+    {
     }
 }

@@ -6,7 +6,7 @@ public class KnightGroundedState : EnemyState
 {
     protected Enemy_Knight enemy;
     protected Transform player;
-    public KnightGroundedState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Knight enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+    public KnightGroundedState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Knight enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
     }

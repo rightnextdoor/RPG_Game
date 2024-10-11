@@ -8,7 +8,7 @@ public enum KnightType
     Male
 }
 
-public class Enemy_Knight : Enemy
+public class Enemy_Knight : Enemy_Regular
 {
     [Header("Knight info")]
     public KnightType knightType;

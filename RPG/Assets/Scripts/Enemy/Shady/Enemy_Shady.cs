@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
 
-public class Enemy_Shady : Enemy
+public class Enemy_Shady : Enemy_Regular
 {
     [Header("Shady specific")]
     public float battleStateMoveSpeed;

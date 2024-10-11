@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Enemy_PiranhaPlant : Enemy
+public class Enemy_PiranhaPlant : Enemy_Regular
 {
     #region States
     public PiranhaPlantIdleState idleState { get; private set; }

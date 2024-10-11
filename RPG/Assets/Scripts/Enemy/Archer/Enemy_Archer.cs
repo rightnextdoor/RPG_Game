@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Enemy_Archer : Enemy
+public class Enemy_Archer : Enemy_Regular
 {
     [Header("Archer specific info")]
     [SerializeField] private GameObject arrowPrefab;

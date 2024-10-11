@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class KnightIdleState : KnightGroundedState
 {
-    public KnightIdleState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Knight enemy) : base(_enemyBase, _stateMachine, _animBoolName, enemy)
+    public KnightIdleState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Knight enemy) : base(_enemyBase, _stateMachine, _animBoolName, enemy)
     {
     }
 

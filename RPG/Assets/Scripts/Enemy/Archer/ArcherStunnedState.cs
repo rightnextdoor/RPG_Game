@@ -5,7 +5,7 @@ using UnityEngine;
 public class ArcherStunnedState : EnemyState
 {
     private Enemy_Archer enemy;
-    public ArcherStunnedState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Archer enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+    public ArcherStunnedState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Archer enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy; 
     }

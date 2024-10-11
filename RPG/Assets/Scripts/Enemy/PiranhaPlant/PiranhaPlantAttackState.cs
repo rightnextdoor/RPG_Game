@@ -5,7 +5,7 @@ using UnityEngine;
 public class PiranhaPlantAttackState : EnemyState
 {
     private Enemy_PiranhaPlant enemy;
-    public PiranhaPlantAttackState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_PiranhaPlant enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+    public PiranhaPlantAttackState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_PiranhaPlant enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
     }

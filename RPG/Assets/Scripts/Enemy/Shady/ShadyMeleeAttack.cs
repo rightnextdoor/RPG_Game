@@ -5,7 +5,7 @@ using UnityEngine;
 public class ShadyMeleeAttack : EnemyState
 {
     private Enemy_Shady enemy;
-    public ShadyMeleeAttack(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Shady enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+    public ShadyMeleeAttack(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Shady enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
     }
