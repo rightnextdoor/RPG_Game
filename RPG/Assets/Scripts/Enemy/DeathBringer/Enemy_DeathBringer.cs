@@ -127,4 +127,5 @@ public class Enemy_DeathBringer : Enemy
         return false;
     }
 
+    public void SelfDestroy() => Destroy(transform.parent.gameObject, 2f);
 }

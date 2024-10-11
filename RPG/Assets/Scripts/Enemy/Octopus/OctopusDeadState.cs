@@ -20,6 +20,7 @@ public class OctopusDeadState : EnemyState
         enemy.cd.enabled = false;
 
         stateTimer = .15f;
+        enemy.SelfDestroy();
     }
 
     public override void Update()

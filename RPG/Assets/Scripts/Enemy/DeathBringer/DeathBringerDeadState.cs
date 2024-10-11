@@ -16,6 +16,7 @@ public class DeathBringerDeadState : EnemyState
 
         AudioManager.instance.PlaySFX("DeathBringerDie", null);
         enemy.stats.MakeInvincible(true);
+        enemy.SelfDestroy();
     }
 
     public override void Update()

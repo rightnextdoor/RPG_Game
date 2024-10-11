@@ -56,4 +56,6 @@ public class Enemy_Octopus : Enemy
     }
 
     public bool IsPlayerInZone() => playerDetectedZone.GetComponent<EnemyZone>().PlayerInZone;
+
+    public void SelfDestroy() => Destroy(transform.parent.gameObject, 2f);
 }
