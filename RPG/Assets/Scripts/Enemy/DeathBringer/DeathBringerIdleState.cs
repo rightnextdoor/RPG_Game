@@ -35,9 +35,6 @@ public class DeathBringerIdleState : EnemyState
             return;
         }
 
-        if (Vector2.Distance(player.transform.position, enemy.transform.position) < 7)
-            enemy.bossFightStart = true;
-
         if(stateTimer < 0 && enemy.bossFightStart)
             stateMachine.ChangeState(enemy.battleState);
     }

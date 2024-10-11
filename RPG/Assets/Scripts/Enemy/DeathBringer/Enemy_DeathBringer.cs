@@ -7,7 +7,6 @@ using UnityEngine;
 public class Enemy_DeathBringer : Enemy_Boss
 {
     [Header("Death Bringer info")]
-    public bool bossFightStart;
 
     [Header("Spell cast details")]
     [SerializeField] private GameObject spellPrefab;
@@ -19,7 +18,6 @@ public class Enemy_DeathBringer : Enemy_Boss
     [SerializeField] private Vector2 spellOffset;
 
     [Header("Teleport Details")]
-    [SerializeField] private BoxCollider2D arena;
     [SerializeField] private Vector2 surroundingCheckSize;
     public float chanceToTeleport;
     public float defaultChanceToTeleport = 25;
@@ -128,5 +126,5 @@ public class Enemy_DeathBringer : Enemy_Boss
         return false;
     }
 
-    public void SelfDestroy() => Destroy(transform.parent.gameObject, 2f);
+    
 }

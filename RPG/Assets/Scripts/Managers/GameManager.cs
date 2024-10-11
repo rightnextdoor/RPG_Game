@@ -11,6 +11,11 @@ public class GameManager : MonoBehaviour, ISaveManager
 
     [SerializeField] private Checkpoint[] checkpoints;
     [SerializeField] private string closestCheckpointId;
+    
+    private Enemy_Boss[] getBosses;
+    private SerializableDictionary<string, bool> saveBosses;
+    
+    private bool once;
 
     private void Awake()
     {
@@ -25,6 +30,15 @@ public class GameManager : MonoBehaviour, ISaveManager
         checkpoints = FindObjectsOfType<Checkpoint>();
 
         player = PlayerManager.instance.player.transform;
+
+        getBosses = FindObjectsOfType<Enemy_Boss>();
+        saveBosses = new SerializableDictionary<string, bool>();
+        once = true;
+    }
+    private void Update()
+    {
+        if (once)
+            UpdateBosses();
     }
 
     public void RestartScene()
@@ -34,7 +48,21 @@ public class GameManager : MonoBehaviour, ISaveManager
         SceneManager.LoadScene(scene.name);
     }
 
-    public void LoadData(GameData _data) => StartCoroutine(LoadWithDelay(_data));
+    public void UpdateBosses()
+    {
+        once = false;
+        saveBosses.Clear();
+        foreach (Enemy_Boss _boss in getBosses)
+        {
+            saveBosses.Add(_boss.bossId, _boss.bossIsDefeated);
+        }
+    }
+
+    public void LoadData(GameData _data) 
+    {
+        LoadBosses(_data);
+        StartCoroutine(LoadWithDelay(_data));
+    }
 
     private void LoadCheckpoints(GameData _data)
     {
@@ -48,14 +76,24 @@ public class GameManager : MonoBehaviour, ISaveManager
         }
     }
 
-
+    private void LoadBosses(GameData _data)
+    {
+        foreach (KeyValuePair<string, bool> pair in _data.bosses)
+        {
+            foreach (Enemy_Boss boss in getBosses)
+            {
+                if (boss.bossId == pair.Key)
+                    boss.bossIsDefeated = pair.Value;
+            }
+        }
+    }
 
     private IEnumerator LoadWithDelay(GameData _data)
     {
         yield return new WaitForSeconds(.1f);
 
         LoadCheckpoints(_data);
-        LoadClosestCheckpoint(_data);
+        LoadClosestCheckpoint(_data);        
     }
 
     public void SaveData(ref GameData _data)
@@ -68,6 +106,12 @@ public class GameManager : MonoBehaviour, ISaveManager
         foreach (Checkpoint checkpoint in checkpoints)
         {
             _data.checkpoints.Add(checkpoint.id, checkpoint.activationStatus);
+        }
+
+        _data.bosses.Clear();
+        foreach (KeyValuePair<string, bool> pair in saveBosses)
+        {
+            _data.bosses.Add(pair.Key, pair.Value);
         }
     }
 
