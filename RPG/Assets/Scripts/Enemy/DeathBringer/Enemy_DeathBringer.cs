@@ -29,6 +29,8 @@ public class Enemy_DeathBringer : Enemy_Boss
     public DeathBringerDeadState deadState { get; private set; }
     public DeathBringerTeleportState teleportState { get; private set; }
     public DeathBringerSpellCastState spellCastState { get; private set; }
+    public DeathBringerStartState startState { get; private set; }
+
     #endregion
 
     protected override void Awake()
@@ -43,11 +45,12 @@ public class Enemy_DeathBringer : Enemy_Boss
         deadState = new DeathBringerDeadState(this, stateMachine, "Die", this);
         teleportState = new DeathBringerTeleportState(this, stateMachine, "Teleport", this);
         spellCastState = new DeathBringerSpellCastState(this, stateMachine, "SpellCast", this);
+        startState = new DeathBringerStartState(this, stateMachine, "Idle", this);
     }
     protected override void Start()
     {
         base.Start();
-        stateMachine.Initialize(idleState);
+        stateMachine.Initialize(startState);
     }
 
     public override void Die()
@@ -126,5 +129,20 @@ public class Enemy_DeathBringer : Enemy_Boss
         return false;
     }
 
-    
+    public override void StartNextStage()
+    {
+        base.StartNextStage();
+
+        switch (stage)
+        {
+            case Stage.Stage_2:
+                stats.IncreaseStats(10, stats.strength);
+                stats.IncreaseStats(5, stats.armor);
+                break;
+            case Stage.Stage_3:
+                stats.IncreaseStats(20, stats.strength);
+                break;
+        }
+    }
+
 }

@@ -35,7 +35,9 @@ public class DeathBringerIdleState : EnemyState
             return;
         }
 
-        if(stateTimer < 0 && enemy.bossFightStart)
+        if (stateTimer < 0 && enemy.bossFightStart)
+        {
             stateMachine.ChangeState(enemy.battleState);
+        }
     }
 }

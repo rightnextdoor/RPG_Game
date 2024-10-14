@@ -123,6 +123,11 @@ public class CharacterStats : MonoBehaviour
         StartCoroutine(StatModCoroutine(_modifier, _duration, _statToModify));
     }
 
+    public virtual void IncreaseStats(int _modifier, Stat _statToModify)
+    {
+        _statToModify.AddModifier(_modifier);
+    }
+
     private IEnumerator StatModCoroutine(int _modifier, float _duration, Stat _statToModify)
     {
         _statToModify.AddModifier(_modifier);
@@ -428,6 +433,13 @@ public class CharacterStats : MonoBehaviour
     {
         return maxHealth.GetValue() + vitality.GetValue() * 5;
     }
+
+    public float CalculateHealthPercentages()
+    {
+        float healthPercentage =(float)currentHealth / GetMaxHealthValue();
+        return healthPercentage;
+    }
+
     #endregion
 
     public Stat GetStat(StatType _statType)
