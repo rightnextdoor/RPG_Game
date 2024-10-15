@@ -111,6 +111,9 @@ public class Enemy_DeathBringer : Enemy_Boss
 
     public bool CanTeleport()
     {
+        if (stage == Stage.Stage_1)
+            return false;
+
         if (Random.Range(0, 100) <= chanceToTeleport)
         {
             chanceToTeleport = defaultChanceToTeleport;
@@ -138,9 +141,11 @@ public class Enemy_DeathBringer : Enemy_Boss
             case Stage.Stage_2:
                 stats.IncreaseStats(10, stats.strength);
                 stats.IncreaseStats(5, stats.armor);
+                moveSpeed += 1;
                 break;
             case Stage.Stage_3:
                 stats.IncreaseStats(20, stats.strength);
+                moveSpeed += 3;
                 break;
         }
     }

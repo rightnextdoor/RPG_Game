@@ -20,15 +20,18 @@ public class Enemy_Boss : Enemy
     public BoxCollider2D arena;
     public bool bossIsDefeated;
     public string bossId;
+    [SerializeField] private GameObject bossHealthBar;
 
     public Stage stage;
 
     private bool once;
+    private bool callHealthBarOnce;
 
     protected override void Awake()
     {
         base.Awake();
         once = true;
+        callHealthBarOnce = true;
 
         stage = Stage.WaitingToStart;
     }
@@ -67,11 +70,17 @@ public class Enemy_Boss : Enemy
             bossId = System.Guid.NewGuid().ToString();
     }
 
-    private bool CheckToStartFight()
+    public virtual bool CheckToStartFight()
     {
         if (arena.GetComponent<EnemyZone>().PlayerInZone)
         {
-            bossFightStart = true;          
+            bossFightStart = true;
+            if (callHealthBarOnce)
+            {
+                bossHealthBar.GetComponent<UI_BossHealthBar>().BossFightStart();
+                callHealthBarOnce= false;
+            }
+            
         }
 
         return bossFightStart;
@@ -82,7 +91,10 @@ public class Enemy_Boss : Enemy
         once = false;
 
         if (bossIsDefeated)
+        {
+            bossHealthBar.GetComponent<UI_BossHealthBar>().BossFightOver();
             Destroy(transform.parent.gameObject);
+        }
     }
 
     public void SelfDestroy() => Destroy(transform.parent.gameObject, 2f);

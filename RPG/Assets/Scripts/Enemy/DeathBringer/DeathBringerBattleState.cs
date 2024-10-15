@@ -17,8 +17,8 @@ public class DeathBringerBattleState : EnemyState
         base.Enter();
         player = PlayerManager.instance.player.transform;
 
-        //if (player.GetComponent<PlayerStats>().isDead)
-        //    stateMachine.ChangeState(enemy.moveState);
+        if (player.GetComponent<PlayerStats>().isDead)
+            stateMachine.ChangeState(enemy.idleState);
     }
 
     public override void Exit()
@@ -56,7 +56,7 @@ public class DeathBringerBattleState : EnemyState
         else if (player.position.x < enemy.transform.position.x)
             moveDir = -1;
 
-        if (enemy.IsPlayerDetected() && enemy.IsPlayerDetected().distance < enemy.attackDistance - .5f)
+        if (enemy.IsPlayerDetected() && enemy.IsPlayerDetected().distance < enemy.attackDistance - 2f)
             return;
 
         enemy.SetVelocity(enemy.moveSpeed * moveDir, rb.velocity.y);
