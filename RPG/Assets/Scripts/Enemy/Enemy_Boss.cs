@@ -39,7 +39,6 @@ public class Enemy_Boss : Enemy
     protected override void Start()
     {
         base.Start();
-        GenerateId();
     }
 
     protected override void Update()
