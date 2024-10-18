@@ -7,6 +7,7 @@ public class Black_KnightBattleState : EnemyState
     private Enemy_Black_Knight enemy;
     private Transform player;
     private int moveDir;
+    
     public Black_KnightBattleState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Black_Knight enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
@@ -16,6 +17,8 @@ public class Black_KnightBattleState : EnemyState
     {
         base.Enter();
         player = PlayerManager.instance.player.transform;
+
+        
 
         if (player.GetComponent<PlayerStats>().isDead)
             stateMachine.ChangeState(enemy.idleState);
@@ -30,10 +33,13 @@ public class Black_KnightBattleState : EnemyState
     {
         base.Update();
 
+        
+
         enemy.anim.SetFloat("xVelocity", enemy.rb.velocity.x);
 
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {
+            enemy.Flip();
             stateMachine.ChangeState(enemy.battleState);
             return;
         }
@@ -43,6 +49,7 @@ public class Black_KnightBattleState : EnemyState
             stateTimer = enemy.battleTime;
             if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
             {
+                               
                 if (CanAttack())
                 {
                     //AudioManager.instance.PlaySFX("DeathBringerAttack", null);
@@ -74,4 +81,6 @@ public class Black_KnightBattleState : EnemyState
         }
         return false;
     }
+
+    
 }

@@ -263,7 +263,7 @@ MonoBehaviour:
     modifiers: 
   currentHealth: 0
   damage:
-    baseValue: 50
+    baseValue: 10
     modifiers: 
   strength:
     baseValue: 0
@@ -388,9 +388,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   playerDistance: 10
-  stunDuration: 1
-  stunDirection: {x: 10, y: 12}
-  counterImage: {fileID: 4676605648977866115}
   moveSpeed: 2.5
   runSpeed: 5
   idleTime: 2
@@ -406,6 +403,9 @@ MonoBehaviour:
   minBlockCooldown: 1
   maxBlockCooldown: 2
   lastTimeBlock: 0
+  stunDuration: 1
+  stunDirection: {x: 10, y: 12}
+  counterImage: {fileID: 4676605648977866115}
 --- !u!1 &3325982861166663723
 GameObject:
   m_ObjectHideFlags: 0

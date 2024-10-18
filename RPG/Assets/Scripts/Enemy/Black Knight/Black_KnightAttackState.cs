@@ -30,7 +30,12 @@ public class Black_KnightAttackState : EnemyState
 
         if (triggerCalled)
         {
-            stateMachine.ChangeState(enemy.battleState);
+            if (enemy.CanSummonSkeleton())
+            {
+                stateMachine.ChangeState(enemy.summonState);
+            }
+            else
+                stateMachine.ChangeState(enemy.idleState);
         }
     }
 }
