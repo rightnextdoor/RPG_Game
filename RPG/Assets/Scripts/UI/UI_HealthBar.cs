@@ -39,4 +39,9 @@ public class UI_HealthBar : MonoBehaviour
     }
     private void FlipUI() => myTransform.Rotate(0, 180, 0);
 
+    public void HidHealthBar()
+    {
+        myTransform.gameObject.SetActive(false);
+    }
+
 }

@@ -55,4 +55,17 @@ public class Enemy_Skeleton : Enemy_Regular
 
         stateMachine.ChangeState(deadState);
     }
+
+    public override void SelfDestroy()
+    {
+        base.SelfDestroy();
+
+        if (GetComponentInChildren<UI_HealthBar>() != null)
+        {
+            GetComponentInChildren<UI_HealthBar>().HidHealthBar();
+        }    
+
+        stateMachine.ChangeState(deadState);
+        Destroy(gameObject, 2f);
+    }
 }

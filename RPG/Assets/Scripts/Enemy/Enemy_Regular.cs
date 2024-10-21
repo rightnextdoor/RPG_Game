@@ -49,4 +49,9 @@ public class Enemy_Regular : Enemy
         }
         return false;
     }
+
+    public virtual void SelfDestroy()
+    {
+
+    }
 }

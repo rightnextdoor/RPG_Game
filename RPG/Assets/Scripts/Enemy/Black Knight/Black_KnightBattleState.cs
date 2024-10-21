@@ -39,8 +39,9 @@ public class Black_KnightBattleState : EnemyState
 
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {
+            enemy.SetZeroVelocity();
             enemy.Flip();
-            stateMachine.ChangeState(enemy.battleState);
+            stateMachine.ChangeState(enemy.idleState);
             return;
         }
 

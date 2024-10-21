@@ -10,10 +10,9 @@ public class Enemy_Black_Knight : Enemy_Boss
 
     [Header("Summon")]
     [SerializeField] private GameObject summonController;
-    public int amountOfSummons = 3;
-    public float summonCooldown = 1f;
-    public float summonTimer = .15f;
-    public float lastTimeSummon;
+    [SerializeField] private int amountOfSummons = 3;
+    [SerializeField] private float summonCooldown = 1f;
+    private float lastTimeSummon;
 
     #region States
     public Black_KnightIdleState idleState { get; private set; }
@@ -24,6 +23,10 @@ public class Enemy_Black_Knight : Enemy_Boss
     public Black_KnightSummonState summonState { get; private set; }
 
     #endregion
+
+    [HideInInspector] public bool restartCooldown;
+    private bool killSpawnOnce;
+
     protected override void Awake()
     {
         base.Awake();
@@ -40,6 +43,18 @@ public class Enemy_Black_Knight : Enemy_Boss
     {
         base.Start();
         stateMachine.Initialize(startState);
+        killSpawnOnce = true;
+    }
+
+    protected override void Update()
+    {
+        base.Update();
+
+        if(restartCooldown)
+            SpawnCooldown();
+
+        if(bossIsDefeated)
+            KillSpawnEnemies();
     }
 
     public override void Die()
@@ -57,6 +72,16 @@ public class Enemy_Black_Knight : Enemy_Boss
         stateMachine.ChangeState(deadState);
     }
 
+    private void SpawnCooldown()
+    {
+        int enemyCount = arena.GetComponent<EnemyZone>().EnemyCount;
+        if (enemyCount <= 0)
+        {
+            lastTimeSummon = Time.time;
+            restartCooldown = false;
+        }
+    }
+
     public void SummonSkeleton()
     {
         summonController.GetComponent<Black_Knight_Summon_Controller>().SetUpSummon(amountOfSummons);
@@ -69,8 +94,22 @@ public class Enemy_Black_Knight : Enemy_Boss
 
     public bool CanSummonSkeleton()
     {
-        if (Time.time >= lastTimeSummon + summonCooldown)
+        int enemyCount = arena.GetComponent<EnemyZone>().EnemyCount;
+
+        if (Time.time >= lastTimeSummon + summonCooldown && enemyCount <= 0)
             return true;
         return false;
     }
+
+    public override void KillSpawnEnemies()
+    {
+        base.KillSpawnEnemies();
+
+        if (killSpawnOnce)
+        {
+            arena.GetComponent<EnemyZone>().KillSpawnEnemies();
+            killSpawnOnce = false;
+        }
+    }
+
 }

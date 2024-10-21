@@ -91,9 +91,15 @@ public class Enemy_Boss : Enemy
 
         if (bossIsDefeated)
         {
+            KillSpawnEnemies();
             bossHealthBar.GetComponent<UI_BossHealthBar>().BossFightOver();
             Destroy(transform.parent.gameObject);
         }
+    }
+
+    public virtual void KillSpawnEnemies()
+    {
+
     }
 
     public void SelfDestroy() => Destroy(transform.parent.gameObject, 2f);
