@@ -54,4 +54,10 @@ public class Enemy_Regular : Enemy
     {
 
     }
+
+    public void SummonEnemy(bool _isSummon)
+    {
+        isSummon = _isSummon;
+    }
+
 }

@@ -33,6 +33,7 @@ public class Enemy : Entity
     public float minBlockCooldown = 1;
     public float maxBlockCooldown = 2;
     [HideInInspector] public float lastTimeBlock;
+    [HideInInspector] public bool isSummon = false;
 
     public EnemyStateMachine stateMachine { get; private set; }
     public EntityFX fX { get; private set; }
@@ -147,5 +148,10 @@ public class Enemy : Entity
 
     public virtual void CloseCounterAttackWindow()
     {
+    }
+
+    public bool IsSummon()
+    {
+        return isSummon;
     }
 }

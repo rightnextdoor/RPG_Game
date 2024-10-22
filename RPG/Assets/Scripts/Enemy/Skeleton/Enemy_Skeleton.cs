@@ -68,4 +68,5 @@ public class Enemy_Skeleton : Enemy_Regular
         stateMachine.ChangeState(deadState);
         Destroy(gameObject, 2f);
     }
+
 }

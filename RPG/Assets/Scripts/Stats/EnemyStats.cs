@@ -64,15 +64,24 @@ public class EnemyStats : CharacterStats
         base.TakeDamage(_damage);
     }
 
+
     protected override void Die()
     {
         base.Die();
         enemy.CloseCounterAttackWindow();
         enemy.Die();
-        PlayerManager.instance.GainXP(xpAmount.GetValue(), level);
+
+        if(!enemy.IsSummon())
+            DeathGains();
 
         myDropSystem.GenerateDrop();
 
         Destroy(gameObject, 2f);
+    }
+
+    private void DeathGains()
+    {
+        PlayerManager.instance.GainXP(xpAmount.GetValue(), level);
+        //TODO: add currency
     }
 }

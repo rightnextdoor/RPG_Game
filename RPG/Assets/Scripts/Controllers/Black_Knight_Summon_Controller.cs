@@ -43,7 +43,7 @@ public class Black_Knight_Summon_Controller : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             int enemyType = Random.Range(0, enemySize);
-
+           
             SpawnSkeleton(skeletonPrefab[enemyType]);
             summonCount--;
             yield return new WaitForSeconds(summonRate);
@@ -52,6 +52,7 @@ public class Black_Knight_Summon_Controller : MonoBehaviour
 
     void SpawnSkeleton(GameObject enemy)
     {
+        enemy.GetComponent<Enemy_Regular>().SummonEnemy(true);
         Instantiate(enemy, summonPosition.transform.position, Quaternion.identity);
     }
 }
