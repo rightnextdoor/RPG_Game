@@ -22,8 +22,12 @@ public class UI_BossHealthBar : MonoBehaviour
         UpdateHealthUI();
     }
 
-    public void BossFightStart()
+    public void BossFightStart(Enemy_Boss _boss)
     {
+        if(_boss == null) 
+            return;
+
+        boss = _boss;
         bossHealthBar.gameObject.SetActive(true);
         enemy = boss.stats;
 
@@ -36,6 +40,7 @@ public class UI_BossHealthBar : MonoBehaviour
 
     public void BossFightOver()
     {
+        Debug.Log("boss fight over");
         bossHealthBar.gameObject.SetActive(false);
     }
 

@@ -7,6 +7,10 @@ using UnityEngine;
 public class Enemy_Black_Knight : Enemy_Boss
 {
     [Header("Black Knight info")]
+    [Header("Special attack")]
+    public Transform specialAttackCheck;
+    public float specialAttackCheckRadius = 1.2f;
+    public Vector3 specialAttackSize;
 
     [Header("Summon")]
     [SerializeField] private GameObject summonController;
@@ -94,6 +98,9 @@ public class Enemy_Black_Knight : Enemy_Boss
 
     public bool CanSummonSkeleton()
     {
+        if (stage == Stage.Stage_1)
+            return false;
+
         int enemyCount = arena.GetComponent<EnemyZone>().EnemyCount;
 
         if (Time.time >= lastTimeSummon + summonCooldown && enemyCount <= 0)
@@ -110,6 +117,48 @@ public class Enemy_Black_Knight : Enemy_Boss
             arena.GetComponent<EnemyZone>().KillSpawnEnemies();
             killSpawnOnce = false;
         }
+    }
+
+    public override void StartNextStage()
+    {
+        base.StartNextStage();
+
+        switch (stage)
+        {
+            case Stage.Stage_2:
+                stats.IncreaseStats(10, stats.strength);
+                stats.IncreaseStats(5, stats.armor);
+                moveSpeed += 1;
+                break;
+            case Stage.Stage_3:
+                stats.IncreaseStats(20, stats.strength);
+                moveSpeed += 3;
+                amountOfSummons += 2;
+                summonCooldown -= 3;
+                break;
+        }
+    }
+
+    protected override void OnDrawGizmos()
+    {
+        base.OnDrawGizmos();
+        Gizmos.DrawCube(specialAttackCheck.position, specialAttackSize);
+    }
+
+    public override void AnimationSpecialAttackTrigger()
+    {
+        //enable to hit during the animation
+        //will hit player twice
+        //Collider2D[] colliders = Physics2D.OverlapBoxAll(specialAttackCheck.position, specialAttackSize, whatIsPlayer);
+
+        //foreach (var hit in colliders)
+        //{
+        //    if (hit.GetComponent<Player>() != null)
+        //    {
+        //        PlayerStats target = hit.GetComponent<PlayerStats>();
+        //        stats.DoDamage(target);
+        //    }
+        //}
     }
 
 }

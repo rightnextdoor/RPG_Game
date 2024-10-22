@@ -46,7 +46,7 @@ public class Enemy_Boss : Enemy
         base.Update();
 
         if (once)
-            IsBossDefeated();
+            CheckIfBossIsDefeated();
 
         CheckToStartFight();
         ChangeStages();
@@ -57,7 +57,8 @@ public class Enemy_Boss : Enemy
         base.Die();
 
         bossIsDefeated = true;
-        GameManager.instance.UpdateBosses();
+        bossHealthBar.GetComponent<UI_BossHealthBar>().BossFightOver();
+        //GameManager.instance.UpdateBosses();
 
         UnlockEquipment();
     }
@@ -76,7 +77,7 @@ public class Enemy_Boss : Enemy
             bossFightStart = true;
             if (callHealthBarOnce)
             {
-                bossHealthBar.GetComponent<UI_BossHealthBar>().BossFightStart();
+                bossHealthBar.GetComponent<UI_BossHealthBar>().BossFightStart(this);
                 callHealthBarOnce= false;
             }
             
@@ -85,14 +86,12 @@ public class Enemy_Boss : Enemy
         return bossFightStart;
     }
 
-    private void IsBossDefeated()
+    private void CheckIfBossIsDefeated()
     {
         once = false;
 
         if (bossIsDefeated)
-        {
-            KillSpawnEnemies();
-            bossHealthBar.GetComponent<UI_BossHealthBar>().BossFightOver();
+        {        
             Destroy(transform.parent.gameObject);
         }
     }

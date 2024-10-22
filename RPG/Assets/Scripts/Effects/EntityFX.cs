@@ -72,11 +72,14 @@ public class EntityFX : MonoBehaviour
         sr.material = hitMat;
         Color currentColor = sr.color;
         sr.color = Color.white;
+        //if you want player to not take damage after a couple of seconds
+        //player.stats.MakeInvincible(true);
 
         yield return new WaitForSeconds(flashDuration);
 
         sr.color = currentColor;
         sr.material = originalMat;
+        //player.stats.MakeInvincible(false);
     }
 
     private void RedColorBlink()
