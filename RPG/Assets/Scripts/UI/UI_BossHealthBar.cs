@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class UI_BossHealthBar : MonoBehaviour
 {
+    
+
     [SerializeField] private Enemy_Boss boss;
     private CharacterStats enemy;
     [SerializeField] private GameObject bossHealthBar;
@@ -16,6 +18,8 @@ public class UI_BossHealthBar : MonoBehaviour
     [SerializeField] private Image backHealhBarImage;
     [SerializeField] private float chipSpeed = 10;
     [SerializeField] private TextMeshProUGUI bossNameText;
+
+    
 
     private void Update()
     {

@@ -20,7 +20,6 @@ public class Enemy_Boss : Enemy
     public BoxCollider2D arena;
     public bool bossIsDefeated;
     public string bossId;
-    [SerializeField] private GameObject bossHealthBar;
 
     public Stage stage;
 
@@ -57,8 +56,7 @@ public class Enemy_Boss : Enemy
         base.Die();
 
         bossIsDefeated = true;
-        bossHealthBar.GetComponent<UI_BossHealthBar>().BossFightOver();
-        //GameManager.instance.UpdateBosses();
+        BossHealthBarManager.instance.BossFightOver();
 
         UnlockEquipment();
     }
@@ -77,8 +75,8 @@ public class Enemy_Boss : Enemy
             bossFightStart = true;
             if (callHealthBarOnce)
             {
-                bossHealthBar.GetComponent<UI_BossHealthBar>().BossFightStart(this);
-                callHealthBarOnce= false;
+                BossHealthBarManager.instance.BossFightStart(this);
+                callHealthBarOnce = false;
             }
             
         }
