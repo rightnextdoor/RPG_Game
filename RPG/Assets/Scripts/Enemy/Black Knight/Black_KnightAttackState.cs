@@ -30,12 +30,23 @@ public class Black_KnightAttackState : EnemyState
 
         if (triggerCalled)
         {
-            if (enemy.CanSummonSkeleton())
+            if (CanEvade())
             {
-                stateMachine.ChangeState(enemy.summonState);
+                stateMachine.ChangeState(enemy.evasionState);
             }
             else
                 stateMachine.ChangeState(enemy.idleState);
         }
+    }
+
+    private bool CanEvade()
+    {
+        if (Time.time >= enemy.lastTimeEvade + enemy.evasionCooldown)
+        {
+            enemy.evasionCooldown = Random.Range(enemy.minEvasionCooldown, enemy.maxEvasionCooldown);
+            enemy.lastTimeEvade = Time.time;
+            return true;
+        }
+        return false;
     }
 }

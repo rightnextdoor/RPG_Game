@@ -91,7 +91,7 @@ public class OctopusWaterState : EnemyState
         stateTimer = .9f;
         jumpInWater = true;
         once = false;
-        AudioManager.instance.DelaySoundFX("OctopusJumpIn", null, stateTimer - .1f);
+        AudioManager.instance.PlaySFXDelay("OctopusJumpIn", null, stateTimer - .1f);
     }
 
     private void JumpOutWater()

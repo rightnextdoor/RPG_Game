@@ -16,9 +16,7 @@ public class Black_KnightBattleState : EnemyState
     public override void Enter()
     {
         base.Enter();
-        player = PlayerManager.instance.player.transform;
-
-        
+        player = PlayerManager.instance.player.transform;       
 
         if (player.GetComponent<PlayerStats>().isDead)
             stateMachine.ChangeState(enemy.idleState);
@@ -31,9 +29,7 @@ public class Black_KnightBattleState : EnemyState
 
     public override void Update()
     {
-        base.Update();
-
-        
+        base.Update();        
 
         enemy.anim.SetFloat("xVelocity", enemy.rb.velocity.x);
 
@@ -50,10 +46,11 @@ public class Black_KnightBattleState : EnemyState
             stateTimer = enemy.battleTime;
             if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
             {
-                               
+                
+
                 if (CanAttack())
                 {
-                    //AudioManager.instance.PlaySFX("DeathBringerAttack", null);
+                    AudioManager.instance.PlaySFXDelay("BlackKnightAttack", null,.2f);
                     stateMachine.ChangeState(enemy.attackState);
                 }
                 else
@@ -83,5 +80,6 @@ public class Black_KnightBattleState : EnemyState
         return false;
     }
 
+    
     
 }

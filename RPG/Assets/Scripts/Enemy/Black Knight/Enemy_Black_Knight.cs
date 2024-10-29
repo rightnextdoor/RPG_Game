@@ -18,6 +18,17 @@ public class Enemy_Black_Knight : Enemy_Boss
     [SerializeField] private float summonCooldown = 1f;
     private float lastTimeSummon;
 
+    [Header("Evasion")]
+    public float minEvasionCooldown = 3f;
+    public float maxEvasionCooldown = 5f;
+    public float evasionCooldown;
+    public float lastTimeEvade;
+    public float evasionSpeed = 8f;
+    public Transform backWallCheck;
+    [SerializeField] private float backWallCheckDistance = 1;
+    public Transform backGroundCheck;
+    [SerializeField]private float backGroundCheckDistance = .8f;
+
     #region States
     public Black_KnightIdleState idleState { get; private set; }
     public Black_KnightBattleState battleState { get; private set; }
@@ -25,6 +36,8 @@ public class Enemy_Black_Knight : Enemy_Boss
     public Black_KnightDeadState deadState { get; private set; }
     public Black_KnightStartState startState { get; private set; }
     public Black_KnightSummonState summonState { get; private set; }
+    public Black_KnightEvasionState evasionState { get; private set; }
+    public Black_KnightLaughState laughState { get; private set; }
 
     #endregion
 
@@ -42,6 +55,8 @@ public class Enemy_Black_Knight : Enemy_Boss
         deadState = new Black_KnightDeadState(this, stateMachine, "Die", this);
         startState = new Black_KnightStartState(this, stateMachine, "Idle", this);
         summonState = new Black_KnightSummonState(this, stateMachine, "Summon", this);
+        evasionState = new Black_KnightEvasionState(this, stateMachine, "Evade", this);
+        laughState = new Black_KnightLaughState(this, stateMachine, "Laugh", this);
     }
     protected override void Start()
     {
@@ -143,7 +158,12 @@ public class Enemy_Black_Knight : Enemy_Boss
     {
         base.OnDrawGizmos();
         Gizmos.DrawCube(specialAttackCheck.position, specialAttackSize);
+        Gizmos.DrawLine(backGroundCheck.position, new Vector3(backGroundCheck.position.x, backGroundCheck.position.y - backGroundCheckDistance));
+        Gizmos.DrawLine(backWallCheck.position, new Vector3(backWallCheck.position.x + backWallCheckDistance * -facingDir, backWallCheck.position.y));
     }
+
+    public virtual bool IsBackGroundDetected() => Physics2D.Raycast(backGroundCheck.position, Vector2.down, backGroundCheckDistance, whatIsGround);
+    public virtual bool IsBackWallDetected() => Physics2D.Raycast(backWallCheck.position, Vector2.right * -facingDir, backWallCheckDistance, whatIsGround);
 
     public override void AnimationSpecialAttackTrigger()
     {

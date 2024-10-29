@@ -14,7 +14,7 @@ public class Black_KnightDeadState : EnemyState
     {
         base.Enter();
 
-        //AudioManager.instance.PlaySFX("DeathBringerDie", null);
+        AudioManager.instance.PlaySFX("BlackKnightDie", null);
         enemy.stats.MakeInvincible(true);
         enemy.SelfDestroy();
     }

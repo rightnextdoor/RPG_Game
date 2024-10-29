@@ -6396,7 +6396,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -29649,7 +29649,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -30148,7 +30148,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -30617,6 +30617,51 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1550375080}
   m_CullTransparentMesh: 1
+--- !u!1 &1553716481
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1553716482}
+  - component: {fileID: 1553716483}
+  m_Layer: 0
+  m_Name: BossHealthBarManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1553716482
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1553716481}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1931798930}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1553716483
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1553716481}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3736606e28d17304c9965f768c9258d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bossHealthBar: {fileID: 3458046085448481515}
 --- !u!1 &1567696026
 GameObject:
   m_ObjectHideFlags: 0
@@ -47243,7 +47288,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -48954,6 +48999,7 @@ Transform:
   - {fileID: 507619493}
   - {fileID: 1751968135}
   - {fileID: 1936772193}
+  - {fileID: 1553716482}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1936772191
@@ -60078,7 +60124,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -61209,7 +61255,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -61539,7 +61585,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
       propertyPath: soundFX.Array.size
-      value: 52
+      value: 56
       objectReference: {fileID: 0}
     - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
       propertyPath: bgm.Array.data[0].volume
@@ -61974,6 +62020,38 @@ PrefabInstance:
       value: CrabDie
       objectReference: {fileID: 0}
     - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[52].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 24fc41580fcfd684ab9e2e56fcf4cfee, type: 3}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[52].name
+      value: BlackKnightAttack
+      objectReference: {fileID: 0}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[53].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: a8d93bfe37526d94f99b922ae9664a8f, type: 3}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[53].name
+      value: BlackKnightLaugh
+      objectReference: {fileID: 0}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[54].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: d454d1694d09a354087f2ebd241a33b9, type: 3}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[54].name
+      value: BlackKnightDie
+      objectReference: {fileID: 0}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[55].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 3930eecf7d721524c84aaa7839bca902, type: 3}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[55].name
+      value: BlackKnightSummon
+      objectReference: {fileID: 0}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
       propertyPath: soundFX.Array.data[5].pitch
       value: 1
       objectReference: {fileID: 0}
@@ -62183,6 +62261,22 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
       propertyPath: soundFX.Array.data[51].pitch
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[52].pitch
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[53].pitch
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[54].pitch
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[55].pitch
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
@@ -62559,6 +62653,38 @@ PrefabInstance:
       objectReference: {fileID: -8458497694684626364, guid: b7725e6b8fda8d845bed26b071ee56d1, type: 2}
     - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
       propertyPath: soundFX.Array.data[51].volume
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[52].output
+      value: 
+      objectReference: {fileID: -8458497694684626364, guid: b7725e6b8fda8d845bed26b071ee56d1, type: 2}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[52].volume
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[53].output
+      value: 
+      objectReference: {fileID: -8458497694684626364, guid: b7725e6b8fda8d845bed26b071ee56d1, type: 2}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[53].volume
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[54].output
+      value: 
+      objectReference: {fileID: -8458497694684626364, guid: b7725e6b8fda8d845bed26b071ee56d1, type: 2}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[54].volume
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[55].output
+      value: 
+      objectReference: {fileID: -8458497694684626364, guid: b7725e6b8fda8d845bed26b071ee56d1, type: 2}
+    - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
+      propertyPath: soundFX.Array.data[55].volume
       value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 1035283151537616498, guid: 867e6fe3a7dfa6647b256dbe4992fa5a, type: 3}
@@ -62989,10 +63115,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5669189979311603220, guid: 2ae1dfe02a119124fb2bb825d5baa36a, type: 3}
-      propertyPath: bossHealthBar
-      value: 
-      objectReference: {fileID: 3458046085448481515}
     - target: {fileID: 6019333655572166547, guid: 2ae1dfe02a119124fb2bb825d5baa36a, type: 3}
       propertyPath: m_Name
       value: Boss_Black_Knight

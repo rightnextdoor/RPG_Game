@@ -7551,6 +7551,37 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &3860723757715737945
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 395174792671008072}
+  m_Layer: 7
+  m_Name: BackWallCheck
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &395174792671008072
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3860723757715737945}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.26, y: 1.24, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4226457204209023015}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3908275062775881700
 GameObject:
   m_ObjectHideFlags: 0
@@ -8165,6 +8196,37 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &4649885583394430721
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1604793381784054465}
+  m_Layer: 7
+  m_Name: BackGroundCheck
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1604793381784054465
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4649885583394430721}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.96, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4226457204209023015}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4668478617518640249
 GameObject:
   m_ObjectHideFlags: 0
@@ -14775,6 +14837,8 @@ Transform:
   - {fileID: 6370203849387287584}
   - {fileID: 7171314461424470660}
   - {fileID: 5097843952502182645}
+  - {fileID: 395174792671008072}
+  - {fileID: 1604793381784054465}
   m_Father: {fileID: 5284901922634551653}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!50 &5730374289459229123
@@ -14853,7 +14917,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lerpTimer: 0
   maxHealth:
-    baseValue: 100
+    baseValue: 1000
     modifiers: 
   currentHealth: 0
   damage:
@@ -15000,7 +15064,6 @@ MonoBehaviour:
   arena: {fileID: 6804350636673740332}
   bossIsDefeated: 0
   bossId: df4444d6-386a-468f-9366-64d59d3b962c
-  bossHealthBar: {fileID: 0}
   stage: 0
   specialAttackCheck: {fileID: 2479539571343682542}
   specialAttackCheckRadius: 1.6
@@ -15008,6 +15071,15 @@ MonoBehaviour:
   summonController: {fileID: 8043944739331359625}
   amountOfSummons: 3
   summonCooldown: 5
+  minEvasionCooldown: 3
+  maxEvasionCooldown: 5
+  evasionCooldown: 10
+  lastTimeEvade: 0
+  evasionSpeed: 8
+  backWallCheck: {fileID: 395174792671008072}
+  backWallCheckDistance: 4.31
+  backGroundCheck: {fileID: 1604793381784054465}
+  backGroundCheckDistance: 0.8
   restartCooldown: 0
 --- !u!1 &6937675778366654970
 GameObject:
