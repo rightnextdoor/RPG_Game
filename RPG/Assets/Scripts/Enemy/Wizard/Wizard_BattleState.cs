@@ -34,7 +34,7 @@ public class Wizard_BattleState : EnemyState
     public override void Update()
     {
         base.Update();
-
+        enemy.anim.SetFloat("xVelocity", enemy.rb.velocity.x);
 
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {

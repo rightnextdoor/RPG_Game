@@ -19,7 +19,7 @@ public class Enemy_Wizard : Enemy_Boss
         base.Awake();
 
         idleState = new Wizard_IdleState(this, stateMachine, "Idle", this);
-        battleState = new Wizard_BattleState(this, stateMachine, "Move", this);
+        battleState = new Wizard_BattleState(this, stateMachine, "Battle", this);
         attackState = new Wizard_AttackState(this, stateMachine, "Attack", this);
         deadState = new Wizard_DeadState(this, stateMachine, "Die", this);
         startState = new Wizard_StartState(this, stateMachine, "Idle", this);
