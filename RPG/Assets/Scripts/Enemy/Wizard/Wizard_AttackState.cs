@@ -29,6 +29,11 @@ public class Wizard_AttackState : EnemyState
         enemy.SetZeroVelocity();
 
         if (triggerCalled)
-            stateMachine.ChangeState(enemy.battleState);
+        {
+            if (enemy.CanTeleport())
+                stateMachine.ChangeState(enemy.teleportState);
+            else
+                stateMachine.ChangeState(enemy.battleState);
+        }
     }
 }

@@ -26,6 +26,11 @@ public class Enemy_Boss : Enemy
     private bool once;
     private bool callHealthBarOnce;
 
+    [Header("Teleport Details")]
+    [SerializeField] private Vector2 surroundingCheckSize;
+    public float chanceToTeleport;
+    public float defaultChanceToTeleport = 25;
+
     protected override void Awake()
     {
         base.Awake();
@@ -175,4 +180,39 @@ public class Enemy_Boss : Enemy
         }      
     }
 
+    public virtual void FindPosition()
+    {
+        float x = Random.Range(arena.bounds.min.x + 3, arena.bounds.max.x - 3);
+        float y = Random.Range(arena.bounds.min.y + 3, arena.bounds.max.y - 3);
+
+        transform.position = new Vector3(x, y);
+        transform.position = new Vector3(transform.position.x, transform.position.y - GroundBelow().distance + (cd.size.y / 2));
+
+        if (!GroundBelow() && !SomethingIsAround())
+        {
+            FindPosition();
+        }
+    }
+
+    private RaycastHit2D GroundBelow() => Physics2D.Raycast(transform.position, Vector2.down, 100, whatIsGround);
+    private bool SomethingIsAround() => Physics2D.BoxCast(transform.position, surroundingCheckSize, 0, Vector2.zero, 0, whatIsGround);
+
+    protected override void OnDrawGizmos()
+    {
+        base.OnDrawGizmos();
+
+        Gizmos.DrawLine(transform.position, new Vector3(transform.position.x, transform.position.y - GroundBelow().distance));
+        Gizmos.DrawWireCube(transform.position, surroundingCheckSize);
+    }
+
+    public virtual bool CanTeleport()
+    {
+        if (Random.Range(0, 100) <= chanceToTeleport)
+        {
+            chanceToTeleport = defaultChanceToTeleport;
+            return true;
+        }
+
+        return false;
+    }
 }

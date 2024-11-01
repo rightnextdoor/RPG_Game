@@ -53,16 +53,18 @@ public class EntityFX : MonoBehaviour
         newText.GetComponent<TextMeshPro>().text = _text;
     }
 
-    public void MakeTransprent(bool _transprent)
+    public void MakeTransprent(bool _transprent, bool _isBoss)
     {
         if (_transprent)
         {
-            myHealthBar.SetActive(false);
+            if(!_isBoss)
+                myHealthBar.SetActive(false);
             sr.color = Color.clear;
         }
         else
         {
-            myHealthBar.SetActive(true);
+            if(!_isBoss)
+                myHealthBar.SetActive(true);
             sr.color = Color.white;
         }
     }

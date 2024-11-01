@@ -17,11 +17,6 @@ public class Enemy_DeathBringer : Enemy_Boss
     [SerializeField] private float spellStateCooldown;
     [SerializeField] private Vector2 spellOffset;
 
-    [Header("Teleport Details")]
-    [SerializeField] private Vector2 surroundingCheckSize;
-    public float chanceToTeleport;
-    public float defaultChanceToTeleport = 25;
-
     #region States
     public DeathBringerIdleState idleState { get; private set; }
     public DeathBringerBattleState battleState { get; private set; }
@@ -68,6 +63,14 @@ public class Enemy_DeathBringer : Enemy_Boss
         stateMachine.ChangeState(deadState);
     }
 
+    public override bool CanTeleport()
+    {
+        if (stage == Stage.Stage_1)
+            return false;
+
+        return base.CanTeleport();
+    }
+
     public void CastSpell()
     {
         Player player = PlayerManager.instance.player;
@@ -83,45 +86,12 @@ public class Enemy_DeathBringer : Enemy_Boss
         newSpell.GetComponent<DeathBringerSpell_Controller>().SetupSpell(stats);
     }
 
-    public void FindPosition()
+    public override void FindPosition()
     {
-        float x = Random.Range(arena.bounds.min.x + 3, arena.bounds.max.x - 3);
-        float y = Random.Range(arena.bounds.min.y + 3, arena.bounds.max.y - 3);
-
-        transform.position = new Vector3(x, y);
-        transform.position = new Vector3(transform.position.x, transform.position.y - GroundBelow().distance + (cd.size.y / 2));
-
-        if (!GroundBelow() && !SomethingIsAround())
-        {
-            FindPosition();
-        }
+        base.FindPosition();
         AudioManager.instance.PlaySFX("DeathBringerTeleport2", null);
     }
-
-    private RaycastHit2D GroundBelow() => Physics2D.Raycast(transform.position, Vector2.down, 100, whatIsGround);
-    private bool SomethingIsAround() => Physics2D.BoxCast(transform.position, surroundingCheckSize, 0, Vector2.zero, 0, whatIsGround);
-
-    protected override void OnDrawGizmos()
-    {
-        base.OnDrawGizmos();
-
-        Gizmos.DrawLine(transform.position, new Vector3(transform.position.x, transform.position.y - GroundBelow().distance));
-        Gizmos.DrawWireCube(transform.position, surroundingCheckSize);
-    }
-
-    public bool CanTeleport()
-    {
-        if (stage == Stage.Stage_1)
-            return false;
-
-        if (Random.Range(0, 100) <= chanceToTeleport)
-        {
-            chanceToTeleport = defaultChanceToTeleport;
-            return true;
-        }
-        
-        return false;
-    }
+  
 
     public bool CanDoSpellCast()
     {

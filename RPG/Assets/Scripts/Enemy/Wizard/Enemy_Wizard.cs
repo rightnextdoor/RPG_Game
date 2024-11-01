@@ -11,6 +11,7 @@ public class Enemy_Wizard : Enemy_Boss
     public Wizard_DeadState deadState { get; private set; }
     public Wizard_StartState startState { get; private set; }
     public Wizard_MoveState moveState { get; private set; }
+    public Wizard_TeleportState teleportState { get; private set; }
 
     #endregion
 
@@ -24,6 +25,7 @@ public class Enemy_Wizard : Enemy_Boss
         deadState = new Wizard_DeadState(this, stateMachine, "Die", this);
         startState = new Wizard_StartState(this, stateMachine, "Idle", this);
         moveState = new Wizard_MoveState(this, stateMachine, "Move", this);
+        teleportState = new Wizard_TeleportState(this, stateMachine, "Teleport", this);
     }
 
     protected override void Start()
