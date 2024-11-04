@@ -46,7 +46,16 @@ public class Wizard_BattleState : EnemyState
         if (enemy.IsPlayerDetected())
         {
             stateTimer = enemy.battleTime;
-            if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
+
+            if (enemy.CanCastSpell())
+            {
+                stateMachine.ChangeState(enemy.spellState);
+            }
+            else if (enemy.CanTeleport())
+            {
+                stateMachine.ChangeState(enemy.teleportState);
+            }
+            else if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
             {
                 if (CanAttack())
                 {
@@ -63,8 +72,8 @@ public class Wizard_BattleState : EnemyState
                 enemy.Flip();
             }
 
-            if (stateTimer < 0 || Vector2.Distance(player.transform.position, enemy.transform.position) > 7)
-                stateMachine.ChangeState(enemy.idleState);
+            //if (stateTimer < 0 || Vector2.Distance(player.transform.position, enemy.transform.position) > 7)
+            //    stateMachine.ChangeState(enemy.idleState);
         }
 
         //float distanceToPlayerX = Mathf.Abs(player.position.x - enemy.transform.position.x);

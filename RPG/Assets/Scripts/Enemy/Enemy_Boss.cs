@@ -30,6 +30,8 @@ public class Enemy_Boss : Enemy
     [SerializeField] private Vector2 surroundingCheckSize;
     public float chanceToTeleport;
     public float defaultChanceToTeleport = 25;
+    [SerializeField] private float teleportCooldown = 1.5f;
+    private float teleportCooldownTimer = 0;
 
     protected override void Awake()
     {
@@ -48,7 +50,7 @@ public class Enemy_Boss : Enemy
     protected override void Update()
     {
         base.Update();
-
+        teleportCooldownTimer -= Time.deltaTime;
         if (once)
             CheckIfBossIsDefeated();
 
@@ -207,12 +209,15 @@ public class Enemy_Boss : Enemy
 
     public virtual bool CanTeleport()
     {
-        if (Random.Range(0, 100) <= chanceToTeleport)
+        if (teleportCooldownTimer < 0)
         {
-            chanceToTeleport = defaultChanceToTeleport;
-            return true;
+            if (Random.Range(0, 100) <= chanceToTeleport)
+            {
+                chanceToTeleport = defaultChanceToTeleport;
+                teleportCooldownTimer = teleportCooldown;
+                return true;
+            }
         }
-
         return false;
     }
 }

@@ -32,7 +32,7 @@ public class Wizard_TeleportState : EnemyState
 
         if (triggerCalled)
         {
-            stateMachine.ChangeState(enemy.battleState);
+            stateMachine.ChangeState(enemy.spellState);
         }
     }
 }
