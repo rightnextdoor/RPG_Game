@@ -9,20 +9,24 @@ public class Enemy_Wizard : Enemy_Boss
     private float spellCoolDownTimer = 0;
     [Space]
     [Header("Fire ball")]
-    [SerializeField] private float fireBallCooldown = 10f;
-    public float lastTimeCastFireBall;
+    [SerializeField] private GameObject fireBallPrefab;
+    [SerializeField] private float fireBallSpeed = 6f;
+    [SerializeField] private float fireBallExplosionTimer = 3f;
+    public float fireBallCooldown = 10f;
+    [HideInInspector] public float lastTimeCastFireBall;
+    [HideInInspector] public bool isFireBall;
 
     [Header("Ice ball")]
-    [SerializeField] private float iceBallCooldown = 5f;
-    public float lastTimeCastIceBall;
+    public float iceBallCooldown = 5f;
+    [HideInInspector] public float lastTimeCastIceBall;
 
     [Header("Lighting strike")]
-    [SerializeField] private float lightingStrikeCooldown = 15f;
-    public float lastTimeCastLightingStrike;
+    public float lightingStrikeCooldown = 15f;
+    [HideInInspector] public float lastTimeCastLightingStrike;
 
     [Header("Air walk")]
-    [SerializeField] private float airWalkCooldown = 18f;
-    public float lastTimeCastAirWalk;
+    public float airWalkCooldown = 18f;
+    [HideInInspector] public float lastTimeCastAirWalk;
 
     #region States
     public Wizard_IdleState idleState { get; private set; }
@@ -53,7 +57,7 @@ public class Enemy_Wizard : Enemy_Boss
         teleportState = new Wizard_TeleportState(this, stateMachine, "Teleport", this);
         spellState = new Wizard_SpellState(this, stateMachine, "Idle", this);
         airWalkState = new Wizard_AirWalkState(this, stateMachine, "Idle", this);
-        fireBallState = new Wizard_FireBallState(this, stateMachine, "Idle", this);
+        fireBallState = new Wizard_FireBallState(this, stateMachine, "FireBall", this);
         iceBallState = new Wizard_IceBallState(this, stateMachine, "Idle", this);
         lightingStrikeState = new Wizard_LightingStrikeState(this, stateMachine, "Idle", this);
     }
@@ -62,8 +66,6 @@ public class Enemy_Wizard : Enemy_Boss
     {
         base.Start();
         stateMachine.Initialize(startState);
-
-        SetupSpellsCooldown();
     }
 
     protected override void Update()
@@ -87,83 +89,30 @@ public class Enemy_Wizard : Enemy_Boss
         stateMachine.ChangeState(deadState);
     }
 
-    private void SetupSpellsCooldown()
-    {
-        lastTimeCastFireBall = Time.time;
-        lastTimeCastIceBall = Time.time;
-        lastTimeCastLightingStrike = Time.time;
-        lastTimeCastAirWalk = Time.time;
-    }
-
     public bool CanCastSpell()
     {
         if (spellCoolDownTimer < 0)
         {
-            if (CastAirWalk())
-            {
-                stateMachine.ChangeState(airWalkState);
-                spellCoolDownTimer = spellCooldown;
-                return true;
-            }
-
-            if (CastLightingStrike())
-            {
-                stateMachine.ChangeState(lightingStrikeState);
-                spellCoolDownTimer = spellCooldown;
-                return true;
-            }
-
-            if (CastIceBall())
-            {
-                stateMachine.ChangeState(iceBallState);
-                spellCoolDownTimer = spellCooldown;
-                return true;
-            }
-
-            if (CastFireBall())
-            {
-                stateMachine.ChangeState(fireBallState);
-                spellCoolDownTimer = spellCooldown;
-                return true;
-            }
-        }
-        
-        return false;
-    }
-
-    private bool CastFireBall()
-    {
-        if (Time.time >= lastTimeCastFireBall + fireBallCooldown)
-        {
+            spellCoolDownTimer = spellCooldown;
             return true;
         }
         return false;
     }
 
-    private bool CastIceBall()
+    public override void AnimationSpecialAttackTrigger()
     {
-        if (Time.time >= lastTimeCastIceBall + iceBallCooldown)
+        if (isFireBall)
         {
-            return true;
+            CastFireBall();
         }
-        return false;
     }
 
-    private bool CastLightingStrike()
+    private void CastFireBall()
     {
-        if (Time.time >= lastTimeCastLightingStrike + lightingStrikeCooldown)
-        {
-            return true;
-        }
-        return false;
-    }
-
-    private bool CastAirWalk()
-    {
-        if (Time.time >= lastTimeCastAirWalk + airWalkCooldown)
-        {
-            return true;
-        }
-        return false;
+        Debug.Log("create fire ball");
+        GameObject castFireBall = Instantiate(fireBallPrefab, attackCheck.position, Quaternion.identity);
+        castFireBall.GetComponent<WizardFireBall_Controller>().SetupFireBall(fireBallSpeed * facingDir, stats, attackCheckRadius, fireBallExplosionTimer);
+        //castFireBall.GetComponent<Bubble_Controller>().SetupBubble(fireBallSpeed * facingDir, stats, attackCheckRadius, fireBallExplosionTimer);
+        isFireBall = false;
     }
 }

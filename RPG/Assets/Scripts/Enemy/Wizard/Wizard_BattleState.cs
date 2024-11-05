@@ -51,18 +51,18 @@ public class Wizard_BattleState : EnemyState
             {
                 stateMachine.ChangeState(enemy.spellState);
             }
-            else if (enemy.CanTeleport())
-            {
-                stateMachine.ChangeState(enemy.teleportState);
-            }
-            else if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
-            {
-                if (CanAttack())
-                {
-                    stateMachine.ChangeState(enemy.attackState);
-                    //AudioManager.instance.PlaySFX("SkeletonAttack", enemy.transform);
-                }
-            }
+            //else if (enemy.CanTeleport())
+            //{
+            //    stateMachine.ChangeState(enemy.teleportState);
+            //}
+            //else if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
+            //{
+            //    if (CanAttack())
+            //    {
+            //        stateMachine.ChangeState(enemy.attackState);
+            //        //AudioManager.instance.PlaySFX("SkeletonAttack", enemy.transform);
+            //    }
+            //}
         }
         else
         {

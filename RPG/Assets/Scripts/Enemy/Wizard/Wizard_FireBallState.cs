@@ -5,7 +5,6 @@ using UnityEngine;
 public class Wizard_FireBallState : EnemyState
 {
     private Enemy_Wizard enemy;
-    private float spellTimer;
     public Wizard_FireBallState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Wizard enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
@@ -14,8 +13,6 @@ public class Wizard_FireBallState : EnemyState
     public override void Enter()
     {
         base.Enter();
-        spellTimer = 1.5f;
-        Debug.Log("Enter fire ball state");
     }
 
     public override void Exit()
@@ -27,19 +24,14 @@ public class Wizard_FireBallState : EnemyState
     public override void Update()
     {
         base.Update();
+        enemy.SetZeroVelocity();
 
-        spellTimer -= Time.deltaTime;
-
-        if (spellTimer < 0)
+        if (triggerCalled)
         {
             if (enemy.CanTeleport())
-            {
                 stateMachine.ChangeState(enemy.teleportState);
-            }
             else
-            {
                 stateMachine.ChangeState(enemy.battleState);
-            }
         }
 
     }

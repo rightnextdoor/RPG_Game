@@ -54370,16 +54370,16 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   playerDistance: 10
-  moveSpeed: 5
+  moveSpeed: 8
   runSpeed: 5
   idleTime: 2
   moveTime: 5
   battleTime: 7
   agroDistance: 2
-  attackDistance: 2.5
+  attackDistance: 10
   attackCooldown: 0
-  minAttackCooldown: 1
-  maxAttackCooldown: 2
+  minAttackCooldown: 0.22
+  maxAttackCooldown: 0.33
   lastTimeAttacked: 0
   blockCooldown: 0
   minBlockCooldown: 1
@@ -54395,6 +54395,20 @@ MonoBehaviour:
   surroundingCheckSize: {x: 0, y: 0}
   chanceToTeleport: 50
   defaultChanceToTeleport: 70
+  teleportCooldown: 8
+  spellCooldown: 1.5
+  fireBallPrefab: {fileID: 3372130691592800980, guid: 7efa268363b72ea4cb6787e57a4090c1, type: 3}
+  fireBallSpeed: 15
+  fireBallExplosionTimer: 3
+  fireBallCooldown: 2
+  lastTimeCastFireBall: 0
+  isFireBall: 0
+  iceBallCooldown: 20
+  lastTimeCastIceBall: 0
+  lightingStrikeCooldown: 25
+  lastTimeCastLightingStrike: 0
+  airWalkCooldown: 30
+  lastTimeCastAirWalk: 0
 --- !u!114 &1901490728
 MonoBehaviour:
   m_ObjectHideFlags: 0
