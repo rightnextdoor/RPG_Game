@@ -2,19 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WizardFireBall_Controller : Explosion
+public class WizardIceBall_Controller : Explosion
 {
     private Animator anim;
     [SerializeField] private int damage;
     [SerializeField] private string targetLayerName = "Player";
 
-    [SerializeField] private float xVelocity;
+    [SerializeField] private float moveSpeed;
     [SerializeField] private Rigidbody2D rb;
 
     private float explosionTimer;
-    
+
     private Player player;
     [SerializeField] private float distanceToExplosion = 1;
+    private bool canGrow;
+    private float growSpeed = 15;
+    private float maxSize = 6;
 
     private void Update()
     {
@@ -25,33 +28,43 @@ public class WizardFireBall_Controller : Explosion
             FinishExplosion();
         }
 
-        //if (player != null)
-        //{
-        //    if (Vector2.Distance(transform.position, player.transform.position) < distanceToExplosion)
-        //    {
-        //        FinishExplosion();
-        //    }
-        //}
-
         if (canMove)
-            rb.velocity = new Vector2(xVelocity, rb.velocity.y);
+            MoveToPlayer();
+
+        if (canGrow)
+            transform.localScale = Vector2.Lerp(transform.lossyScale, new Vector2(maxSize, maxSize), growSpeed * Time.deltaTime);
+
+        if (maxSize - transform.lossyScale.x < .5f)
+        {
+            canGrow = false;
+            anim.SetTrigger("Explode");
+        }
     }
 
-    public void SetupFireBall(float _speed, CharacterStats _myStats, float _radius, float _explosionTimer)
+    public void SetupIceBall(float _speed, CharacterStats _myStats, float _explosionTimer, float _growSpeed, float _maxSize, float _radius)
     {
         anim = GetComponentInChildren<Animator>();
 
-        xVelocity = _speed;
+        moveSpeed = _speed;
         myStats = _myStats;
+        growSpeed = _growSpeed;
+        maxSize = _maxSize;
         explosionRadius = _radius;
         explosionTimer = _explosionTimer;
         player = PlayerManager.instance.player;
 
-        if (xVelocity > 0)
-            transform.Rotate(0, 180, 0);
-
         canMove = true;
-        anim.SetBool("Fired", true);
+    }
+
+    private void MoveToPlayer()
+    {
+        if (player == null)
+            return;
+        transform.position = Vector2.MoveTowards(transform.position, player.transform.position, moveSpeed * Time.deltaTime);
+        if (Vector2.Distance(transform.position, player.transform.position) < distanceToExplosion)
+        {
+            FinishExplosion();
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -68,15 +81,18 @@ public class WizardFireBall_Controller : Explosion
 
     private void Explode()
     {
-        anim.SetTrigger("Explode");
+        canGrow = true;
         canMove = false;
-        rb.isKinematic = true;
-        rb.constraints = RigidbodyConstraints2D.FreezeAll;
+        //anim.SetTrigger("Explode");
+        //canMove = false;
+        //rb.isKinematic = true;
+        //rb.constraints = RigidbodyConstraints2D.FreezeAll;
     }
     public override void AnimationExplodeEvent()
     {
+        
         base.AnimationExplodeEvent();
-        player.GetComponent<CharacterStats>().ApplyAilments(true, false, false);
+        player.GetComponent<CharacterStats>().ApplyAilments(false,true,false);
         //AudioManager.instance.PlaySFX("BubbleImpact", transform);
     }
 

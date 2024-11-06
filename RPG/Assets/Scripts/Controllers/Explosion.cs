@@ -15,8 +15,12 @@ public class Explosion : MonoBehaviour
         {
             if (hit.GetComponent<CharacterStats>() != null)
             {
-                hit.GetComponent<Entity>().SetupKnockbackDir(transform);
-                myStats.DoDamage(hit.GetComponent<CharacterStats>());
+                if (hit.gameObject.tag == "Player")
+                {
+                    hit.GetComponent<Entity>().SetupKnockbackDir(transform);
+                    myStats.DoDamage(hit.GetComponent<CharacterStats>());
+                }
+                
             }
         }
     }

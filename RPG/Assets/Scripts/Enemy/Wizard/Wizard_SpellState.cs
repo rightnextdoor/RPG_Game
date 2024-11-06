@@ -6,6 +6,7 @@ using UnityEngine;
 public class Wizard_SpellState : EnemyState
 {
     private Enemy_Wizard enemy;
+    private float waitTimer;
     public Wizard_SpellState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Wizard enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
@@ -14,8 +15,7 @@ public class Wizard_SpellState : EnemyState
     public override void Enter()
     {
         base.Enter();
-        if (enemy.IsPlayerDetected().distance < enemy.transform.position.x)
-            enemy.Flip();
+        waitTimer = .15f;
     }
 
     public override void Exit()
@@ -26,12 +26,16 @@ public class Wizard_SpellState : EnemyState
     public override void Update()
     {
         base.Update();
-        enemy.SetZeroVelocity();
-        if (enemy.IsPlayerDetected().distance < enemy.transform.position.x)
-            enemy.Flip();
 
-        if (!CanCastSpell())
-            stateMachine.ChangeState(enemy.battleState);
+        waitTimer -= Time.deltaTime;
+
+        enemy.SetZeroVelocity();
+
+        if (waitTimer < 0 && enemy.IsPlayerDetected())
+        {
+            if (!CanCastSpell())
+                stateMachine.ChangeState(enemy.battleState);
+        }
     }
 
     public bool CanCastSpell()
@@ -48,11 +52,11 @@ public class Wizard_SpellState : EnemyState
         //    return true;
         //}
 
-        //if (CanCastIceBall())
-        //{
-        //    stateMachine.ChangeState(enemy.iceBallState);
-        //    return true;
-        //}
+        if (CanCastIceBall())
+        {
+            stateMachine.ChangeState(enemy.iceBallState);
+            return true;
+        }
 
         if (CanCastFireBall())
         {
@@ -77,6 +81,7 @@ public class Wizard_SpellState : EnemyState
     {
         if (Time.time >= enemy.lastTimeCastIceBall + enemy.iceBallCooldown)
         {
+            enemy.isIceBall = true;
             return true;
         }
         return false;

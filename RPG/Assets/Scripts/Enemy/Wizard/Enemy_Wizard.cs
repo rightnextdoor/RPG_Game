@@ -8,6 +8,7 @@ public class Enemy_Wizard : Enemy_Boss
     [SerializeField] private float spellCooldown = 1.5f;
     private float spellCoolDownTimer = 0;
     [Space]
+    #region Fire ball
     [Header("Fire ball")]
     [SerializeField] private GameObject fireBallPrefab;
     [SerializeField] private float fireBallSpeed = 6f;
@@ -15,18 +16,33 @@ public class Enemy_Wizard : Enemy_Boss
     public float fireBallCooldown = 10f;
     [HideInInspector] public float lastTimeCastFireBall;
     [HideInInspector] public bool isFireBall;
+    #endregion
 
+    #region Ice ball
     [Header("Ice ball")]
+    [SerializeField] private Transform iceAttackCheck;
+    [SerializeField] private float iceAttackCheckRadius = 1.2f;
+    [SerializeField] private GameObject iceBallPrefab;
+    [SerializeField] private float iceBallSpeed = 10f;
+    [SerializeField] private float iceBallMaxSize = 10f;
+    [SerializeField] private float iceBallGrowSpeed = 6;
+    [SerializeField] private float iceBallExplosionTimer = 3f;
     public float iceBallCooldown = 5f;
     [HideInInspector] public float lastTimeCastIceBall;
+    [HideInInspector] public bool isIceBall;
+    #endregion
 
+    #region Lighting strike
     [Header("Lighting strike")]
     public float lightingStrikeCooldown = 15f;
     [HideInInspector] public float lastTimeCastLightingStrike;
+    #endregion
 
+    #region Air walk
     [Header("Air walk")]
     public float airWalkCooldown = 18f;
     [HideInInspector] public float lastTimeCastAirWalk;
+    #endregion
 
     #region States
     public Wizard_IdleState idleState { get; private set; }
@@ -58,7 +74,7 @@ public class Enemy_Wizard : Enemy_Boss
         spellState = new Wizard_SpellState(this, stateMachine, "Idle", this);
         airWalkState = new Wizard_AirWalkState(this, stateMachine, "Idle", this);
         fireBallState = new Wizard_FireBallState(this, stateMachine, "FireBall", this);
-        iceBallState = new Wizard_IceBallState(this, stateMachine, "Idle", this);
+        iceBallState = new Wizard_IceBallState(this, stateMachine, "IceBall", this);
         lightingStrikeState = new Wizard_LightingStrikeState(this, stateMachine, "Idle", this);
     }
 
@@ -89,6 +105,12 @@ public class Enemy_Wizard : Enemy_Boss
         stateMachine.ChangeState(deadState);
     }
 
+    protected override void OnDrawGizmos()
+    {
+        base.OnDrawGizmos();
+        Gizmos.DrawWireSphere(iceAttackCheck.position, iceAttackCheckRadius);
+    }
+
     public bool CanCastSpell()
     {
         if (spellCoolDownTimer < 0)
@@ -105,14 +127,24 @@ public class Enemy_Wizard : Enemy_Boss
         {
             CastFireBall();
         }
+
+        if (isIceBall)
+        {
+            CastIceBall();
+        }
     }
 
     private void CastFireBall()
     {
-        Debug.Log("create fire ball");
         GameObject castFireBall = Instantiate(fireBallPrefab, attackCheck.position, Quaternion.identity);
         castFireBall.GetComponent<WizardFireBall_Controller>().SetupFireBall(fireBallSpeed * facingDir, stats, attackCheckRadius, fireBallExplosionTimer);
-        //castFireBall.GetComponent<Bubble_Controller>().SetupBubble(fireBallSpeed * facingDir, stats, attackCheckRadius, fireBallExplosionTimer);
         isFireBall = false;
+    }
+
+    private void CastIceBall()
+    {
+        GameObject castIceBall = Instantiate(iceBallPrefab, iceAttackCheck.position, Quaternion.identity);
+        castIceBall.GetComponent<WizardIceBall_Controller>().SetupIceBall(iceBallSpeed, stats, iceBallExplosionTimer,iceBallGrowSpeed, iceBallMaxSize, iceAttackCheckRadius);
+        isIceBall = false;
     }
 }
