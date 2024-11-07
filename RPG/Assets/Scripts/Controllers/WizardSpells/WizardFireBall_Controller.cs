@@ -4,16 +4,10 @@ using UnityEngine;
 
 public class WizardFireBall_Controller : Explosion
 {
-    private Animator anim;
-    [SerializeField] private int damage;
-    [SerializeField] private string targetLayerName = "Player";
-
     [SerializeField] private float xVelocity;
     [SerializeField] private Rigidbody2D rb;
 
     private float explosionTimer;
-    
-    private Player player;
 
     private void Update()
     {

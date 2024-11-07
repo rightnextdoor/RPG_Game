@@ -4,16 +4,10 @@ using UnityEngine;
 
 public class WizardIceBall_Controller : Explosion
 {
-    private Animator anim;
-    [SerializeField] private int damage;
-    [SerializeField] private string targetLayerName = "Player";
-
     [SerializeField] private float moveSpeed;
     [SerializeField] private Rigidbody2D rb;
 
     private float explosionTimer;
-
-    private Player player;
     [SerializeField] private float distanceToExplosion = 1;
     private bool canGrow;
     private float growSpeed = 15;

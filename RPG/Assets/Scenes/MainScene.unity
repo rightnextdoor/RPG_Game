@@ -56414,8 +56414,8 @@ MonoBehaviour:
   bossId: 27b48141-2d1f-4582-b6cd-f5db9814574e
   stage: 0
   surroundingCheckSize: {x: 0, y: 0}
-  chanceToTeleport: 50
-  defaultChanceToTeleport: 70
+  chanceToTeleport: -1
+  defaultChanceToTeleport: -1
   teleportCooldown: 8
   spellCooldown: 1.5
   fireBallPrefab: {fileID: 3372130691592800980, guid: 7efa268363b72ea4cb6787e57a4090c1, type: 3}
@@ -56434,7 +56434,9 @@ MonoBehaviour:
   iceBallCooldown: 5
   lastTimeCastIceBall: 0
   isIceBall: 0
-  lightingStrikeCooldown: 25
+  lightingStrikePrefab: {fileID: 2406814958875807359, guid: 9fbc33624822e1249818c727376473ad, type: 3}
+  lightingStrikeCooldown: 5
+  isLightingStrike: 0
   lastTimeCastLightingStrike: 0
   airWalkCooldown: 30
   lastTimeCastAirWalk: 0
@@ -56497,7 +56499,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lerpTimer: 0
   maxHealth:
-    baseValue: 100
+    baseValue: 1000
     modifiers: 
   currentHealth: 0
   damage:

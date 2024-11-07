@@ -5,7 +5,6 @@ using UnityEngine;
 public class Wizard_LightingStrikeState : EnemyState
 {
     private Enemy_Wizard enemy;
-    private float spellTimer;
     public Wizard_LightingStrikeState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Wizard enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
@@ -14,8 +13,6 @@ public class Wizard_LightingStrikeState : EnemyState
     public override void Enter()
     {
         base.Enter();
-        spellTimer = 5f;
-        Debug.Log("Enter lighting state");
     }
 
     public override void Exit()
@@ -28,18 +25,15 @@ public class Wizard_LightingStrikeState : EnemyState
     {
         base.Update();
 
-        spellTimer -= Time.deltaTime;
+        enemy.SetZeroVelocity();
 
-        if (spellTimer < 0)
+        if (triggerCalled)
         {
             if (enemy.CanTeleport())
-            {
                 stateMachine.ChangeState(enemy.teleportState);
-            } else
-            {
+            else
                 stateMachine.ChangeState(enemy.battleState);
-            }
         }
-            
+
     }
 }

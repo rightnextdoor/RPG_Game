@@ -46,23 +46,23 @@ public class Wizard_SpellState : EnemyState
         //    return true;
         //}
 
-        //if (CanCastLightingStrike())
+        if (CanCastLightingStrike())
+        {
+            stateMachine.ChangeState(enemy.lightingStrikeState);
+            return true;
+        }
+
+        //if (CanCastIceBall())
         //{
-        //    stateMachine.ChangeState(enemy.lightingStrikeState);
+        //    stateMachine.ChangeState(enemy.iceBallState);
         //    return true;
         //}
 
-        if (CanCastIceBall())
-        {
-            stateMachine.ChangeState(enemy.iceBallState);
-            return true;
-        }
-
-        if (CanCastFireBall())
-        {
-            stateMachine.ChangeState(enemy.fireBallState);
-            return true;
-        }
+        //if (CanCastFireBall())
+        //{
+        //    stateMachine.ChangeState(enemy.fireBallState);
+        //    return true;
+        //}
 
         return false;
     }
@@ -91,6 +91,7 @@ public class Wizard_SpellState : EnemyState
     {
         if (Time.time >= enemy.lastTimeCastLightingStrike + enemy.lightingStrikeCooldown)
         {
+            enemy.isLightingStrike = true;
             return true;
         }
         return false;

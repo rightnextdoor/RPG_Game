@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Explosion : MonoBehaviour
 {
+    [HideInInspector]public Animator anim;
+    [HideInInspector]public Player player;
+    public string targetLayerName = "Player";
     public bool canMove;
     [HideInInspector] public CharacterStats myStats;
     [HideInInspector] public float explosionRadius;
@@ -18,7 +21,7 @@ public class Explosion : MonoBehaviour
         {
             if (hit.GetComponent<CharacterStats>() != null)
             {
-                if (hit.gameObject.tag == "Player")
+                if (hit.gameObject.tag == targetLayerName)
                 {
                     hit.GetComponent<CharacterStats>().ApplyAilments(isFire, isIce, isLighting);
                     hit.GetComponent<Entity>().SetupKnockbackDir(transform);
