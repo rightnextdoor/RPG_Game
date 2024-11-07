@@ -7,6 +7,9 @@ public class Explosion : MonoBehaviour
     public bool canMove;
     [HideInInspector] public CharacterStats myStats;
     [HideInInspector] public float explosionRadius;
+    [HideInInspector] public bool isFire;
+    [HideInInspector] public bool isIce;
+    [HideInInspector] public bool isLighting;
     public virtual void AnimationExplodeEvent()
     {
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
@@ -17,6 +20,7 @@ public class Explosion : MonoBehaviour
             {
                 if (hit.gameObject.tag == "Player")
                 {
+                    hit.GetComponent<CharacterStats>().ApplyAilments(isFire, isIce, isLighting);
                     hit.GetComponent<Entity>().SetupKnockbackDir(transform);
                     myStats.DoDamage(hit.GetComponent<CharacterStats>());
                 }

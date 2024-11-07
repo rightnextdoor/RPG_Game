@@ -14,7 +14,6 @@ public class WizardFireBall_Controller : Explosion
     private float explosionTimer;
     
     private Player player;
-    [SerializeField] private float distanceToExplosion = 1;
 
     private void Update()
     {
@@ -24,14 +23,6 @@ public class WizardFireBall_Controller : Explosion
         {
             FinishExplosion();
         }
-
-        //if (player != null)
-        //{
-        //    if (Vector2.Distance(transform.position, player.transform.position) < distanceToExplosion)
-        //    {
-        //        FinishExplosion();
-        //    }
-        //}
 
         if (canMove)
             rb.velocity = new Vector2(xVelocity, rb.velocity.y);
@@ -75,8 +66,8 @@ public class WizardFireBall_Controller : Explosion
     }
     public override void AnimationExplodeEvent()
     {
-        base.AnimationExplodeEvent();
-        player.GetComponent<CharacterStats>().ApplyAilments(true, false, false);
+        isFire = true;
+        base.AnimationExplodeEvent();      
         //AudioManager.instance.PlaySFX("BubbleImpact", transform);
     }
 

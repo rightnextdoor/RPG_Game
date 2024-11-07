@@ -89,5 +89,5 @@ public class Enemy_Shady : Enemy_Regular
         Gizmos.DrawWireSphere(specialAttack.position, specialAttackRadius);
     }
 
-    public void SelfDestroy() => Destroy(gameObject);
+    public override void SelfDestroy() => Destroy(gameObject);
 }

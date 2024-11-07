@@ -83,16 +83,11 @@ public class WizardIceBall_Controller : Explosion
     {
         canGrow = true;
         canMove = false;
-        //anim.SetTrigger("Explode");
-        //canMove = false;
-        //rb.isKinematic = true;
-        //rb.constraints = RigidbodyConstraints2D.FreezeAll;
     }
     public override void AnimationExplodeEvent()
     {
-        
+        isIce = true;
         base.AnimationExplodeEvent();
-        player.GetComponent<CharacterStats>().ApplyAilments(false,true,false);
         //AudioManager.instance.PlaySFX("BubbleImpact", transform);
     }
 
