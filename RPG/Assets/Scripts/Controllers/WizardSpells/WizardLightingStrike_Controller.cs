@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class WizardLightingStrike_Controller : Explosion
 {
-    //[SerializeField] private BoxCollider2D boxCollider;
     [SerializeField] private LayerMask whatIsPlayer;
     [SerializeField] private Vector2 boxSize;
     [SerializeField] private Transform check;
@@ -12,17 +11,13 @@ public class WizardLightingStrike_Controller : Explosion
     public void SetupLightingStrike(CharacterStats _myStats)
     {
         anim = GetComponentInChildren<Animator>();
-
-        myStats = _myStats;
-        player = PlayerManager.instance.player;
-        anim.SetTrigger("Explode");
-        
+        myStats = _myStats;      
     }
 
     public override void AnimationExplodeEvent()
     {
 
-        Collider2D[] colliders = Physics2D.OverlapBoxAll(transform.position, boxSize, whatIsPlayer);
+        Collider2D[] colliders = Physics2D.OverlapBoxAll(check.position, boxSize,0f, whatIsPlayer);
         foreach (var hit in colliders)
         {
             if (hit.GetComponent<Player>() != null)

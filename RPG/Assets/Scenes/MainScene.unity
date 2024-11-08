@@ -34434,7 +34434,7 @@ Transform:
   m_GameObject: {fileID: 1432766392}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -51.6, y: -4.92, z: 0}
+  m_LocalPosition: {x: -52.37, y: -5.01, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -56414,10 +56414,10 @@ MonoBehaviour:
   bossId: 27b48141-2d1f-4582-b6cd-f5db9814574e
   stage: 0
   surroundingCheckSize: {x: 0, y: 0}
-  chanceToTeleport: -1
-  defaultChanceToTeleport: -1
+  chanceToTeleport: 50
+  defaultChanceToTeleport: 70
   teleportCooldown: 8
-  spellCooldown: 1.5
+  spellCooldown: 5
   fireBallPrefab: {fileID: 3372130691592800980, guid: 7efa268363b72ea4cb6787e57a4090c1, type: 3}
   fireBallSpeed: 15
   fireBallExplosionTimer: 3
@@ -69908,6 +69908,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2113766352498244411, guid: 97d486ba49580d84e917cb47ddcc01cf, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3750561705501636095, guid: 97d486ba49580d84e917cb47ddcc01cf, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6231234708013107995, guid: 97d486ba49580d84e917cb47ddcc01cf, type: 3}
       propertyPath: flashDuration
       value: 0.5
@@ -69950,6 +69958,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6979793287042937243, guid: 97d486ba49580d84e917cb47ddcc01cf, type: 3}
       propertyPath: knockbackOffset.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8369155976231050496, guid: 97d486ba49580d84e917cb47ddcc01cf, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8523346436467345205, guid: 97d486ba49580d84e917cb47ddcc01cf, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9025297632013920890, guid: 97d486ba49580d84e917cb47ddcc01cf, type: 3}
+      propertyPath: m_Layer
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9155777809501709256, guid: 97d486ba49580d84e917cb47ddcc01cf, type: 3}

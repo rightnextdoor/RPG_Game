@@ -52,17 +52,17 @@ public class Wizard_SpellState : EnemyState
             return true;
         }
 
-        //if (CanCastIceBall())
-        //{
-        //    stateMachine.ChangeState(enemy.iceBallState);
-        //    return true;
-        //}
+        if (CanCastIceBall())
+        {
+            stateMachine.ChangeState(enemy.iceBallState);
+            return true;
+        }
 
-        //if (CanCastFireBall())
-        //{
-        //    stateMachine.ChangeState(enemy.fireBallState);
-        //    return true;
-        //}
+        if (CanCastFireBall())
+        {
+            stateMachine.ChangeState(enemy.fireBallState);
+            return true;
+        }
 
         return false;
     }

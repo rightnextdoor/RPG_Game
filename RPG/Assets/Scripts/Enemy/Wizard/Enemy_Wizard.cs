@@ -154,32 +154,13 @@ public class Enemy_Wizard : Enemy_Boss
         castIceBall.GetComponent<WizardIceBall_Controller>().SetupIceBall(iceBallSpeed, stats, iceBallExplosionTimer,iceBallGrowSpeed, iceBallMaxSize, iceAttackCheckRadius);
         isIceBall = false;
     }
-
+    #region Lighting Strike
     private void CastLightingStrike()
     {
         List<GameObject> leftLightStrike = new List<GameObject>();
         List<GameObject> rightLightStrike = new List<GameObject>();
-        GameObject castLightingStrike;
-
-        Vector3 xOffSet = new Vector3(-4, 0);
-        Vector3 strikePosition = transform.position + xOffSet;
-        int numberOfLighting = 5;
-        for (int i = 0; i < numberOfLighting; i++)
-        {
-            castLightingStrike = Instantiate(lightingStrikePrefab, strikePosition, Quaternion.identity);
-            leftLightStrike.Add(castLightingStrike);
-            strikePosition += xOffSet;
-        }
-
-        xOffSet = new Vector3(4, 0);
-        strikePosition = transform.position + xOffSet;
-
-        for (int i = 0; i < numberOfLighting; i++)
-        {
-            castLightingStrike = Instantiate(lightingStrikePrefab, strikePosition, Quaternion.identity);
-            rightLightStrike.Add(castLightingStrike);
-            strikePosition += xOffSet;
-        }
+        
+        CreateLightingStrike(leftLightStrike, rightLightStrike);
 
         foreach (GameObject lighting in leftLightStrike)
         {
@@ -191,8 +172,33 @@ public class Enemy_Wizard : Enemy_Boss
             lighting.GetComponent<WizardLightingStrike_Controller>().SetupLightingStrike(stats);
         }
 
-        //GameObject castLightingStrike = Instantiate(lightingStrikePrefab, transform.position, Quaternion.identity);
-        //castLightingStrike.GetComponent<WizardLightingStrike_Controller>().SetupLightingStrike(stats);
         isLightingStrike = false;
     }
+
+    private void CreateLightingStrike(List<GameObject> leftLightStrike, List<GameObject> rightLightStrike)
+    {
+        int numberOfLighting = 7;
+
+        Vector3 xOffSet = new Vector3(-3, 0);
+        Vector3 strikePosition = transform.position + new Vector3(-1, 0);
+
+        SetupLightingStrike(leftLightStrike, xOffSet, ref strikePosition, numberOfLighting);
+
+        xOffSet = new Vector3(3, 0);
+        strikePosition = transform.position + new Vector3(1, 0);
+
+        SetupLightingStrike(rightLightStrike, xOffSet, ref strikePosition, numberOfLighting);
+    }
+
+    private void SetupLightingStrike(List<GameObject> lightStrike, Vector3 xOffSet, ref Vector3 strikePosition, int numberOfLighting)
+    {
+        GameObject castLightingStrike;
+        for (int i = 0; i < numberOfLighting; i++)
+        {
+            castLightingStrike = Instantiate(lightingStrikePrefab, strikePosition, Quaternion.identity);
+            lightStrike.Add(castLightingStrike);
+            strikePosition += xOffSet;
+        }
+    }
+    #endregion
 }
