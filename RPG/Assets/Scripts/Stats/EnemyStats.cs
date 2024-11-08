@@ -76,7 +76,7 @@ public class EnemyStats : CharacterStats
 
         myDropSystem.GenerateDrop();
 
-        Destroy(gameObject, 2f);
+        Destroy(gameObject, 4f);
     }
 
     private void DeathGains()

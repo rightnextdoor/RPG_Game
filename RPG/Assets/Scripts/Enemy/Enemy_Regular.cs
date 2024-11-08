@@ -50,11 +50,6 @@ public class Enemy_Regular : Enemy
         return false;
     }
 
-    public virtual void SelfDestroy()
-    {
-
-    }
-
     public void SummonEnemy(bool _isSummon)
     {
         isSummon = _isSummon;

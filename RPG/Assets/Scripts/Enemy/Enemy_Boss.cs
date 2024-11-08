@@ -106,7 +106,7 @@ public class Enemy_Boss : Enemy
 
     }
 
-    public void SelfDestroy() => Destroy(transform.parent.gameObject, 2f);
+    public override void SelfDestroy() => Destroy(transform.parent.gameObject, 4f);
 
     private void UnlockEquipment()
     {

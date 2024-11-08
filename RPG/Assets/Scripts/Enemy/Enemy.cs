@@ -107,6 +107,11 @@ public class Enemy : Entity
 
     }
 
+    public virtual void SelfDestroy()
+    {
+
+    }
+
     public virtual RaycastHit2D IsPlayerDetected()
     {
         Transform player = PlayerManager.instance.player.transform;
