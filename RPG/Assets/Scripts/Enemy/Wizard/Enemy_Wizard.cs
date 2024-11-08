@@ -77,7 +77,7 @@ public class Enemy_Wizard : Enemy_Boss
         airWalkState = new Wizard_AirWalkState(this, stateMachine, "Idle", this);
         fireBallState = new Wizard_FireBallState(this, stateMachine, "FireBall", this);
         iceBallState = new Wizard_IceBallState(this, stateMachine, "IceBall", this);
-        lightingStrikeState = new Wizard_LightingStrikeState(this, stateMachine, "IceBall", this);
+        lightingStrikeState = new Wizard_LightingStrikeState(this, stateMachine, "Lighting", this);
     }
 
     protected override void Start()
