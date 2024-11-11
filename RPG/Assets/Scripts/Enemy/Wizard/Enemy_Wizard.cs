@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Enemy_Wizard : Enemy_Boss
 {
+    public float defaultGravity;
     [Header("Spell info")]
     [SerializeField] private float spellCooldown = 1.5f;
     private float spellCoolDownTimer = 0;
@@ -42,7 +43,14 @@ public class Enemy_Wizard : Enemy_Boss
 
     #region Air walk
     [Header("Air walk")]
+    [SerializeField] private GameObject airWalkAttackPrefab;
     public float airWalkCooldown = 18f;
+    [SerializeField] float airWalkCastTimer = .5f;
+    [SerializeField] int numberOfAirWalkAttack = 4;
+    public Transform leftPosition;
+    public Transform rightPosition;
+    [HideInInspector] public Vector3 moveToPosition;
+    [HideInInspector] public bool isAirwalking;
     [HideInInspector] public float lastTimeCastAirWalk;
     #endregion
 
@@ -74,7 +82,7 @@ public class Enemy_Wizard : Enemy_Boss
         moveState = new Wizard_MoveState(this, stateMachine, "Move", this);
         teleportState = new Wizard_TeleportState(this, stateMachine, "Teleport", this);
         spellState = new Wizard_SpellState(this, stateMachine, "Idle", this);
-        airWalkState = new Wizard_AirWalkState(this, stateMachine, "Idle", this);
+        airWalkState = new Wizard_AirWalkState(this, stateMachine, "AirWalk", this);
         fireBallState = new Wizard_FireBallState(this, stateMachine, "FireBall", this);
         iceBallState = new Wizard_IceBallState(this, stateMachine, "IceBall", this);
         lightingStrikeState = new Wizard_LightingStrikeState(this, stateMachine, "Lighting", this);
@@ -84,6 +92,7 @@ public class Enemy_Wizard : Enemy_Boss
     {
         base.Start();
         stateMachine.Initialize(startState);
+        defaultGravity = rb.gravityScale;
     }
 
     protected override void Update()
@@ -125,6 +134,7 @@ public class Enemy_Wizard : Enemy_Boss
 
     public override void AnimationSpecialAttackTrigger()
     {
+        Debug.Log("attack trigger");
         if (isFireBall)
         {
             CastFireBall();
@@ -138,6 +148,11 @@ public class Enemy_Wizard : Enemy_Boss
         if (isLightingStrike)
         {
             CastLightingStrike();
+        }
+
+        if (isAirwalking)
+        {
+            CastAirWalk();
         }
     }
 
@@ -201,4 +216,39 @@ public class Enemy_Wizard : Enemy_Boss
         }
     }
     #endregion
+
+    public override void MoveToPosition()
+    {
+        transform.position = moveToPosition;
+    }
+
+    private void CastAirWalk()
+    {
+        isAirwalking = false;
+        StartCoroutine(AirWalkAttack());
+                
+        
+    }
+
+    IEnumerator AirWalkAttack()
+    {
+        int spriteSelected;
+        for (int i = 0; i < numberOfAirWalkAttack; i++)
+        {
+            if (i % 2 == 0)
+            {
+                spriteSelected = 0;
+            } else
+            {
+                spriteSelected = 1;
+            }
+
+            Vector3 attackPosition = transform.position + new Vector3(0, -4);
+            GameObject castAirWalkAttack = Instantiate(airWalkAttackPrefab, attackPosition, Quaternion.identity);
+            castAirWalkAttack.GetComponent<WizardAirWalkAttack_Controller>().SetupAirWalkAttack(stats,spriteSelected);
+
+            yield return new WaitForSeconds(airWalkCastTimer);
+        }
+        
+    }
 }

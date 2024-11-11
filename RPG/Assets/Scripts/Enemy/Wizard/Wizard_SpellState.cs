@@ -40,11 +40,11 @@ public class Wizard_SpellState : EnemyState
 
     public bool CanCastSpell()
     {
-        //if (CanCastAirWalk())
-        //{
-        //    stateMachine.ChangeState(enemy.airWalkState);
-        //    return true;
-        //}
+        if (CanCastAirWalk())
+        {
+            stateMachine.ChangeState(enemy.airWalkState);
+            return true;
+        }
 
         if (CanCastLightingStrike())
         {
@@ -101,6 +101,7 @@ public class Wizard_SpellState : EnemyState
     {
         if (Time.time >= enemy.lastTimeCastAirWalk + enemy.airWalkCooldown)
         {
+            enemy.isAirwalking = true;
             return true;
         }
         return false;

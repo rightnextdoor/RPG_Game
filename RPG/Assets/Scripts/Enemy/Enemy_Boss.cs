@@ -196,6 +196,11 @@ public class Enemy_Boss : Enemy
         }
     }
 
+    public virtual void MoveToPosition()
+    {
+
+    }
+
     private RaycastHit2D GroundBelow() => Physics2D.Raycast(transform.position, Vector2.down, 100, whatIsGround);
     private bool SomethingIsAround() => Physics2D.BoxCast(transform.position, surroundingCheckSize, 0, Vector2.zero, 0, whatIsGround);
 

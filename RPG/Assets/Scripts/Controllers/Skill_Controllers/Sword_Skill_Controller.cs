@@ -133,6 +133,9 @@ public class Sword_Skill_Controller : MonoBehaviour
     {
         EnemyStats enemyStats = enemy.GetComponent<EnemyStats>();
 
+        if (enemy.stats.isInvincible)
+            return;
+
         player.stats.DoDamage(enemyStats);
 
         if(player.skill.sword.bounce)
