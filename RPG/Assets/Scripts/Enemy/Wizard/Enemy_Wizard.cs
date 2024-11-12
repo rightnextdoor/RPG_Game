@@ -141,7 +141,6 @@ public class Enemy_Wizard : Enemy_Boss
 
     public override void AnimationSpecialAttackTrigger()
     {
-        Debug.Log("attack trigger");
         if (isFireBall)
         {
             CastFireBall();

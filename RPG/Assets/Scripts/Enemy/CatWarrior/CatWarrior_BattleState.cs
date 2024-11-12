@@ -2,14 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class KnightBattleState : EnemyState
+public class CatWarrior_BattleState : EnemyState
 {
-    private Enemy_Knight enemy;
-    private Player player;
+    private Enemy_CatWarrior enemy;
+    private Transform player;
     private int moveDir;
     private bool flippedOnce;
-    private float defaultSpeed;
-    public KnightBattleState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Knight enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+    public CatWarrior_BattleState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_CatWarrior enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
     }
@@ -17,11 +16,7 @@ public class KnightBattleState : EnemyState
     public override void Enter()
     {
         base.Enter();
-        player = PlayerManager.instance.player;
-
-        defaultSpeed = enemy.moveSpeed;
-
-        enemy.moveSpeed = enemy.runSpeed;
+        player = PlayerManager.instance.player.transform;
 
         if (player.GetComponent<PlayerStats>().isDead)
             stateMachine.ChangeState(enemy.moveState);
@@ -33,7 +28,6 @@ public class KnightBattleState : EnemyState
     public override void Exit()
     {
         base.Exit();
-        enemy.moveSpeed = defaultSpeed;
     }
 
     public override void Update()
@@ -57,13 +51,8 @@ public class KnightBattleState : EnemyState
                 if (CanAttack())
                 {
                     stateMachine.ChangeState(enemy.attackState);
-                    AudioManager.instance.PlaySFX("KnightAttack", enemy.transform);
+                    //AudioManager.instance.PlaySFX("SkeletonAttack", enemy.transform);
                 }
-                // TODO: fix block to make player knockback
-                //if (CanBlock())
-                //{
-                //    stateMachine.ChangeState(enemy.blockState);
-                //}
             }
         }
         else
@@ -82,9 +71,9 @@ public class KnightBattleState : EnemyState
         //if(distanceToPlayerX < 1f)
         //    return;  
 
-        if (player.transform.position.x > enemy.transform.position.x)
+        if (player.position.x > enemy.transform.position.x)
             moveDir = 1;
-        else if (player.transform.position.x < enemy.transform.position.x)
+        else if (player.position.x < enemy.transform.position.x)
             moveDir = -1;
 
         if (enemy.IsPlayerDetected() && enemy.IsPlayerDetected().distance < enemy.attackDistance - .8f)
@@ -103,19 +92,4 @@ public class KnightBattleState : EnemyState
         }
         return false;
     }
-
-    //private bool CanBlock()
-    //{
-    //    if (player != null)
-    //    {
-    //        if (Time.time >= enemy.lastTimeBlock + enemy.blockCooldown)
-    //        {
-    //            enemy.blockCooldown = Random.Range(enemy.minBlockCooldown, enemy.maxBlockCooldown);
-    //            enemy.lastTimeBlock = Time.time;
-    //            return true;
-    //        }
-    //    }
-        
-    //    return false;
-    //}
 }

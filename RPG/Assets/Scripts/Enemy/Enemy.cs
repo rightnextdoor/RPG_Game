@@ -13,8 +13,7 @@ public class Enemy : Entity
     [SerializeField] private float playerDistance = 10;
 
     [Header("Move info")]
-    public float moveSpeed = 1.5f;
-    public float runSpeed = 5;
+    public float moveSpeed = 1.5f;  
     public float idleTime = 2;
     public float moveTime = 5;
     public float battleTime= 7;
@@ -28,11 +27,6 @@ public class Enemy : Entity
     public float maxAttackCooldown = 2;
     [HideInInspector] public float lastTimeAttacked;
 
-    [Header("Block info")]
-    public float blockCooldown;
-    public float minBlockCooldown = 1;
-    public float maxBlockCooldown = 2;
-    [HideInInspector] public float lastTimeBlock;
     [HideInInspector] public bool isSummon = false;
 
     public EnemyStateMachine stateMachine { get; private set; }

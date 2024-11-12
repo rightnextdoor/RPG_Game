@@ -13,6 +13,7 @@ public class Enemy_Knight : Enemy_Regular
     [Header("Knight info")]
     public KnightType knightType;
     public float blockDuration = .2f;
+    public float runSpeed = 5;
 
     #region States
     public KnightIdleState idleState { get; private set; }
