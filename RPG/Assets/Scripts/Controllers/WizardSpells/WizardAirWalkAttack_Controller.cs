@@ -10,27 +10,35 @@ public class WizardAirWalkAttack_Controller : Explosion
     [SerializeField] private Transform check;
     [SerializeField] private List<SpriteLibraryAsset> sprites = new List<SpriteLibraryAsset>();
     [SerializeField] private SpriteLibrary spriteLibrary;
+    [SerializeField] private BoxCollider2D boxCollider;
 
     public void SetupAirWalkAttack(CharacterStats _myStats, int _spriteSelected)
     {
         anim = GetComponentInChildren<Animator>();
         myStats = _myStats;
-
+        AudioManager.instance.PlaySFX("Wizard_AirWalkAttack", null);
         spriteLibrary.spriteLibraryAsset = sprites[_spriteSelected];
     }
 
     public override void AnimationExplodeEvent()
-    {
+    {        
+        boxCollider.enabled = true;
+    }
 
-        Collider2D[] colliders = Physics2D.OverlapBoxAll(check.position, boxSize, 0f, whatIsPlayer);
-        foreach (var hit in colliders)
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.GetComponent<Player>() != null)
         {
-            if (hit.GetComponent<Player>() != null)
+            Collider2D[] colliders = Physics2D.OverlapBoxAll(check.position, boxSize, 0f, whatIsPlayer);
+            foreach (var hit in colliders)
             {
-                isFire = true;
-                hit.GetComponent<CharacterStats>().ApplyAilments(isFire, isIce, isLighting);
-                hit.GetComponent<Entity>().SetupKnockbackDir(transform);
-                myStats.DoDamage(hit.GetComponent<CharacterStats>());
+                if (hit.GetComponent<Player>() != null)
+                {
+                    isFire = true;
+                    hit.GetComponent<CharacterStats>().ApplyAilments(isFire, isIce, isLighting);
+                    hit.GetComponent<Entity>().SetupKnockbackDir(transform);
+                    myStats.DoDamage(hit.GetComponent<CharacterStats>());
+                }
             }
         }
     }

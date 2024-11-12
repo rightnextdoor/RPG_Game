@@ -116,7 +116,7 @@ public class AudioManager : MonoBehaviour
         s.source.Play();
     }
 
-    public void PlaySFXDelay(string _sfxName, Transform _source, float dealyTime)
+    public void PlaySFXWithDelay(string _sfxName, Transform _source, float dealyTime)
     {
         SoundFX s = Array.Find(soundFX, sound => sound.name == _sfxName);
         if (s == null)

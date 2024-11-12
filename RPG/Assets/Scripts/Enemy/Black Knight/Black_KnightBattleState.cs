@@ -50,7 +50,7 @@ public class Black_KnightBattleState : EnemyState
 
                 if (CanAttack())
                 {
-                    AudioManager.instance.PlaySFXDelay("BlackKnightAttack", null,.2f);
+                    AudioManager.instance.PlaySFXWithDelay("BlackKnightAttack", null,.2f);
                     stateMachine.ChangeState(enemy.attackState);
                 }
                 else

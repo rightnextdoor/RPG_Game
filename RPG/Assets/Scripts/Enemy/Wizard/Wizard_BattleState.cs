@@ -51,18 +51,14 @@ public class Wizard_BattleState : EnemyState
             {
                 stateMachine.ChangeState(enemy.spellState);
             }
-            //else if (enemy.CanTeleport())
-            //{
-            //    stateMachine.ChangeState(enemy.teleportState);
-            //}
-            //else if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
-            //{
-            //    if (CanAttack())
-            //    {
-            //        stateMachine.ChangeState(enemy.attackState);
-            //        //AudioManager.instance.PlaySFX("SkeletonAttack", enemy.transform);
-            //    }
-            //}
+            else if (enemy.IsPlayerDetected().distance < enemy.attackDistance - 28)
+            {
+                if (CanAttack())
+                {
+                    stateMachine.ChangeState(enemy.attackState);
+                    AudioManager.instance.PlaySFXWithDelay("Wizard_Attack", null,.2f);
+                }
+            }
         }
         else
         {
@@ -71,14 +67,7 @@ public class Wizard_BattleState : EnemyState
                 flippedOnce = true;
                 enemy.Flip();
             }
-
-            //if (stateTimer < 0 || Vector2.Distance(player.transform.position, enemy.transform.position) > 7)
-            //    stateMachine.ChangeState(enemy.idleState);
         }
-
-        //float distanceToPlayerX = Mathf.Abs(player.position.x - enemy.transform.position.x);
-        //if(distanceToPlayerX < 1f)
-        //    return;  
 
         if (player.position.x > enemy.transform.position.x)
             moveDir = 1;

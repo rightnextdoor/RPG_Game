@@ -116,6 +116,13 @@ public class Enemy_Wizard : Enemy_Boss
         stateMachine.ChangeState(deadState);
     }
 
+    public override void FindPosition()
+    {
+        base.FindPosition();
+        AudioManager.instance.PlaySFX("Wizard_TeleportOut", null);
+        AudioManager.instance.PlaySFXWithDelay("Phoenix", null, 1f);
+    }
+
     protected override void OnDrawGizmos()
     {
         base.OnDrawGizmos();
@@ -160,13 +167,15 @@ public class Enemy_Wizard : Enemy_Boss
     {
         GameObject castFireBall = Instantiate(fireBallPrefab, attackCheck.position, Quaternion.identity);
         castFireBall.GetComponent<WizardFireBall_Controller>().SetupFireBall(fireBallSpeed * facingDir, stats, attackCheckRadius, fireBallExplosionTimer);
+        AudioManager.instance.PlaySFX("Wizard_FireBallAttack", null);
         isFireBall = false;
     }
 
     private void CastIceBall()
     {
         GameObject castIceBall = Instantiate(iceBallPrefab, iceAttackCheck.position, Quaternion.identity);
-        castIceBall.GetComponent<WizardIceBall_Controller>().SetupIceBall(iceBallSpeed, stats, iceBallExplosionTimer,iceBallGrowSpeed, iceBallMaxSize, iceAttackCheckRadius);
+        castIceBall.GetComponent<WizardIceBall_Controller>().SetupIceBall(iceBallSpeed, stats, iceBallExplosionTimer
+            ,iceBallGrowSpeed, iceBallMaxSize, iceAttackCheckRadius);       
         isIceBall = false;
     }
     #region Lighting Strike
@@ -186,7 +195,7 @@ public class Enemy_Wizard : Enemy_Boss
         {
             lighting.GetComponent<WizardLightingStrike_Controller>().SetupLightingStrike(stats);
         }
-
+        AudioManager.instance.PlaySFX("Wizard_LightingAttack", null);
         isLightingStrike = false;
     }
 
@@ -246,7 +255,7 @@ public class Enemy_Wizard : Enemy_Boss
             Vector3 attackPosition = transform.position + new Vector3(0, -4);
             GameObject castAirWalkAttack = Instantiate(airWalkAttackPrefab, attackPosition, Quaternion.identity);
             castAirWalkAttack.GetComponent<WizardAirWalkAttack_Controller>().SetupAirWalkAttack(stats,spriteSelected);
-
+            
             yield return new WaitForSeconds(airWalkCastTimer);
         }
         

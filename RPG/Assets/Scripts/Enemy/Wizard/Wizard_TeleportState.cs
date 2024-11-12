@@ -16,8 +16,7 @@ public class Wizard_TeleportState : EnemyState
     {
         base.Enter();
         teleportTimer = 1.7f;
-        //AudioManager.instance.PlaySFX("DeathBringerLaugh", null);
-        //AudioManager.instance.PlaySFX("DeathBringerTeleport", null);      
+        AudioManager.instance.PlaySFX("Wizard_TeleportIn", null);
         enemy.stats.MakeInvincible(true);
         
     }

@@ -192,6 +192,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5179856034135585989}
   - component: {fileID: 2745804808706682548}
+  - component: {fileID: 1329240868811140081}
   m_Layer: 0
   m_Name: Wizard_AirWalkAttack
   m_TagString: Untagged
@@ -246,3 +247,49 @@ MonoBehaviour:
   - {fileID: 7108339969198208228, guid: 336e1d5202721c94aba36f0331941c18, type: 3}
   - {fileID: 7108339969198208228, guid: 937704a1b735d8e438ad6ab53d9446ce, type: 3}
   spriteLibrary: {fileID: 4327783839058592603}
+  boxCollider: {fileID: 1329240868811140081}
+--- !u!61 &1329240868811140081
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8855571981874276642}
+  m_Enabled: 0
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: -0.005255699, y: 1.3268752}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 0.4919834, y: 2.7638474}
+  m_EdgeRadius: 0
