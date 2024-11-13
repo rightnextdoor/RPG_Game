@@ -62,7 +62,6 @@ public class WizardFireBall_Controller : Explosion
     {
         isFire = true;
         base.AnimationExplodeEvent();      
-        //AudioManager.instance.PlaySFX("BubbleImpact", transform);
     }
 
     private void FinishExplosion()

@@ -14,6 +14,12 @@ public class Enemy_CatWarrior : Enemy_Boss
     public CatWarrior_MagicState magicState { get; private set; }
     #endregion
 
+    [Header("Tornado info")]
+    [SerializeField] private GameObject tornadoPrefab;
+    [SerializeField] private float tornadoSpeed = 15;
+    [SerializeField] private float tornadoCooldown = 10;
+    private float tornadoTimer;
+
     protected override void Awake()
     {
         base.Awake();
@@ -31,11 +37,13 @@ public class Enemy_CatWarrior : Enemy_Boss
     {
         base.Start();
         stateMachine.Initialize(startState);
+        tornadoTimer = 5f;
     }
 
     protected override void Update()
     {
         base.Update();
+        tornadoTimer -= Time.deltaTime;
     }
 
     public override void Die()
@@ -53,8 +61,20 @@ public class Enemy_CatWarrior : Enemy_Boss
         stateMachine.ChangeState(deadState);
     }
 
+    public bool CanCastTornado()
+    {
+        if (tornadoTimer < 0)
+        {
+            tornadoTimer = tornadoCooldown;
+            return true;
+        }
+        return false;
+    }
+
     public override void AnimationSpecialAttackTrigger()
     {
-        Debug.Log("special attack trigger");
+        Vector3 offset = new Vector3(1 * facingDir, 0);
+        GameObject castTornadoAttack = Instantiate(tornadoPrefab, transform.position + offset, Quaternion.identity);
+        castTornadoAttack.GetComponent<Tornado_Controller>().SetupTornadoAttack(stats, tornadoSpeed * facingDir);
     }
 }

@@ -14,7 +14,7 @@ public class CatWarrior_DeadState : EnemyState
     {
         base.Enter();
 
-        //AudioManager.instance.PlaySFX("SkeletonDie", enemy.transform);
+        AudioManager.instance.PlaySFX("CatWarriorDie", enemy.transform);
         enemy.stats.MakeInvincible(true);
 
     }
