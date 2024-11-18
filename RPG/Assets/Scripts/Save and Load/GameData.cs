@@ -31,7 +31,7 @@ public class GameData
     public List<string> equipmentId;
 
     public SerializableDictionary<string, bool> checkpoints;
-    public string closestCheckpointId;
+    public string savedCheckpointId;
 
     public SerializableDictionary<string, bool> bosses;
 
@@ -47,7 +47,7 @@ public class GameData
         inventory = new SerializableDictionary<string, int>();
         equipmentId = new List<string>();
 
-        closestCheckpointId = string.Empty;
+        savedCheckpointId = string.Empty;
         checkpoints = new SerializableDictionary<string, bool>();
         bosses = new SerializableDictionary<string, bool>();
 
