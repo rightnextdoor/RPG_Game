@@ -28,7 +28,7 @@ public class UI_StatSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     {
         UpdateStatValueUI();
 
-        ui = GetComponentInParent<UI>();
+        ui = UIManager.instance.GetUI();
     }
 
     public void UpdateStatValueUI()

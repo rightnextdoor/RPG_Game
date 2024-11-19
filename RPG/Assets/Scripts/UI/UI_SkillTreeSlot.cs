@@ -34,7 +34,7 @@ public class UI_SkillTreeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExi
     private void Start()
     {
         skillImage = GetComponent<Image>();
-        ui = GetComponentInParent<UI>();
+        ui = UIManager.instance.GetUI();
 
         skillImage.color = lockedSkillColor;
 

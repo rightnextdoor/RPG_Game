@@ -18,6 +18,8 @@ public class UI : MonoBehaviour, ISaveManager
     [SerializeField] private GameObject optionsUI;
     [SerializeField] private GameObject inGameUI;
     [SerializeField] private GameObject statsUI;
+
+    private List<GameObject> uiList = new List<GameObject>();
     
     public UI_SkillToolTip skillToolTip;
     public UI_ItemToolTip itemToolTip;
@@ -34,6 +36,7 @@ public class UI : MonoBehaviour, ISaveManager
 
     void Start()
     {
+        SetUpUIList();
         //SwitchTo(skillTreeUI);
         SwitchTo(inGameUI);
 
@@ -70,6 +73,16 @@ public class UI : MonoBehaviour, ISaveManager
         }
     }
 
+    private void SetUpUIList()
+    {
+        uiList.Add(charcaterUI);
+        uiList.Add(skillTreeUI);
+        uiList.Add(craftUI);
+        uiList.Add(optionsUI);
+        uiList.Add(inGameUI);
+        uiList.Add(statsUI);
+    }
+
     public void CloseMenu()
     {
         if (!inGameUI.activeSelf)
@@ -80,11 +93,19 @@ public class UI : MonoBehaviour, ISaveManager
 
     public void SwitchTo(GameObject _menu)
     {
-        for (int i = 0; i < transform.childCount; i++)
+        //for (int i = 0; i < transform.childCount; i++)
+        //{
+        //    bool fadeScreen = transform.GetChild(i).GetComponent<UI_FadeScreen>() != null; // we need this to keep fade screen game object active
+        //    if (!fadeScreen)
+        //        transform.GetChild(i).gameObject.SetActive(false);
+        //}
+
+        foreach (GameObject list in uiList)
         {
-            bool fadeScreen = transform.GetChild(i).GetComponent<UI_FadeScreen>() != null; // we need this to keep fade screen game object active
-            if (!fadeScreen)
-                transform.GetChild(i).gameObject.SetActive(false);
+            bool fadeScreen = list.GetComponent<UI_FadeScreen>() != null;
+
+            if(!fadeScreen)
+                list.gameObject.SetActive(false);
         }
 
         if (_menu != null)

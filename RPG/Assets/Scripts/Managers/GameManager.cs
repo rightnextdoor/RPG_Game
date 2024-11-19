@@ -10,7 +10,7 @@ public class GameManager : MonoBehaviour, ISaveManager
     private Transform player;
 
     [SerializeField] private Checkpoint[] checkpoints;
-    [SerializeField] private string closestCheckpointId;
+    private string savedCheckpointId;
     
     private Enemy_Boss[] getBosses;
     private SerializableDictionary<string, bool> saveBosses;
@@ -128,11 +128,11 @@ public class GameManager : MonoBehaviour, ISaveManager
         if (_data.savedCheckpointId == null)
             return;
 
-        closestCheckpointId = _data.savedCheckpointId;
+        savedCheckpointId = _data.savedCheckpointId;
 
         foreach (Checkpoint checkpoint in checkpoints)
         {
-            if (closestCheckpointId == checkpoint.id)
+            if (savedCheckpointId == checkpoint.id)
                 player.position = checkpoint.transform.position;
         }
     }

@@ -59,8 +59,8 @@ public class UI_ItemSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHand
 
         if (item.data.itemType == ItemType.Equipment)
             Inventory.instance.EquipItem(item.data);
-        
-        ui.itemToolTip.HideToolTip();
+
+        UIManager.instance.GetUI().itemToolTip.HideToolTip();
     }
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -68,7 +68,7 @@ public class UI_ItemSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHand
         if(item == null) 
             return;
 
-        ui.itemToolTip.ShowToolTip(item.data as ItemData_Equipment);
+        UIManager.instance.GetUI().itemToolTip.ShowToolTip(item.data as ItemData_Equipment);
     }
 
     public void OnPointerExit(PointerEventData eventData)
@@ -76,6 +76,6 @@ public class UI_ItemSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHand
         if (item == null)
             return;
 
-        ui.itemToolTip.HideToolTip();
+        UIManager.instance.GetUI().itemToolTip.HideToolTip();
     }
 }
