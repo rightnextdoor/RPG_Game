@@ -8,6 +8,6 @@ public class Enemy_BossTriggers : Enemy_AnimationTriggers
 
     private void Relocate() => enemyBoss.FindPosition();
     private void MoveToPosition() => enemyBoss.MoveToPosition();
-    private void MakeInvisible() => enemyBoss.fX.MakeTransprent(true,true);
-    private void MakeVisible() => enemyBoss.fX.MakeTransprent(false, true);
+    private void MakeInvisible() => enemyBoss.fX.MakeTransprent(true,true,false);
+    private void MakeVisible() => enemyBoss.fX.MakeTransprent(false, true, false);
 }

@@ -189,12 +189,14 @@ public class UI_Stats : MonoBehaviour
         lightingDamage = stats.lightingDamage.GetBaseValue();
     }
 
-    public void ApplyStats()
+    public void ApplyStats(GameObject _menu)
     {
         PlayerManager.instance.HaveEnoughStatsPoints(pointsToAdd);
         UpdateStats();
 
         ZeroOutStats();
+
+        UIManager.instance.GetUICheckpoint().SwitchTo(_menu);
     }
 
     private void ZeroOutStats()

@@ -38,7 +38,7 @@ public class Blackhole_Skill_Controller : MonoBehaviour
 
         if (SkillManager.instance.clone.crystalInseadOfClone)
         {
-            playerCanDisaper = false;
+            //playerCanDisaper = false; //enable if you want player to not disaper
         }
     }
 
@@ -91,7 +91,7 @@ public class Blackhole_Skill_Controller : MonoBehaviour
         {
             playerCanDisaper = false;
 
-            PlayerManager.instance.player.fX.MakeTransprent(true, false);
+            PlayerManager.instance.player.fX.MakeTransprent(true, false, true);
         }
 
     }

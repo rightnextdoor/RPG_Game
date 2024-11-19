@@ -7,6 +7,7 @@ public class Checkpoint : MonoBehaviour
     private Animator anim;
     [SerializeField] private GameObject popup;
     public string id;
+    public string checkpointName;
     public bool activatedCheckpoint;
     public bool lastSavedCheckpoint;
 
@@ -61,12 +62,14 @@ public class Checkpoint : MonoBehaviour
             AudioManager.instance.PlaySFX("Checkpoint", transform);
 
         activatedCheckpoint = true;
-        anim.SetBool("active", true);
+        anim.SetBool("active", true);      
     }
 
     public void UpdateLastSaveCheckpoint()
     {
         GameManager.instance.ClearAllSaveCheckpoint();
         lastSavedCheckpoint = true;
+
+        UIManager.instance.GetUICheckpoint().OpenMenu();
     }
 }
