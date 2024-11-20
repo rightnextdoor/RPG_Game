@@ -6,7 +6,9 @@ public class EnemyStats : CharacterStats
 {
     private Enemy enemy;
     private ItemDrop myDropSystem;
-    
+
+    private int currency;
+
     [Header("Leveling details")]
     [SerializeField] private int level = 1;
     [SerializeField] private int xpGain = 100;
@@ -79,9 +81,16 @@ public class EnemyStats : CharacterStats
         Destroy(gameObject, 4f);
     }
 
+    public virtual int GainCurrency()
+    {
+        currency = Random.Range(5, 15);
+
+        return currency;
+    }
+
     private void DeathGains()
     {
         PlayerManager.instance.GainXP(xpAmount.GetValue(), level);
-        //TODO: add currency
+        PlayerManager.instance.GainCurrency(GainCurrency());
     }
 }

@@ -5,6 +5,8 @@ using UnityEngine;
 [System.Serializable]
 public class GameData 
 {
+    public int currency;
+
     public int skillsPoints;
     public int statsPoints;
     public int level;
@@ -39,6 +41,8 @@ public class GameData
 
     public GameData()
     {
+        currency = 0;
+
         skillsPoints = 0;
         maxHealth = 100;
         damage = 50;

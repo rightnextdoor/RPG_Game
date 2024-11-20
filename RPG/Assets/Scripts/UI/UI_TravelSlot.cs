@@ -9,15 +9,15 @@ using UnityEngine.UI;
 public class UI_TravelSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField] private TextMeshProUGUI travelName;
+    
     private Color originalColor;
     [SerializeField] private Color highlightColor;
-    //private Renderer rd;
     [SerializeField] private Image image;
+
     private Checkpoint checkpoint;
 
     private void Start()
     {
-        //rd = GetComponent<Renderer>();
         image = GetComponent<Image>();
         originalColor = image.color;
     }

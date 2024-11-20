@@ -10,7 +10,13 @@ public class UI_Checkpoint : MonoBehaviour
     [SerializeField] GameObject checkpointUI;
     [SerializeField] private GameObject statsUI;
     [SerializeField] private GameObject travelUI;
+    [SerializeField] private GameObject shopUI;
+    [SerializeField] private GameObject skillUI;
+    [SerializeField] private GameObject craftUI;
+
     [SerializeField] private GameObject travelButton;
+
+    public UI_ShopWindow shopWindow;
 
     private void Start()
     {
@@ -77,9 +83,11 @@ public class UI_Checkpoint : MonoBehaviour
 
     private void SetUpList()
     {
-        //uiList.Add(checkpointUI);
         uiList.Add(statsUI);
         uiList.Add(travelUI);
+        uiList.Add(shopUI);
+        uiList.Add(skillUI);
+        uiList.Add(craftUI);
     }
 
     private void DisableList()

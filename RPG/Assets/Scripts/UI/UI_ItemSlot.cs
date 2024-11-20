@@ -63,7 +63,7 @@ public class UI_ItemSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHand
         UIManager.instance.GetUI().itemToolTip.HideToolTip();
     }
 
-    public void OnPointerEnter(PointerEventData eventData)
+    public virtual void OnPointerEnter(PointerEventData eventData)
     {
         if(item == null) 
             return;
@@ -71,7 +71,7 @@ public class UI_ItemSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHand
         UIManager.instance.GetUI().itemToolTip.ShowToolTip(item.data as ItemData_Equipment);
     }
 
-    public void OnPointerExit(PointerEventData eventData)
+    public virtual void OnPointerExit(PointerEventData eventData)
     {
         if (item == null)
             return;

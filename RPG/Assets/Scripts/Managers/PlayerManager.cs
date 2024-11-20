@@ -9,6 +9,10 @@ public class PlayerManager : MonoBehaviour, ISaveManager
     public static PlayerManager instance;
     public Player player;
 
+    [SerializeField] private int currency = 0;
+    private int maxCurrency = 10000000;
+    [SerializeField] private TextMeshProUGUI currencyText;
+
     public int skillsPoint = 0;
     public int statsPoints = 0;
     public int level = 1;
@@ -24,9 +28,39 @@ public class PlayerManager : MonoBehaviour, ISaveManager
 
     }
 
+    private void Update()
+    {
+        currencyText.text = currency.ToString();
+    }
+
     public void GainXP(float _xpGained, int _passedLevel)
     {
         GetComponent<LevelSystem>().GainExperienceScalable(_xpGained, _passedLevel);
+    }
+
+    public void GainCurrency(int _currency)
+    {
+        if (currency + _currency >= maxCurrency)
+            return;
+
+        currency += _currency;
+
+        if(currency > maxCurrency)
+            currency = maxCurrency;
+    }
+
+    public int GetCurrecncy() { return currency; }
+
+    public bool HaveEnoughGold(int _price)
+    {
+        if (_price > currency)
+        {
+            Debug.Log("Not enough skills gold");
+            return false;
+        }
+
+        currency = currency - _price;
+        return true;
     }
 
     public bool HaveEnoughSkillsPoints(int _price)
@@ -64,6 +98,8 @@ public class PlayerManager : MonoBehaviour, ISaveManager
         this.currentXp = _data.currentXp;
         this.requiredXp = _data.requiredXp;
 
+        this.currency = _data.currency;
+
     }
 
     public void SaveData(ref GameData _data)
@@ -73,5 +109,7 @@ public class PlayerManager : MonoBehaviour, ISaveManager
         _data.level = this.level;
         _data.currentXp = this.currentXp;
         _data.requiredXp = this.requiredXp;
+
+        _data.currency = this.currency;
     }
 }
