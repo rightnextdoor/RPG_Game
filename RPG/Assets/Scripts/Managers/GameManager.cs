@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour, ISaveManager
     private Transform player;
 
     [SerializeField] private Checkpoint[] checkpoints;
+    private List<Checkpoint> travelCheckpoints = new List<Checkpoint>();
     private string savedCheckpointId;
     
     private Enemy_Boss[] getBosses;
@@ -46,6 +47,23 @@ public class GameManager : MonoBehaviour, ISaveManager
         SaveManager.instance.SaveGame();
         Scene scene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(scene.name);
+    }
+
+    public List<Checkpoint> TravelCheckpoints()
+    {
+        travelCheckpoints.Clear();
+        foreach (Checkpoint item in checkpoints)
+        {
+            if (item.activatedCheckpoint)
+            {
+                if (!item.lastSavedCheckpoint)
+                {
+                    travelCheckpoints.Add(item);
+                }
+            }
+        }
+        travelCheckpoints.Reverse();
+        return travelCheckpoints;
     }
 
     public void ClearAllSaveCheckpoint()

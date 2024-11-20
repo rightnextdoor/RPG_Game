@@ -2,15 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UI_Checkpoint : MonoBehaviour
 {
     List<GameObject> uiList = new List<GameObject>();
     [SerializeField] GameObject checkpointUI;
     [SerializeField] private GameObject statsUI;
+    [SerializeField] private GameObject travelUI;
+    [SerializeField] private GameObject travelButton;
 
     private void Start()
     {
+        CloseMenu();
         SetUpList();
         DisableList();
     }
@@ -25,6 +29,14 @@ public class UI_Checkpoint : MonoBehaviour
                 GameManager.instance.PauseGame(true);
             }
         }
+        if (GameManager.instance.TravelCheckpoints().Count == 0)
+        {
+            travelButton.SetActive(false);
+        }
+        else
+        {
+            travelButton.SetActive(true) ;
+        }
     }
 
     public void CloseMenu()
@@ -32,6 +44,7 @@ public class UI_Checkpoint : MonoBehaviour
         if (checkpointUI.activeSelf)
         {
             checkpointUI.SetActive(false);
+            DisableList();
             if (GameManager.instance != null)
             {
                 GameManager.instance.PauseGame(false);
@@ -41,7 +54,18 @@ public class UI_Checkpoint : MonoBehaviour
 
     public void SwitchTo(GameObject _menu)
     {
+        if (_menu != null)
+        {
+            if (_menu.activeSelf)
+                return;
+        }
+
         DisableList();
+
+        if (_menu.GetComponent<UI_TravelList>() != null)
+        {
+            _menu.GetComponent<UI_TravelList>().SetupTravelList();
+        }
 
         if (_menu != null)
         {
@@ -53,8 +77,9 @@ public class UI_Checkpoint : MonoBehaviour
 
     private void SetUpList()
     {
-        uiList.Add(checkpointUI);
+        //uiList.Add(checkpointUI);
         uiList.Add(statsUI);
+        uiList.Add(travelUI);
     }
 
     private void DisableList()

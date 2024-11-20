@@ -25,9 +25,9 @@ public class Checkpoint : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.W))
             {
-                Debug.Log("checkpoint activated");
                 ActivatedCheckpoint();
                 UpdateLastSaveCheckpoint();
+                UIManager.instance.GetUICheckpoint().OpenMenu();
             }
         }
     }
@@ -68,8 +68,6 @@ public class Checkpoint : MonoBehaviour
     public void UpdateLastSaveCheckpoint()
     {
         GameManager.instance.ClearAllSaveCheckpoint();
-        lastSavedCheckpoint = true;
-
-        UIManager.instance.GetUICheckpoint().OpenMenu();
+        lastSavedCheckpoint = true;       
     }
 }
