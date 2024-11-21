@@ -6,7 +6,6 @@ using UnityEngine.UI;
 
 public class UI_ShopSlot : UI_ItemSlot
 {
-
     private Color originalColor;
     [SerializeField] private Color highlightColor;
     [SerializeField] private Image image;

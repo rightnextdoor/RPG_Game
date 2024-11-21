@@ -17,6 +17,7 @@ public class UI_Checkpoint : MonoBehaviour
     [SerializeField] private GameObject travelButton;
 
     public UI_ShopWindow shopWindow;
+    public UI_CraftWindow craftWindow;
 
     private void Start()
     {

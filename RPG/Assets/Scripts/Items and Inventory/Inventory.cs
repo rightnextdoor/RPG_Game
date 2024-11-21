@@ -21,11 +21,13 @@ public class Inventory : MonoBehaviour, ISaveManager
     [Header("Inventory UI")]
     [SerializeField] private Transform inventorySlotParent;
     [SerializeField] private Transform stashSlotParent;
+    [SerializeField] private Transform checkpointStashSlotParent;
     [SerializeField] private Transform equpmentSlotParent;
     [SerializeField] private Transform statSlotParent;
 
     private UI_ItemSlot[] inventoryItemSlots;
     private UI_ItemSlot[] stashItemSlots;
+    private UI_ItemSlot[] checkpointStashItemSlots;
     private UI_EquipmentSlot[] equipmentSlots;
     private UI_StatSlot[] statSlot;
 
@@ -62,6 +64,7 @@ public class Inventory : MonoBehaviour, ISaveManager
 
         inventoryItemSlots = inventorySlotParent.GetComponentsInChildren<UI_ItemSlot>();
         stashItemSlots = stashSlotParent.GetComponentsInChildren<UI_ItemSlot>();
+        checkpointStashItemSlots = checkpointStashSlotParent.GetComponentsInChildren<UI_ItemSlot>();
         equipmentSlots = equpmentSlotParent.GetComponentsInChildren<UI_EquipmentSlot>();
         statSlot = statSlotParent.GetComponentsInChildren<UI_StatSlot>();
         AddStartingItems();
@@ -152,6 +155,7 @@ public class Inventory : MonoBehaviour, ISaveManager
         for (int i = 0; i < stashItemSlots.Length; i++)
         {
             stashItemSlots[i].CleanUpSlot();
+            checkpointStashItemSlots[i].CleanUpSlot();
         }
 
         for (int i = 0; i < inventory.Count; i++)
@@ -162,6 +166,7 @@ public class Inventory : MonoBehaviour, ISaveManager
         for (int i = 0; i < stash.Count; i++)
         {
             stashItemSlots[i].UpdateSlot(stash[i]);
+            checkpointStashItemSlots[i].UpdateSlot(stash[i]);
         }
 
         UpdateStatsUI();

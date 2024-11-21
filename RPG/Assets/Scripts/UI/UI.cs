@@ -16,7 +16,9 @@ public class UI : MonoBehaviour, ISaveManager
     [SerializeField] private GameObject skillTreeUI;
     [SerializeField] private GameObject craftUI;
     [SerializeField] private GameObject optionsUI;
-    [SerializeField] private GameObject inGameUI;  
+    [SerializeField] private GameObject inGameUI;
+
+    [SerializeField] private GameObject checkpointUI;
 
     private List<GameObject> uiList = new List<GameObject>();
     
@@ -45,6 +47,9 @@ public class UI : MonoBehaviour, ISaveManager
 
     void Update()
     {
+        if (checkpointUI.activeSelf)
+            return;
+
         if (Input.GetKeyDown(KeyCode.C))
             SwitchWithKeyTo(charcaterUI);
 
