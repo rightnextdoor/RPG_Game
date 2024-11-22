@@ -5,16 +5,8 @@ using UnityEngine.UI;
 
 public class Dash_Skill : Skill
 {
-    [Header("Dash")]
-    [SerializeField] private UI_SkillTreeSlot dashUnlockButton;
     public bool dashUnlocked {  get; private set; }
-
-    [Header("Clone on dash")]
-    [SerializeField] private UI_SkillTreeSlot cloneOnDashUnlockButton;
     public bool cloneOnDashUnlocked { get; private set; }
-
-    [Header("Clone on arrival")]
-    [SerializeField] private UI_SkillTreeSlot cloneOnArrivalUnlockButton;
     public bool cloneOnArrivalUnlocked {  get; private set; }
 
     public override void UseSkill()
@@ -26,36 +18,41 @@ public class Dash_Skill : Skill
     protected override void Start()
     {
         base.Start();
-      
-        dashUnlockButton.GetComponent<Button>().onClick.AddListener(UnlockDash);
-        cloneOnDashUnlockButton.GetComponent<Button>().onClick.AddListener(UnlockCloneOnDash);
-        cloneOnArrivalUnlockButton.GetComponent<Button>().onClick.AddListener(UnlockCloneOnArrival);
     }
 
-    protected override void CheckUnlock()
+    public override void CheckUnlock(List<SkillData> skilldata)
     {
-        UnlockDash();
-        UnlockCloneOnDash();
-        UnlockCloneOnArrival();
+        foreach (SkillData data in skilldata)
+        {
+            if (data.fileName == "Dash")
+            {
+                UnlockDash(data.unlocked);
+            }
+            if (data.fileName == "DashClone")
+            {
+                UnlockCloneOnDash(data.unlocked);
+            }
+            if (data.fileName == "DashArrival")
+            {
+                UnlockCloneOnArrival(data.unlocked);
+            }
+        }
+    
     }
 
-    private void UnlockDash()
+    private void UnlockDash(bool unlock)
     {
-
-        if (dashUnlockButton.unlocked)
-            dashUnlocked = true;       
+        dashUnlocked = unlock;
     }
 
-    private void UnlockCloneOnDash()
+    private void UnlockCloneOnDash(bool unlock)
     {
-        if(cloneOnDashUnlockButton.unlocked)
-            cloneOnDashUnlocked = true;
+        cloneOnDashUnlocked = unlock;
     }
 
-    private void UnlockCloneOnArrival() 
+    private void UnlockCloneOnArrival(bool unlock) 
     {
-        if(cloneOnArrivalUnlockButton.unlocked)
-            cloneOnArrivalUnlocked = true; 
+        cloneOnArrivalUnlocked = unlock;
     }
     public void CloneOnDash()
     {

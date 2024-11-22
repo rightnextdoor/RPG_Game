@@ -6,33 +6,43 @@ using UnityEngine.UI;
 public class Dodge_Skill : Skill
 {
     [Header("Dodge")]
-    [SerializeField] private UI_SkillTreeSlot unlockDodgeButton;
     [SerializeField] private int evasionAmount;
     public bool dodgeUnlocked;
 
     [Header("Mirage dodge")]
-    [SerializeField] private UI_SkillTreeSlot unlockMirageDodge;
     public bool dodgeMirageUnlocked;
 
     protected override void Start()
     {
         base.Start();
-
-        unlockDodgeButton.GetComponent<Button>().onClick.AddListener(UnlockDodge);
-        unlockMirageDodge.GetComponent<Button>().onClick.AddListener(UnlockMirageDodge);
     }
 
-    protected override void CheckUnlock()
+    public override void CheckUnlock(List<SkillData> skilldata)
     {
-        UnlockDodge();
-        UnlockMirageDodge();
+        foreach (SkillData data in skilldata)
+        {
+            if (data.fileName == "Dodge")
+            {
+                UnlockDodge(data.unlocked);
+            }
+            if (data.fileName == "DodgeMirage")
+            {
+                UnlockMirageDodge(data.unlocked);
+            }
+        }
+
+        
+        
     }
 
-    private void UnlockDodge()
+    private void UnlockDodge(bool unlock)
     {
-        if (unlockDodgeButton.unlocked && !dodgeUnlocked)
+        if (unlock)
         {
             StartCoroutine(UnlockDodgeDelay(.1f));
+        } else
+        {
+            dodgeUnlocked = false;
         }
     }
 
@@ -45,10 +55,9 @@ public class Dodge_Skill : Skill
         dodgeUnlocked = true;
     }
 
-    private void UnlockMirageDodge()
+    private void UnlockMirageDodge(bool unlock)
     {
-        if(unlockMirageDodge.unlocked)
-            dodgeMirageUnlocked = true;
+        dodgeMirageUnlocked = unlock;
     }
 
     public void CreateMirageOnDodge()

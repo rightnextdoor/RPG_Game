@@ -63,6 +63,11 @@ public class PlayerManager : MonoBehaviour, ISaveManager
         return true;
     }
 
+    public void ResetSkillsPoints(int _points)
+    {
+        skillsPoint += _points;
+    }
+
     public bool HaveEnoughSkillsPoints(int _price)
     {
         if (_price > skillsPoint)

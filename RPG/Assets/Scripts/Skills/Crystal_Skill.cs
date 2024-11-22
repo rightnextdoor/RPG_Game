@@ -9,26 +9,20 @@ public class Crystal_Skill : Skill
     [SerializeField] private GameObject crystalPrefab;
     private GameObject currentCrystal;
 
-    [Header("Crystal mirage")]
-    [SerializeField] private UI_SkillTreeSlot unlockCloneInsteadButton;
+    [Header("Clone Spawn")]
     [SerializeField] private bool cloneInsteadOfCrystal;
 
-    [Header("Crystal simple")]
-    [SerializeField] private UI_SkillTreeSlot unlockCrystalButton;
     public bool crystalUnlocked {  get; private set; }
 
     [Header("Explosive crystal")]
-    [SerializeField] private UI_SkillTreeSlot unlockExplosiveButton;
     [SerializeField] private float explosiveCooldown;
     [SerializeField] private bool canExplode;
 
     [Header("Moving crystal")]
-    [SerializeField] private UI_SkillTreeSlot unlockMovingCrystalButton;
     [SerializeField] private bool canMoveToEnemy;
     [SerializeField] private float moveSpeed;
 
     [Header("Multi stacking crystal")]
-    [SerializeField] private UI_SkillTreeSlot unlockMultiStackButton;
     [SerializeField] private bool canUseMultiStacks;
     [SerializeField] private int amountOfStacks;
     [SerializeField] private float multiStackCooldown;
@@ -38,53 +32,63 @@ public class Crystal_Skill : Skill
     protected override void Start()
     {
         base.Start();
-
-        unlockCrystalButton.GetComponent<Button>().onClick.AddListener(UnlockCrystal);
-        unlockCloneInsteadButton.GetComponent<Button>().onClick.AddListener(UnlockCrystalMirage);
-        unlockExplosiveButton.GetComponent<Button>().onClick.AddListener(UnlockExplosiveCrystal);
-        unlockMovingCrystalButton.GetComponent<Button>().onClick.AddListener(UnlockMovingCrystal);
-        unlockMultiStackButton.GetComponent<Button>().onClick.AddListener(UnlockMultiStack);
     }
 
     #region Unlock skill region
 
-    protected override void CheckUnlock()
+    public override void CheckUnlock(List<SkillData> skilldata)
     {
-        UnlockCrystal();
-        UnlockCrystalMirage();
-        UnlockExplosiveCrystal();
-        UnlockMovingCrystal();
-        UnlockMultiStack();
-    }
-
-    private void UnlockCrystal()
-    {
-        if(unlockCrystalButton.unlocked)
-            crystalUnlocked = true;
-    }
-
-    private void UnlockCrystalMirage()
-    {
-        if (unlockCloneInsteadButton.unlocked)
-            cloneInsteadOfCrystal = true;
-    }
-    private void UnlockExplosiveCrystal()
-    {
-        if (unlockExplosiveButton.unlocked)
+        foreach (SkillData data in skilldata)
         {
-            canExplode = true;
+            if (data.fileName == "Crystal")
+            {
+                UnlockCrystal(data.unlocked);
+            }
+            if (data.fileName == "CloneSpawn")
+            {
+                UnlockCrystalMirage(data.unlocked);
+            }
+            if (data.fileName == "CrystalExplosion")
+            {
+                UnlockExplosiveCrystal(data.unlocked);
+            }
+            if (data.fileName == "CrystalMove")
+            {
+                UnlockMovingCrystal(data.unlocked);
+            }
+            if (data.fileName == "CrystalMulti")
+            {
+                UnlockMultiStack(data.unlocked);
+            }
+        }   
+        
+    }
+
+    private void UnlockCrystal(bool unlock)
+    {
+        crystalUnlocked = unlock;
+    }
+
+    private void UnlockCrystalMirage(bool unlock)
+    {
+        cloneInsteadOfCrystal = unlock;
+    }
+    private void UnlockExplosiveCrystal(bool unlock)
+    {
+        canExplode = unlock;
+        
+        if (canExplode)
+        {          
             cooldown = explosiveCooldown;
         }
     }
-    private void UnlockMovingCrystal()
+    private void UnlockMovingCrystal(bool unlock)
     {
-        if (unlockMovingCrystalButton.unlocked)
-            canMoveToEnemy = true;
+        canMoveToEnemy = unlock;
     }
-    private void UnlockMultiStack()
+    private void UnlockMultiStack(bool unlock)
     {
-        if (unlockMultiStackButton.unlocked)
-            canUseMultiStacks = true;
+        canUseMultiStacks = unlock;
     }
 
     #endregion

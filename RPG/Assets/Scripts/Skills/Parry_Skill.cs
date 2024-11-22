@@ -5,19 +5,13 @@ using UnityEngine.UI;
 
 public class Parry_Skill : Skill
 {
-    [Header("Parry")]
-    [SerializeField] private UI_SkillTreeSlot parryUnlockButton;
     public bool parryUnlocked { get; private set; }
 
     [Header("Parry restore")]
-    [SerializeField] private UI_SkillTreeSlot restoreUnlockButton;
     [Range(0f,1f)]
     [SerializeField] private float restoreHealthPerentage;
     public bool restoreUnlocked { get; private set; }
 
-
-    [Header("Parry with mirage")]
-    [SerializeField] private UI_SkillTreeSlot parryWithMirageUnlockButton;
     public bool parryWithMirageUnlocked { get; private set; }
 
     public override void UseSkill()
@@ -34,35 +28,41 @@ public class Parry_Skill : Skill
     protected override void Start()
     {
         base.Start();
-
-        parryUnlockButton.GetComponent<Button>().onClick.AddListener(UnlockParry);
-        restoreUnlockButton.GetComponent<Button>().onClick.AddListener(UnlockParryRestore);
-        parryWithMirageUnlockButton.GetComponent<Button>().onClick.AddListener(UnlockParryWithMirage);
     }
 
-    protected override void CheckUnlock()
+    public override void CheckUnlock(List<SkillData> skilldata)
     {
-        UnlockParry();
-        UnlockParryRestore();
-        UnlockParryWithMirage();
+        foreach (SkillData data in skilldata)
+        {
+            if (data.fileName == "Parry")
+            {
+                UnlockParry(data.unlocked);
+            }
+            if (data.fileName == "ParryRestore")
+            {
+                UnlockParryRestore(data.unlocked);
+            }
+            if (data.fileName == "ParryMirage")
+            {
+                UnlockParryWithMirage(data.unlocked);
+            }
+        }    
+        
     }
 
-    private void UnlockParry()
+    private void UnlockParry(bool unlock)
     {
-        if(parryUnlockButton.unlocked)
-            parryUnlocked = true;
+        parryUnlocked = unlock;
     }
 
-    private void UnlockParryRestore()
+    private void UnlockParryRestore(bool unlock)
     {
-        if (restoreUnlockButton.unlocked)
-            restoreUnlocked = true;
+        restoreUnlocked = unlock;
     }
 
-    private void UnlockParryWithMirage()
+    private void UnlockParryWithMirage(bool unlock)
     {
-        if (parryWithMirageUnlockButton.unlocked)
-            parryWithMirageUnlocked = true;
+        parryWithMirageUnlocked = unlock;
     }
 
     public void MakeMirageOnParry(Transform _respawnTransform)

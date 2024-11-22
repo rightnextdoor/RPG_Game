@@ -5,7 +5,6 @@ using UnityEngine.UI;
 
 public class Blackhole_Skill : Skill
 {
-    [SerializeField] private UI_SkillTreeSlot blackHoleUnlockButton;
     public bool blackholeUnlocked {  get; private set; }
     [SerializeField] private int amountOfAttacks;
     [SerializeField] private float cloneCooldown;
@@ -18,10 +17,31 @@ public class Blackhole_Skill : Skill
 
     Blackhole_Skill_Controller currentBlackhole;
 
-    private void UnlockBlackhole()
+    protected override void Start()
     {
-        if (blackHoleUnlockButton.unlocked)
-            blackholeUnlocked = true;
+        base.Start();
+    }
+
+    protected override void Update()
+    {
+        base.Update();
+    }
+
+    public override void CheckUnlock(List<SkillData> skilldata)
+    {
+        foreach (SkillData data in skilldata)
+        {
+            if (data.fileName == "Blackhole")
+            {
+                UnlockBlackhole(data.unlocked);
+            }
+        }
+
+    }
+
+    private void UnlockBlackhole(bool unlock)
+    {
+        blackholeUnlocked = unlock;
     }
 
     public override bool CanUseSkill()
@@ -41,19 +61,7 @@ public class Blackhole_Skill : Skill
 
         AudioManager.instance.PlaySFX("BlackBankai", player.transform);
         AudioManager.instance.PlaySFX("BlackChronosphere", player.transform);
-    }
-
-    protected override void Start()
-    {
-        base.Start();
-
-        blackHoleUnlockButton.GetComponent<Button>().onClick.AddListener(UnlockBlackhole);
-    }
-
-    protected override void Update()
-    {
-        base.Update();
-    }
+    } 
 
     public bool SkillCompleted()
     {
@@ -73,8 +81,5 @@ public class Blackhole_Skill : Skill
         return maxSize / 2;
     }
 
-    protected override void CheckUnlock()
-    {
-        UnlockBlackhole();
-    }
+    
 }

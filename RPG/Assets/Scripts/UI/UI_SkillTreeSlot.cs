@@ -4,42 +4,76 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class UI_SkillTreeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, ISaveManager
+public class UI_SkillTreeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     private UI ui;
-    private Image skillImage;
+    [SerializeField] private bool isCheckpoint;
 
-    [SerializeField] private int skillCost;
-    [SerializeField] private string skillName;
+    [SerializeField] private SkillData skillData;
+    public string skillName;
+    private Image skillImage;
+    public int skillCost;
     [TextArea]
     [SerializeField] private string skillDescription;
-    [SerializeField] private Color lockedSkillColor;
 
+    [SerializeField] private Color lockedSkillColor;
     public bool unlocked;
 
     [SerializeField] private UI_SkillTreeSlot[] shouldBeUnlocked;
     [SerializeField] private UI_SkillTreeSlot[] shouldBeLocked;
 
+    private Button button;
+
 
     private void OnValidate()
     {
-        gameObject.name = "SkillTreeSlot_UI - " + skillName;
+        skillImage = GetComponent<Image>();
+        skillImage.sprite = skillData.itemIcon;
+        gameObject.name = "SkillTreeSlot_UI - " + skillData.fileName;
     }
 
     private void Awake()
     {
-        GetComponent<Button>().onClick.AddListener(() => UnlockSkillslot());        
+        button = GetComponent<Button>();
+        button.onClick.AddListener(() => UnlockSkillslot());        
     }
 
     private void Start()
     {
         skillImage = GetComponent<Image>();
+
         ui = UIManager.instance.GetUI();
 
         skillImage.color = lockedSkillColor;
 
-        if(unlocked)
-            skillImage.color = Color.white; 
+        SetupSkillSlot();
+
+        //if (unlocked)
+        //    skillImage.color = Color.white; 
+    }
+
+    private void SetupSkillSlot()
+    {
+        skillName = skillData.skillName;
+        skillImage.sprite = skillData.itemIcon;
+        skillCost = skillData.skillCost;
+        skillDescription = skillData.skillDescription; 
+        unlocked = skillData.unlocked;
+    }
+
+    private void Update()
+    {
+        unlocked = skillData.unlocked;
+        if (unlocked)
+        {
+            button.enabled = false;
+            skillImage.color = Color.white;
+        }
+        else
+        {
+            button.enabled = true;
+            skillImage.color = lockedSkillColor;
+        }
     }
 
     public void UnlockSkillslot()
@@ -64,36 +98,38 @@ public class UI_SkillTreeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExi
                 return;
             }
         }
+        skillData.unlocked = true;
         unlocked = true;
         skillImage.color = Color.white;
+        SkillManager.instance.CheckUnlocks();
+    }
+
+    public void ResetSkill()
+    {
+        unlocked = false;
+        skillData.unlocked = false;
+        SkillManager.instance.CheckUnlocks();
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        ui.skillToolTip.ShowToolTip(skillDescription, skillName, skillCost);
+        if (isCheckpoint)
+        {
+            UIManager.instance.GetUICheckpoint().skillToolTip.ShowToolTip(skillDescription, skillName, skillCost);
+        }else
+        {
+            ui.skillToolTip.ShowToolTip(skillDescription, skillName, skillCost);
+        }
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        ui.skillToolTip.HideToolTip();
-    }
-
-    public void LoadData(GameData _data)
-    {
-        if (_data.skillTree.TryGetValue(skillName, out bool value))
+        if (isCheckpoint)
         {
-            unlocked = value;
-        }
-    }
-
-    public void SaveData(ref GameData _data)
-    {
-        if (_data.skillTree.TryGetValue(skillName, out bool value))
+            UIManager.instance.GetUICheckpoint().skillToolTip.HideToolTip();
+        }else
         {
-            _data.skillTree.Remove(skillName);
-            _data.skillTree.Add(skillName, unlocked);
+            ui.skillToolTip.HideToolTip();
         }
-        else
-            _data.skillTree.Add(skillName, unlocked);
     }
 }

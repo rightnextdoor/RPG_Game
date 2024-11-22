@@ -12,75 +12,86 @@ public class Clone_Skill : Skill
     [Space]
 
     [Header("Clone attack")]
-    [SerializeField] private UI_SkillTreeSlot cloneAttackUnlockButton;
     [SerializeField] private float cloneAttackMultiplier;
     [SerializeField] private bool canAttack;
 
     [Header("Aggresive clone")]
-    [SerializeField] private UI_SkillTreeSlot aggresiveCloneUnlockButton;
     [SerializeField] private float aggresiveCloneArrackMultiplier;
     public bool canApplyOnHitEffect {get; private set;}
 
     [Header("Multiple clone")]
-    [SerializeField] private UI_SkillTreeSlot multipleUnlockButton;
     [SerializeField] private float multiCloneAttackMultiplier;
     [SerializeField] private bool canDuplicateClone;
     [SerializeField] private float chanceToDuplicate;
 
-    [Header("Crystal instead of clone")]
-    [SerializeField] private UI_SkillTreeSlot crystalInsteadUnlockButton;
+    [Header("Crystal spawn")]
     public bool crystalInseadOfClone;
 
     protected override void Start()
     {
         base.Start();
 
-        cloneAttackUnlockButton.GetComponent<Button>().onClick.AddListener(UnlockCloneAttack);
-        aggresiveCloneUnlockButton.GetComponent<Button>().onClick.AddListener(UnlockAggresiveClone);
-        multipleUnlockButton.GetComponent<Button>().onClick.AddListener(UnlockMultiClone);
-        crystalInsteadUnlockButton.GetComponent<Button>().onClick.AddListener(UnlockCrystalInstead);
     }
 
     #region Unlock region
 
-    protected override void CheckUnlock()
+    public override void CheckUnlock(List<SkillData> skilldata)
     {
-        UnlockCloneAttack();
-        UnlockAggresiveClone();
-        UnlockMultiClone();
-        UnlockCrystalInstead();
+        foreach (SkillData data in skilldata)
+        {
+            if (data.fileName == "CloneAttack")
+            {
+                UnlockCloneAttack(data.unlocked);
+            }
+            if (data.fileName == "CloneAggresive")
+            {
+                UnlockAggresiveClone(data.unlocked);
+            }
+            if (data.fileName == "CloneMultiple")
+            {
+                UnlockMultiClone(data.unlocked);
+            }
+            if (data.fileName == "CrystalSpawn")
+            {
+                UnlockCrystalInstead(data.unlocked);
+            }
+        }
+  
     }
 
-    private void UnlockCloneAttack()
+    private void UnlockCloneAttack(bool unlock)
     {
-        if (cloneAttackUnlockButton.unlocked)
-        {
-            canAttack = true;
+        canAttack = unlock;
+        
+        if (canAttack)
+        {          
             attackMultiplier = cloneAttackMultiplier;
         }
     }
 
-    private void UnlockAggresiveClone()
+    private void UnlockAggresiveClone(bool unlock)
     {
-        if (aggresiveCloneUnlockButton.unlocked)
-        {
-            canApplyOnHitEffect = true;
+        canApplyOnHitEffect = unlock;
+        
+        if (canApplyOnHitEffect)
+        {           
             attackMultiplier = aggresiveCloneArrackMultiplier;
         }
     }
 
-    private void UnlockMultiClone()
+    private void UnlockMultiClone(bool unlock)
     {
-        if (multipleUnlockButton.unlocked)
-        {
-            canDuplicateClone = true;
+        canDuplicateClone = unlock;
+
+        if (canDuplicateClone)
+        {         
             attackMultiplier = multiCloneAttackMultiplier;
         }
     }
 
-    private void UnlockCrystalInstead()
+    private void UnlockCrystalInstead(bool unlock)
     {
-        if(crystalInsteadUnlockButton.unlocked)
+        if(unlock)
             crystalInseadOfClone = true;
     }
 
