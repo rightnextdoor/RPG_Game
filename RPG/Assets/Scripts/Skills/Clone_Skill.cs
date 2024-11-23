@@ -91,8 +91,8 @@ public class Clone_Skill : Skill
 
     private void UnlockCrystalInstead(bool unlock)
     {
-        if(unlock)
-            crystalInseadOfClone = true;
+        crystalInseadOfClone = unlock;
+
     }
 
     #endregion

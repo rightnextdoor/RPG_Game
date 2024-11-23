@@ -33,8 +33,7 @@ public class UI_SkillReset : MonoBehaviour
                 for (int j = 0; j < child.Length; j++)
                 {
                     if (child[j].unlocked)
-                    {
-                        PlayerManager.instance.ResetSkillsPoints(child[j].skillCost);
+                    {                       
                         child[j].ResetSkill();                       
                     }
                 }

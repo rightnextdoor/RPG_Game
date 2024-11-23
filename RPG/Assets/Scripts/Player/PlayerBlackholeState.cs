@@ -22,6 +22,8 @@ public class PlayerBlackholeState : PlayerState
     {
         base.Enter();
 
+        SkillManager.instance.inBlackholeState = true;
+
         defaultGravity = player.rb.gravityScale;
 
         skillUsed = false;
@@ -32,7 +34,7 @@ public class PlayerBlackholeState : PlayerState
     public override void Exit()
     {
         base.Exit();
-
+        SkillManager.instance.inBlackholeState = false;
         player.rb.gravityScale = defaultGravity;
         player.fX.MakeTransprent(false, false, true);
     }

@@ -10,11 +10,10 @@ public class UI_SkillTreeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExi
     [SerializeField] private bool isCheckpoint;
 
     [SerializeField] private SkillData skillData;
-    public string skillName;
+    private string skillName;
     private Image skillImage;
-    public int skillCost;
-    [TextArea]
-    [SerializeField] private string skillDescription;
+    private int skillCost;
+    private string skillDescription;
 
     [SerializeField] private Color lockedSkillColor;
     public bool unlocked;
@@ -106,6 +105,7 @@ public class UI_SkillTreeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
     public void ResetSkill()
     {
+        PlayerManager.instance.ResetSkillsPoints(skillCost);
         unlocked = false;
         skillData.unlocked = false;
         SkillManager.instance.CheckUnlocks();

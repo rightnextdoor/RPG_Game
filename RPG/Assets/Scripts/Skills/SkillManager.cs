@@ -10,6 +10,8 @@ public class SkillManager : MonoBehaviour, ISaveManager
     [Header("Data base")]
     public List<SkillData> skillDataBase;
 
+    public bool inBlackholeState;
+
     public Dash_Skill dash { get; private set; }
     public Clone_Skill clone { get; private set; }
     public Sword_Skill sword { get; private set; }
