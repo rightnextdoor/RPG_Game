@@ -79,6 +79,10 @@ public class UI_Checkpoint : MonoBehaviour
         {
             AudioManager.instance.PlaySFX("MenuClick", null);
             _menu.SetActive(true);
+            if (_menu.GetComponent<UI_Stats>() != null)
+            {
+                _menu.GetComponent<UI_Stats>().StatsCalled();
+            }
         }
 
     }

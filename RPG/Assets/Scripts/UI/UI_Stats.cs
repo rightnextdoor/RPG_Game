@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UI_Stats : MonoBehaviour
 {
@@ -10,22 +11,21 @@ public class UI_Stats : MonoBehaviour
     private int startingPoints;
     private int pointsToAdd;
 
+    [SerializeField] private TextMeshProUGUI levelText;
     [SerializeField] private TextMeshProUGUI statsPointText;
+    [SerializeField] private Slider xpBarSlider;
+    [SerializeField] private TextMeshProUGUI xpText;
 
     #region stats
 
     [Header("Health")]
     [SerializeField] private TextMeshProUGUI healthNumberText;
-    [SerializeField] private TextMeshProUGUI healthPointsText;
     private int health;
-    private int healthPoint;
 
     [Space]
     [Header("Damage")]
     [SerializeField] private TextMeshProUGUI damageNumberText;
-    [SerializeField] private TextMeshProUGUI damagePointsText;
     private int damage;
-    private int damagePoint;
 
     [Space]
     [Header("Strength")]
@@ -58,16 +58,12 @@ public class UI_Stats : MonoBehaviour
     [Space]
     [Header("CritChance")]
     [SerializeField] private TextMeshProUGUI critChanceNumberText;
-    [SerializeField] private TextMeshProUGUI critChancePointsText;
     private int critChance;
-    private int critChancePoint;
 
     [Space]
     [Header("CritPower")]
     [SerializeField] private TextMeshProUGUI critPowerNumberText;
-    [SerializeField] private TextMeshProUGUI critPowerPointsText;
     private int critPower;
-    private int critPowerPoint;
 
     [Space]
     [Header("Armor")]
@@ -79,41 +75,41 @@ public class UI_Stats : MonoBehaviour
     [Space]
     [Header("Evasion")]
     [SerializeField] private TextMeshProUGUI evasionNumberText;
-    [SerializeField] private TextMeshProUGUI evasionPointsText;
     private int evasion;
-    private int evasionPoint;
 
     [Space]
     [Header("MagicResistance")]
     [SerializeField] private TextMeshProUGUI magicResistanceNumberText;
-    [SerializeField] private TextMeshProUGUI magicResistancePointsText;
     private int magicResistance;
-    private int magicResistancePoint;
 
     [Space]
     [Header("FireDamage")]
     [SerializeField] private TextMeshProUGUI fireDamageNumberText;
-    [SerializeField] private TextMeshProUGUI fireDamagePointsText;
     private int fireDamage;
-    private int fireDamagePoint;
+
 
     [Space]
     [Header("IceDamage")]
     [SerializeField] private TextMeshProUGUI iceDamageNumberText;
-    [SerializeField] private TextMeshProUGUI iceDamagePointsText;
     private int iceDamage;
-    private int iceDamagePoint;
 
     [Space]
     [Header("LightingDamage")]
     [SerializeField] private TextMeshProUGUI lightingDamageNumberText;
-    [SerializeField] private TextMeshProUGUI lightingDamagePointsText;
     private int lightingDamage;
-    private int lightingDamagePoint;
 
     #endregion
 
-    private void Start()
+    private void Update()
+    {
+        statsPointText.text = statsPoints.ToString();
+
+        startingPoints = PlayerManager.instance.statsPoints;
+
+        SetupStats();
+    }
+
+    public void StatsCalled()
     {
         stats = PlayerManager.instance.player.stats;
         ZeroOutStats();
@@ -121,17 +117,18 @@ public class UI_Stats : MonoBehaviour
 
         statsPoints = PlayerManager.instance.statsPoints;
         startingPoints = statsPoints;
-    }
 
-    
+        float xpCurrent = PlayerManager.instance.currentXp;
+        float xpRequired = PlayerManager.instance.requiredXp;
+        levelText.text = PlayerManager.instance.level.ToString();
 
-    private void Update()
-    {
-        statsPointText.text = "Stats Points: " + statsPoints;
+        xpText.text = xpCurrent + "/ " + xpRequired;
+        if (xpText.text.Length > 14)
+            xpText.fontSize = xpText.fontSize * .7f;
+        else
+            xpText.fontSize = 36;
 
-        startingPoints = PlayerManager.instance.statsPoints;
-
-        SetupStatText();
+        xpBarSlider.value = xpCurrent / xpRequired;
     }
 
     public void UpdateStartingPoints(int _points)
@@ -142,9 +139,7 @@ public class UI_Stats : MonoBehaviour
     private void SetupStatText()
     {
         healthNumberText.text = health.ToString();
-        healthPointsText.text = healthPoint.ToString();
         damageNumberText.text = damage.ToString();
-        damagePointsText.text = damagePoint.ToString();
         strengthNumberText.text = strength.ToString();
         strengthPointsText.text = strengthPoint.ToString();
         agilityNumberText.text = agility.ToString();
@@ -154,110 +149,88 @@ public class UI_Stats : MonoBehaviour
         vitalityNumberText.text = vitality.ToString();
         vitalityPointsText.text = vitalityPoint.ToString();
         critChanceNumberText.text = critChance.ToString();
-        critChancePointsText.text = critChancePoint.ToString();
         critPowerNumberText.text = critPower.ToString();
-        critPowerPointsText.text = critPowerPoint.ToString();
         armorNumberText.text = armor.ToString();
         armorPointsText.text = armorPoint.ToString();
         evasionNumberText.text = evasion.ToString();
-        evasionPointsText.text = evasionPoint.ToString();
         magicResistanceNumberText.text = magicResistance.ToString();
-        magicResistancePointsText.text = magicResistancePoint.ToString();
         fireDamageNumberText.text = fireDamage.ToString();
-        fireDamagePointsText.text = fireDamagePoint.ToString();
         iceDamageNumberText.text = iceDamage.ToString();
-        iceDamagePointsText.text = iceDamagePoint.ToString();
         lightingDamageNumberText.text = lightingDamage.ToString();
-        lightingDamagePointsText.text = lightingDamagePoint.ToString();
     }
 
     private void SetupStats()
     {
-        health = stats.maxHealth.GetBaseValue();
-        damage = stats.damage.GetBaseValue();
-        strength = stats.strength.GetBaseValue();
-        agility = stats.agility.GetBaseValue();
-        intelligence = stats.intelligence.GetBaseValue();
-        vitality = stats.vitality.GetBaseValue();
-        critChance = stats.critChance.GetBaseValue();
-        critPower = stats.critPower.GetBaseValue();
-        armor = stats.armor.GetBaseValue();
-        evasion = stats.evasion.GetBaseValue();
-        magicResistance = stats.magicResistance.GetBaseValue();
+        strength = stats.strength.GetBaseValue() + strengthPoint;
+        armor = stats.armor.GetBaseValue() + armorPoint;
+        intelligence = stats.intelligence.GetBaseValue() + intelligencePoint;
+        agility = stats.agility.GetBaseValue() + agilityPoint;
+        vitality = stats.vitality.GetBaseValue() + vitalityPoint;
+        
+        health = stats.maxHealth.GetBaseValue() + vitality * 5;
+        damage = stats.damage.GetBaseValue() + strength;
+        critChance = Mathf.RoundToInt((stats.critChance.GetBaseValue() + strength) *.01f + agility);
+        critPower = Mathf.RoundToInt((stats.critPower.GetBaseValue() + strength) * .01f);
+        evasion = stats.evasion.GetBaseValue() + agility;
+        magicResistance = stats.magicResistance.GetBaseValue() + (intelligence * 3);
         fireDamage = stats.fireDamage.GetBaseValue();
         iceDamage = stats.iceDamage.GetBaseValue();
         lightingDamage = stats.lightingDamage.GetBaseValue();
+        Debug.Log("crit power from stats " + stats.critPower.GetValue());
+        Debug.Log("crit power " + critPower);
+        SetupStatText();
     }
 
-    public void ApplyStats(GameObject _menu)
+    public void ApplyStats()
     {
         PlayerManager.instance.HaveEnoughStatsPoints(pointsToAdd);
         UpdateStats();
-
         ZeroOutStats();
 
-        UIManager.instance.GetUICheckpoint().SwitchTo(_menu);
     }
 
     private void ZeroOutStats()
     {
         pointsToAdd = 0;
-        healthPoint = 0;
-        damagePoint = 0;
         strengthPoint = 0;
         agilityPoint = 0;
         intelligencePoint = 0;
         vitalityPoint = 0;
-        critChancePoint = 0;
-        critPowerPoint = 0;
         armorPoint = 0;
-        evasionPoint = 0;
-        magicResistancePoint = 0;
-        fireDamagePoint = 0;
-        iceDamagePoint = 0;
-        lightingDamagePoint = 0;
+
+        strengthNumberText.color = Color.white;
+        strengthPointsText.color = Color.white;
+        critPowerNumberText.color = Color.white;
+        critChanceNumberText.color = Color.white;
+        agilityPointsText.color = Color.white;
+        agilityNumberText.color = Color.white;
+        evasionNumberText.color = Color.white;
+        intelligencePointsText.color = Color.white;
+        intelligenceNumberText.color = Color.white;
+        magicResistanceNumberText.color = Color.white;
+        vitalityNumberText.color = Color.white;
+        vitalityPointsText.color = Color.white;
+        healthNumberText.color = Color.white;
+        armorPointsText.color = Color.white;
+        armorNumberText.color = Color.white;
+        damageNumberText.color = Color.white;
     }
 
     private void UpdateStats()
     {
-        stats.maxHealth.SetDefaultValue(healthPoint + stats.maxHealth.GetBaseValue());
-        stats.currentHealth += healthPoint;
-        stats.damage.SetDefaultValue(damagePoint + stats.damage.GetBaseValue());
         stats.strength.SetDefaultValue(stats.strength.GetBaseValue() + strengthPoint);
         stats.agility.SetDefaultValue(stats.agility.GetBaseValue() + agilityPoint);
         stats.intelligence.SetDefaultValue(stats.intelligence.GetBaseValue() + intelligencePoint);
         stats.vitality.SetDefaultValue(stats.vitality.GetBaseValue() + vitalityPoint);
-        stats.critChance.SetDefaultValue(stats.critChance.GetBaseValue() + critChancePoint);
-        stats.critPower.SetDefaultValue(stats.critPower.GetBaseValue() + critPowerPoint);
         stats.armor.SetDefaultValue(stats.armor.GetBaseValue() + armorPoint);
-        stats.evasion.SetDefaultValue(stats.evasion.GetBaseValue() + evasionPoint);
-        stats.magicResistance.SetDefaultValue(stats.magicResistance.GetBaseValue() + magicResistancePoint);
-        stats.fireDamage.SetDefaultValue(stats.fireDamage.GetBaseValue() + fireDamagePoint);
-        stats.iceDamage.SetDefaultValue(stats.iceDamage.GetBaseValue() + iceDamagePoint);
-        stats.lightingDamage.SetDefaultValue(stats.lightingDamage.GetBaseValue() + lightingDamagePoint);
+
     }
 
     public void IncreasedStats(string _stats)
     {
-        Debug.Log("points to add " + pointsToAdd);
-        Debug.Log("starting points " + statsPoints);
         if (pointsToAdd < startingPoints)
         {
-            if (_stats == "Health")
-            {
-                pointsToAdd++;
-                statsPoints--;
-                healthPoint++;
-                health++;
-            }
 
-            if (_stats == "Damage")
-            {
-                pointsToAdd++;
-                statsPoints--;
-                damagePoint++;
-                damage++;
-            }
 
             if (_stats == "Strength")
             {
@@ -265,6 +238,14 @@ public class UI_Stats : MonoBehaviour
                 statsPoints--;
                 strengthPoint++;
                 strength++;
+                if (strengthPoint > 0)
+                {
+                    strengthPointsText.color = Color.green;
+                    strengthNumberText.color = Color.green;
+                    critChanceNumberText.color = Color.green;
+                    critPowerNumberText.color = Color.green;
+                    damageNumberText.color = Color.green;
+                }
             }
 
             if (_stats == "Agility")
@@ -273,6 +254,13 @@ public class UI_Stats : MonoBehaviour
                 statsPoints--;
                 agilityPoint++;
                 agility++;
+                if (agilityPoint > 0)
+                {
+                    agilityPointsText.color = Color.green;
+                    agilityNumberText.color = Color.green;
+                    critChanceNumberText.color = Color.green;
+                    evasionNumberText.color = Color.green;
+                }
             }
 
             if (_stats == "Intelligence")
@@ -281,6 +269,12 @@ public class UI_Stats : MonoBehaviour
                 statsPoints--;
                 intelligencePoint++;
                 intelligence++;
+                if (intelligencePoint > 0)
+                {
+                    intelligencePointsText.color = Color.green;
+                    intelligenceNumberText.color = Color.green;
+                    magicResistanceNumberText.color = Color.green;
+                }
             }
 
             if (_stats == "Vitality")
@@ -289,23 +283,14 @@ public class UI_Stats : MonoBehaviour
                 statsPoints--;
                 vitalityPoint++;
                 vitality++;
+                if (vitalityPoint > 0)
+                {
+                    vitalityNumberText.color = Color.green;
+                    vitalityPointsText.color = Color.green;
+                    healthNumberText.color = Color.green;
+                }
             }
 
-            if (_stats == "CritChance")
-            {
-                pointsToAdd++;
-                statsPoints--;
-                critChancePoint++;
-                critChance++;
-            }
-
-            if (_stats == "CritPower")
-            {
-                pointsToAdd++;
-                statsPoints--;
-                critPowerPoint++;
-                critPower++;
-            }
 
             if (_stats == "Armor")
             {
@@ -313,74 +298,18 @@ public class UI_Stats : MonoBehaviour
                 statsPoints--;
                 armorPoint++;
                 armor++;
+                if (armorPoint > 0)
+                {
+                    armorPointsText.color = Color.green;
+                    armorNumberText.color = Color.green;
+                }
             }
-
-            if (_stats == "Evasion")
-            {
-                pointsToAdd++;
-                statsPoints--;
-                evasionPoint++;
-                evasion++;
-            }
-
-            if (_stats == "MagicResistance")
-            {
-                pointsToAdd++;
-                statsPoints--;
-                magicResistancePoint++;
-                magicResistance++;
-            }
-
-            if (_stats == "FireDamage")
-            {
-                pointsToAdd++;
-                statsPoints--;
-                fireDamagePoint++;
-                fireDamage++;
-            }
-
-            if (_stats == "IceDamage")
-            {
-                pointsToAdd++;
-                statsPoints--;
-                iceDamagePoint++;
-                iceDamage++;
-            }
-
-            if (_stats == "LightingDamage")
-            {
-                pointsToAdd++;
-                statsPoints--;
-                lightingDamagePoint++;
-                lightingDamage++;
-            }
-
         }
     }
 
     public void DecreasedStats(string _stats)
     {
-        if (_stats == "Health")
-        {
-            if (healthPoint > 0)
-            {
-                pointsToAdd--;
-                statsPoints++;
-                healthPoint--;
-                health--;
-            }
 
-        }
-        if (_stats == "Damage")
-        {
-            if (damagePoint > 0)
-            {
-                pointsToAdd--;
-                statsPoints++;
-                damagePoint--;
-                damage--;
-            }
-        }
 
         if (_stats == "Strength")
         {
@@ -390,6 +319,16 @@ public class UI_Stats : MonoBehaviour
                 statsPoints++;
                 strengthPoint--;
                 strength--;
+
+                if (strengthPoint <= 0)
+                {
+                    strengthNumberText.color = Color.white;
+                    strengthPointsText.color = Color.white;
+                    critPowerNumberText.color = Color.white;
+                    damageNumberText.color = Color.white;
+                    if(agilityPoint <= 0)
+                        critChanceNumberText.color = Color.white;
+                }
             }
         }
 
@@ -401,6 +340,14 @@ public class UI_Stats : MonoBehaviour
                 statsPoints++;
                 agilityPoint--;
                 agility--;
+                if (agilityPoint <= 0)
+                {
+                    agilityPointsText.color = Color.white;
+                    agilityNumberText.color = Color.white;
+                    evasionNumberText.color = Color.white;
+                    if(strengthPoint <= 0)
+                        critChanceNumberText.color = Color.white;
+                }
             }
         }
 
@@ -412,6 +359,12 @@ public class UI_Stats : MonoBehaviour
                 statsPoints++;
                 intelligencePoint--;
                 intelligence--;
+                if (intelligencePoint <= 0)
+                {
+                    intelligencePointsText.color = Color.white;
+                    intelligenceNumberText.color = Color.white;
+                    magicResistanceNumberText.color = Color.white;
+                }
             }
         }
 
@@ -423,30 +376,15 @@ public class UI_Stats : MonoBehaviour
                 statsPoints++;
                 vitalityPoint--;
                 vitality--;
+                if (vitalityPoint <= 0)
+                {
+                    vitalityNumberText.color = Color.white;
+                    vitalityPointsText.color = Color.white;
+                    healthNumberText.color = Color.white;
+                }
             }
         }
 
-        if (_stats == "CritChance")
-        {
-            if (critChancePoint > 0)
-            {
-                pointsToAdd--;
-                statsPoints++;
-                critChancePoint--;
-                critChance--;
-            }
-        }
-
-        if (_stats == "CritPower")
-        {
-            if (critPowerPoint > 0)
-            {
-                pointsToAdd--;
-                statsPoints++;
-                critPowerPoint--;
-                critPower--;
-            }
-        }
 
         if (_stats == "Armor")
         {
@@ -456,61 +394,11 @@ public class UI_Stats : MonoBehaviour
                 statsPoints++;
                 armorPoint--;
                 armor--;
-            }
-        }
-
-        if (_stats == "Evasion")
-        {
-            if (evasionPoint > 0)
-            {
-                pointsToAdd--;
-                statsPoints++;
-                evasionPoint--;
-                evasion--;
-            }
-        }
-
-        if (_stats == "MagicResistance")
-        {
-            if (magicResistancePoint > 0)
-            {
-                pointsToAdd--;
-                statsPoints++;
-                magicResistancePoint--;
-                magicResistance--;
-            }
-        }
-
-        if (_stats == "FireDamage")
-        {
-            if (fireDamagePoint > 0)
-            {
-                pointsToAdd--;
-                statsPoints++;
-                fireDamagePoint--;
-                fireDamage--;
-            }
-        }
-
-        if (_stats == "IceDamage")
-        {
-            if (iceDamagePoint > 0)
-            {
-                pointsToAdd--;
-                statsPoints++;
-                iceDamagePoint--;
-                iceDamage--;
-            }
-        }
-
-        if (_stats == "LightingDamage")
-        {
-            if (lightingDamagePoint > 0)
-            {
-                pointsToAdd--;
-                statsPoints++;
-                lightingDamagePoint--;
-                lightingDamage--;
+                if (armorPoint <= 0)
+                {
+                    armorPointsText.color = Color.white;
+                    armorNumberText.color = Color.white;
+                }
             }
         }
     }
