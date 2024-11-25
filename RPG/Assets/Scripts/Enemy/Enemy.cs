@@ -102,7 +102,7 @@ public class Enemy : Entity
     }
 
     public virtual void AttackTrigger()
-    {
+    {    
         Collider2D[] colliders = Physics2D.OverlapCircleAll(attackCheck.position, attackCheckRadius);
 
         foreach (var hit in colliders)

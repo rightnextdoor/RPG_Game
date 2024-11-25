@@ -163,7 +163,9 @@ public class Sword_Skill_Controller : MonoBehaviour
                 foreach (var hit in colliders)
                 {                 
                     if (hit.GetComponent<Enemy>() != null)
+                    {
                         enemyTarget.Add(hit.transform);
+                    }
                 }
             }
         }
@@ -235,7 +237,6 @@ public class Sword_Skill_Controller : MonoBehaviour
         {        
             if (playSound)
             {
-                Debug.Log("play sound");
                 AudioManager.instance.PlaySFX("SwordSpin", null);
                 playSound = false;
             }

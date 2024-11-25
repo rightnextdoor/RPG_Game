@@ -158,9 +158,15 @@ public class CharacterStats : MonoBehaviour
         fx.CreateHitFx(_targetStats.transform, criticalStrike);
 
         totalDamage = CheckTargetArmor(_targetStats, totalDamage);
+
+        if (fireDamage.GetBaseValue() > 0 || iceDamage.GetBaseValue() > 0 || lightingDamage.GetBaseValue() > 0)
+        {
+            DoMagicalDamage(_targetStats); 
+            return;
+        }
+
         _targetStats.TakeDamage(totalDamage);
 
-        DoMagicalDamage(_targetStats); // remove if you don't want to apply magic hit on primary attack
     }
 
     #region Magical damage and ailements
@@ -210,7 +216,9 @@ public class CharacterStats : MonoBehaviour
         }
 
         if (canApplyIgnite)
+        {
             _targetStats.SetupIgniteDamage(Mathf.RoundToInt(_fireDamage * .2f));
+        }
 
         if (canApplyShock)
             _targetStats.SetupShockStrikeDamage(Mathf.RoundToInt(_lightingDamage * .1f));
@@ -298,7 +306,8 @@ public class CharacterStats : MonoBehaviour
         }
     }
 
-    private void ApplyIgniteDamage()
+    //burn damage
+    private void ApplyIgniteDamage() 
     {
         if (igniteDamageTimer < 0)
         {

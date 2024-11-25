@@ -20,12 +20,12 @@ public class Sword_Skill : Skill
     [SerializeField] private float bounceGravity;
     [SerializeField] private float bounceSpeed;
     public bool bounce {  get; private set; }
-
+    [Space]
     [Header("Peirce info")]
     private bool peirce;
     [SerializeField] private int pierceAmount;
     [SerializeField] private float pierceGravity;
-
+    [Space]
     [Header("Spin info")]
     private bool spin;
     [SerializeField] private float hitCooldown = .35f;

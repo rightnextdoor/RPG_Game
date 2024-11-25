@@ -9,6 +9,7 @@ public class GameData
 
     public int skillsPoints;
     public int statsPoints;
+    public int totalStatsPoints;
     public int level;
     public float currentXp;
     public float requiredXp;
@@ -28,6 +29,12 @@ public class GameData
     public int iceDamage;
     public int lightingDamage;
 
+    public int savedStrengthPoints;
+    public int savedArmorPoints;
+    public int savedIntelligencePoints;
+    public int savedAgilityPoints;
+    public int savedVitalityPoints;
+
     public SerializableDictionary<string, bool> skillTree;
     public SerializableDictionary<string, int> inventory;
     public List<string> equipmentId;
@@ -42,7 +49,7 @@ public class GameData
     public GameData()
     {
         currency = 0;
-
+        level = 1;
         skillsPoints = 0;
         maxHealth = 100;
         damage = 50;

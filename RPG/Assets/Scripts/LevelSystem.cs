@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+
+
 public class LevelSystem : MonoBehaviour
 {
     private float lerptimer;
@@ -30,7 +32,7 @@ public class LevelSystem : MonoBehaviour
         start = true;
 
         PlayerManager.instance.requiredXp = CalculateRequiredXp();
-        levelText.text = "Level " + PlayerManager.instance.level;
+        levelText.text = "Level " + PlayerManager.instance.GetLevel();
     }
 
 
@@ -51,14 +53,11 @@ public class LevelSystem : MonoBehaviour
 
     private void SetUp()
     {
-        if (PlayerManager.instance.level == 0)
-        {
-            PlayerManager.instance.level = 1;
-            PlayerManager.instance.requiredXp = CalculateRequiredXp();
-        }
+ 
+        PlayerManager.instance.requiredXp = CalculateRequiredXp();
         frontXpBarSlider.value = PlayerManager.instance.currentXp / PlayerManager.instance.requiredXp;
         backXpBarSlider.value = PlayerManager.instance.currentXp / PlayerManager.instance.requiredXp;
-        levelText.text = "Level " + PlayerManager.instance.level;
+        levelText.text = "Level " + PlayerManager.instance.GetLevel();
         start = false;
     }
 
@@ -91,9 +90,9 @@ public class LevelSystem : MonoBehaviour
 
     public void GainExperienceScalable(float _xpGained, int _passedLevel)
     {
-        if (_passedLevel < PlayerManager.instance.level)
+        if (_passedLevel < PlayerManager.instance.GetLevel())
         {
-            float multiplier = 1 + (PlayerManager.instance.level - _passedLevel) * 0.1f;
+            float multiplier = 1 + (PlayerManager.instance.GetLevel() - _passedLevel) * 0.1f;
             PlayerManager.instance.currentXp += _xpGained * multiplier;
         }
         else
@@ -106,25 +105,42 @@ public class LevelSystem : MonoBehaviour
 
     public void LevelUp()
     {
-        PlayerManager.instance.level++;
-        PlayerManager.instance.skillsPoint++;
-        PlayerManager.instance.statsPoints += statsPoints;
+        PlayerManager.instance.GainLevel();
 
-        if(GetComponent<UI_Stats>() != null)
-            GetComponent<UI_Stats>().UpdateStartingPoints(statsPoints);
+        PlayerManager.instance.GainSkillsPoints(1);
+        PlayerManager.instance.GainStatsPoints(statsPoints); 
 
         frontXpBarSlider.value = 0;
         backXpBarSlider.value = 0;
         PlayerManager.instance.currentXp = Mathf.RoundToInt(PlayerManager.instance.currentXp - PlayerManager.instance.requiredXp);
-        //gain skills points and stats
         PlayerManager.instance.requiredXp = CalculateRequiredXp();
-        levelText.text = "Level " + PlayerManager.instance.level;
+        levelText.text = "Level " + PlayerManager.instance.GetLevel();
+
+        IncreasedStats();
+    }
+
+    private void IncreasedStats()
+    {
+        CharacterStats stats = PlayerManager.instance.player.stats;
+
+        stats.maxHealth.SetDefaultValue(stats.maxHealth.GetBaseValue() + Random.Range(0, 5));
+        stats.damage.SetDefaultValue(stats.damage.GetBaseValue() + Random.Range(0, 5));
+        stats.strength.SetDefaultValue(stats.strength.GetBaseValue() + Random.Range(0, 5));
+        stats.agility.SetDefaultValue(stats.agility.GetBaseValue() + Random.Range(0, 5));
+        stats.intelligence.SetDefaultValue(stats.intelligence.GetBaseValue() + Random.Range(0, 5));
+        stats.vitality.SetDefaultValue(stats.vitality.GetBaseValue() + Random.Range(0, 5));
+        stats.critChance.SetDefaultValue(stats.critChance.GetBaseValue() + Random.Range(0, 5));
+        stats.critPower.SetDefaultValue(stats.critPower.GetBaseValue() + Random.Range(0, 5));
+        stats.armor.SetDefaultValue(stats.armor.GetBaseValue() + Random.Range(0, 5));
+        stats.evasion.SetDefaultValue(stats.evasion.GetBaseValue() + Random.Range(0, 5));
+        stats.magicResistance.SetDefaultValue(stats.magicResistance.GetBaseValue() + Random.Range(0, 2));
+
     }
 
     private int CalculateRequiredXp()
     {
         int solveForRequiredXp = 0;
-        for (int levelCycle = 1; levelCycle <= PlayerManager.instance.level; levelCycle++)
+        for (int levelCycle = 1; levelCycle <= PlayerManager.instance.GetLevel(); levelCycle++)
         {
             solveForRequiredXp += (int)Mathf.Floor(levelCycle + additionMultiplier * Mathf.Pow(powerMultiplier, levelCycle / divisionMultiplier));
         }

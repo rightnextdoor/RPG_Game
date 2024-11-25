@@ -19,7 +19,7 @@ public class UI_SkillReset : MonoBehaviour
 
     private void Update()
     {
-        skillsPointText.text = PlayerManager.instance.skillsPoint.ToString();
+        skillsPointText.text = PlayerManager.instance.GetSkillsPoints().ToString();
     }
 
     private void ResetSkills()

@@ -69,9 +69,15 @@ public class PlayerStats : CharacterStats, ISaveManager
         }
 
         totalDamage = CheckTargetArmor(_targetStats, totalDamage);
+
+        if (fireDamage.GetBaseValue() > 0 || iceDamage.GetBaseValue() > 0 || lightingDamage.GetBaseValue() > 0)
+        {
+            DoMagicalDamage(_targetStats);
+            return;
+        }
+
         _targetStats.TakeDamage(totalDamage);
 
-        DoMagicalDamage(_targetStats); // remove if you don't want to apply magic hit on primary attack
     }
 
     public void LoadData(GameData _data)

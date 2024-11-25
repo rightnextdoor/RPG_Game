@@ -4,10 +4,11 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UI_Stats : MonoBehaviour
+public class UI_Stats : MonoBehaviour, ISaveManager
 {
     private CharacterStats stats;
     private int statsPoints;
+    private int totalStatsPoints;
     private int startingPoints;
     private int pointsToAdd;
 
@@ -100,11 +101,17 @@ public class UI_Stats : MonoBehaviour
 
     #endregion
 
+    private int savedStrengthPoints;
+    private int savedArmorPoints;
+    private int savedIntelligencePoints;
+    private int savedAgilityPoints;
+    private int savedVitalityPoints;
+
     private void Update()
     {
-        statsPointText.text = statsPoints.ToString();
+        statsPointText.text = statsPoints + " / " + totalStatsPoints;
 
-        startingPoints = PlayerManager.instance.statsPoints;
+        startingPoints = PlayerManager.instance.GetStatsPoints();
 
         SetupStats();
     }
@@ -114,13 +121,11 @@ public class UI_Stats : MonoBehaviour
         stats = PlayerManager.instance.player.stats;
         ZeroOutStats();
         SetupStats();
-
-        statsPoints = PlayerManager.instance.statsPoints;
-        startingPoints = statsPoints;
+        Stats();
 
         float xpCurrent = PlayerManager.instance.currentXp;
         float xpRequired = PlayerManager.instance.requiredXp;
-        levelText.text = PlayerManager.instance.level.ToString();
+        levelText.text = PlayerManager.instance.GetLevel().ToString();
 
         xpText.text = xpCurrent + "/ " + xpRequired;
         if (xpText.text.Length > 14)
@@ -131,9 +136,11 @@ public class UI_Stats : MonoBehaviour
         xpBarSlider.value = xpCurrent / xpRequired;
     }
 
-    public void UpdateStartingPoints(int _points)
+    private void Stats()
     {
-        statsPoints += _points;
+        statsPoints = PlayerManager.instance.GetStatsPoints();
+        totalStatsPoints = PlayerManager.instance.GetTotalStatsPoints();
+        startingPoints = statsPoints;
     }
 
     private void SetupStatText()
@@ -169,15 +176,13 @@ public class UI_Stats : MonoBehaviour
         
         health = stats.maxHealth.GetBaseValue() + vitality * 5;
         damage = stats.damage.GetBaseValue() + strength;
-        critChance = Mathf.RoundToInt((stats.critChance.GetBaseValue() + strength) *.01f + agility);
-        critPower = Mathf.RoundToInt((stats.critPower.GetBaseValue() + strength) * .01f);
+        critChance = stats.critChance.GetBaseValue() + agility;
+        critPower = stats.critPower.GetBaseValue() + strength ;
         evasion = stats.evasion.GetBaseValue() + agility;
-        magicResistance = stats.magicResistance.GetBaseValue() + (intelligence * 3);
+        magicResistance = stats.magicResistance.GetBaseValue() + intelligence * 3;
         fireDamage = stats.fireDamage.GetBaseValue();
         iceDamage = stats.iceDamage.GetBaseValue();
         lightingDamage = stats.lightingDamage.GetBaseValue();
-        Debug.Log("crit power from stats " + stats.critPower.GetValue());
-        Debug.Log("crit power " + critPower);
         SetupStatText();
     }
 
@@ -185,8 +190,47 @@ public class UI_Stats : MonoBehaviour
     {
         PlayerManager.instance.HaveEnoughStatsPoints(pointsToAdd);
         UpdateStats();
+        SavedStatsPoints();
+
         ZeroOutStats();
 
+    }
+
+    private void SavedStatsPoints()
+    {
+        savedStrengthPoints += strengthPoint;
+        savedArmorPoints += armorPoint;
+        savedIntelligencePoints += intelligencePoint;
+        savedAgilityPoints += agilityPoint;
+        savedVitalityPoints += vitalityPoint;
+    }
+
+    public void ResetStatsPoints()
+    {
+        ZeroOutStats();
+        PlayerManager.instance.ResetStatsPoints();
+        Stats();
+        ResetStats();
+    }
+
+    private void ResetStats()
+    {
+        stats.strength.SetDefaultValue(stats.strength.GetBaseValue() - savedStrengthPoints);
+        stats.agility.SetDefaultValue(stats.agility.GetBaseValue() - savedAgilityPoints);
+        stats.intelligence.SetDefaultValue(stats.intelligence.GetBaseValue() - savedIntelligencePoints);
+        stats.vitality.SetDefaultValue(stats.vitality.GetBaseValue() - savedVitalityPoints);
+        stats.armor.SetDefaultValue(stats.armor.GetBaseValue() - savedArmorPoints);
+
+        ZeroOutSavedStats();
+    }
+
+    private void ZeroOutSavedStats()
+    {
+        savedStrengthPoints = 0;
+        savedArmorPoints = 0;
+        savedIntelligencePoints = 0;
+        savedAgilityPoints = 0;
+        savedVitalityPoints = 0;
     }
 
     private void ZeroOutStats()
@@ -401,5 +445,23 @@ public class UI_Stats : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void LoadData(GameData _data)
+    {
+        savedStrengthPoints = _data.savedStrengthPoints;
+        savedArmorPoints = _data.savedArmorPoints;
+        savedIntelligencePoints = _data.savedIntelligencePoints;
+        savedAgilityPoints = _data.savedAgilityPoints;
+        savedVitalityPoints = _data.savedVitalityPoints;
+    }
+
+    public void SaveData(ref GameData _data)
+    {
+        _data.savedStrengthPoints = savedStrengthPoints;
+        _data.savedArmorPoints = savedArmorPoints;
+        _data.savedIntelligencePoints = savedIntelligencePoints;
+        _data.savedAgilityPoints = savedAgilityPoints;
+        _data.savedVitalityPoints = savedVitalityPoints;
     }
 }

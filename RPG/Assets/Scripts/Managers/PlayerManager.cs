@@ -13,9 +13,10 @@ public class PlayerManager : MonoBehaviour, ISaveManager
     private int maxCurrency = 10000000;
     [SerializeField] private TextMeshProUGUI currencyText;
 
-    public int skillsPoint = 0;
-    public int statsPoints = 0;
-    public int level = 1;
+    private int skillsPoint = 0;
+    private int statsPoints = 0;
+    private int totalStatsPoints = 0;
+    private int level = 1;
     public float currentXp = 0;
     public float requiredXp = 0;
 
@@ -92,12 +93,36 @@ public class PlayerManager : MonoBehaviour, ISaveManager
         return true;
     }
 
+    public void GainLevel()
+    {
+        level++;
+    }
+    public int GetLevel() => level;
+
+    public void GainSkillsPoints(int _points)
+    {
+        skillsPoint += _points;
+    }
+    public void GainStatsPoints(int _points)
+    {
+        statsPoints += _points;
+        totalStatsPoints += _points;
+    }
+
+    public void ResetStatsPoints()
+    {
+        statsPoints = totalStatsPoints;
+    }
+
+    public int GetTotalStatsPoints() => totalStatsPoints;
     public int GetSkillsPoints() => skillsPoint;
     public int GetStatsPoints() => statsPoints;
 
     public void LoadData(GameData _data)
     {
         this.skillsPoint = _data.skillsPoints;
+        this.totalStatsPoints = _data.totalStatsPoints;
+
         this.statsPoints = _data.statsPoints;
         this.level = _data.level;
         this.currentXp = _data.currentXp;
@@ -110,6 +135,8 @@ public class PlayerManager : MonoBehaviour, ISaveManager
     public void SaveData(ref GameData _data)
     {
         _data.skillsPoints = this.skillsPoint;
+        _data.totalStatsPoints = this.totalStatsPoints;
+
         _data.statsPoints = this.statsPoints;
         _data.level = this.level;
         _data.currentXp = this.currentXp;
