@@ -116,6 +116,11 @@ public class Enemy_Wizard : Enemy_Boss
         stateMachine.ChangeState(deadState);
     }
 
+    public override void UnlockEquipment()
+    {
+        UnlockManager.instance.BossUnlockData(BossNames.Wizard);
+    }
+
     public override void FindPosition()
     {
         base.FindPosition();

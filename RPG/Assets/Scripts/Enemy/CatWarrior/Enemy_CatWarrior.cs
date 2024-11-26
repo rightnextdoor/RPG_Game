@@ -61,6 +61,11 @@ public class Enemy_CatWarrior : Enemy_Boss
         stateMachine.ChangeState(deadState);
     }
 
+    public override void UnlockEquipment()
+    {
+        UnlockManager.instance.BossUnlockData(BossNames.CatWarrior);
+    }
+
     public bool CanCastTornado()
     {
         if (tornadoTimer < 0)

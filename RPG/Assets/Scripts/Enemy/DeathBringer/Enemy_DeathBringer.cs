@@ -63,6 +63,11 @@ public class Enemy_DeathBringer : Enemy_Boss
         stateMachine.ChangeState(deadState);
     }
 
+    public override void UnlockEquipment()
+    {
+        UnlockManager.instance.BossUnlockData(BossNames.DeathBringer);
+    }
+
     public override bool CanTeleport()
     {
         if (stage == Stage.Stage_1)

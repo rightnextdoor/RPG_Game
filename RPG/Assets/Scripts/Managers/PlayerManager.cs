@@ -96,6 +96,7 @@ public class PlayerManager : MonoBehaviour, ISaveManager
     public void GainLevel()
     {
         level++;
+        UnlockManager.instance.LevelUnlockData(level);
     }
     public int GetLevel() => level;
 

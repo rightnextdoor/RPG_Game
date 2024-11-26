@@ -21,7 +21,9 @@ public class UI : MonoBehaviour, ISaveManager
     [SerializeField] private GameObject checkpointUI;
 
     private List<GameObject> uiList = new List<GameObject>();
-    
+
+    [SerializeField] private GameObject craftWeapon;
+
     public UI_SkillToolTip skillToolTip;
     public UI_ItemToolTip itemToolTip;
     public UI_StatToolTip statToolTip;
@@ -31,14 +33,12 @@ public class UI : MonoBehaviour, ISaveManager
 
     private void Awake()
     {
-        SwitchTo(skillTreeUI); // we need this to assign events on skill tree slots before we assign events on skill scripts
         fadeScreen.gameObject.SetActive(true);
     }
 
     void Start()
     {
         SetUpUIList();
-        //SwitchTo(skillTreeUI);
         SwitchTo(inGameUI);
 
         itemToolTip.gameObject.SetActive(false);
@@ -106,6 +106,12 @@ public class UI : MonoBehaviour, ISaveManager
         {
             AudioManager.instance.PlaySFX("MenuClick", null);
             _menu.SetActive(true);
+
+            if (_menu == craftUI)
+            {
+                if (craftWeapon.GetComponent<UI_CraftList>() != null)
+                    craftWeapon.GetComponent<UI_CraftList>().CallCraft();
+            }
         }
 
         if (GameManager.instance != null)

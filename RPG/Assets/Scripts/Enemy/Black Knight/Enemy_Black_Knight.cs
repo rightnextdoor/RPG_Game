@@ -91,6 +91,11 @@ public class Enemy_Black_Knight : Enemy_Boss
         stateMachine.ChangeState(deadState);
     }
 
+    public override void UnlockEquipment()
+    {
+        UnlockManager.instance.BossUnlockData(BossNames.Black_Knight);
+    }
+
     private void SpawnCooldown()
     {
         int enemyCount = arena.GetComponent<EnemyZone>().EnemyCount;

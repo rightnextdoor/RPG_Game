@@ -16,13 +16,42 @@ public class UI_CraftList : MonoBehaviour, IPointerDownHandler, IPointerEnterHan
     [SerializeField] private Color highlightColor;
     [SerializeField] private Image image;
 
+    [SerializeField] private EquipmentType equipmentType;
+    [SerializeField] private GameObject craftWindow;
+
     void Start()
     {
-        transform.parent.GetChild(0).GetComponent<UI_CraftList>().SetupCraftList();
-        SetupDefaultCraftWindow();
-
         image = GetComponent<Image>();
         originalColor = image.color;
+    }
+
+    public void CallCraft()
+    {
+        List<ItemData_Equipment> itemData = UnlockManager.instance.getCraftItemData();
+        craftEquipment.Clear();
+
+        foreach (ItemData_Equipment item in itemData)
+        {
+            if (item.equipmentType == equipmentType)
+            {
+                craftEquipment.Add(item);
+            }
+        }
+
+        if (craftEquipment.Count != 0)
+        {
+            SetupCraftList();
+            SetupDefaultCraftWindow();
+        }
+        else
+        {
+            for (int i = 0; i < craftSlotParent.childCount; i++)
+            {
+                Destroy(craftSlotParent.GetChild(i).gameObject);
+            }
+            craftWindow.gameObject.SetActive(false);
+        }
+
     }
 
 
@@ -42,11 +71,14 @@ public class UI_CraftList : MonoBehaviour, IPointerDownHandler, IPointerEnterHan
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        SetupCraftList();
+        CallCraft();
     }
 
     public void SetupDefaultCraftWindow()
-    {      
+    {
+        if (!craftWindow.gameObject.activeSelf)
+            craftWindow.gameObject.SetActive(true);
+
         if (craftEquipment[0] != null)
         {
             if (isCheckpoint)

@@ -46,6 +46,10 @@ public class GameData
 
     public SerializableDictionary<string, float> volumeSettings;
 
+    public List<ItemData> lockItemData;
+    public List<ItemData> shopItemData;
+    public List<ItemData_Equipment> craftItemData;
+
     public GameData()
     {
         currency = 0;
@@ -63,5 +67,9 @@ public class GameData
         bosses = new SerializableDictionary<string, bool>();
 
         volumeSettings = new SerializableDictionary<string, float>();
+
+        lockItemData = new List<ItemData>();
+        shopItemData = new List<ItemData>();
+        craftItemData = new List<ItemData_Equipment>();
     }
 }

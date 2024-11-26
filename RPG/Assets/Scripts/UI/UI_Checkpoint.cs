@@ -16,6 +16,9 @@ public class UI_Checkpoint : MonoBehaviour
 
     [SerializeField] private GameObject travelButton;
 
+    [SerializeField] private GameObject shopWeapon;
+    [SerializeField] private GameObject craftWeapon;
+
     public UI_ShopWindow shopWindow;
     public UI_CraftWindow craftWindow;
     public UI_SkillToolTip skillToolTip;
@@ -79,10 +82,24 @@ public class UI_Checkpoint : MonoBehaviour
         {
             AudioManager.instance.PlaySFX("MenuClick", null);
             _menu.SetActive(true);
+
             if (_menu.GetComponent<UI_Stats>() != null)
             {
                 _menu.GetComponent<UI_Stats>().StatsCalled();
             }
+
+            if (_menu == shopUI)
+            {
+                if (shopWeapon.GetComponent<UI_ShopList>() != null)
+                    shopWeapon.GetComponent<UI_ShopList>().CallShop();           
+            }
+
+            if (_menu == craftUI)
+            {
+                if(craftWeapon.GetComponent<UI_CraftList>() != null)
+                    craftWeapon.GetComponent<UI_CraftList>().CallCraft();
+            }
+
         }
 
     }

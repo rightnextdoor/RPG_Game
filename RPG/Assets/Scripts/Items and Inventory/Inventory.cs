@@ -255,7 +255,7 @@ public class Inventory : MonoBehaviour, ISaveManager
         return true;
     }
 
-    public bool CanCraft(ItemData_Equipment _itemToCraft, List<InventoryItem> _requiredMaterials)
+    public bool CanCraft(ItemData_Equipment _itemToCraft, List<InventoryItem> _requiredMaterials, GameObject _equipmentUI)
     {
        // Check if all required materials are avalible with the required quantity.
 
@@ -287,6 +287,13 @@ public class Inventory : MonoBehaviour, ISaveManager
 
         AddItem(_itemToCraft);
         Debug.Log("Craft is successful: " + _itemToCraft.name);
+
+        if (_itemToCraft.equipmentType != EquipmentType.Flask)
+        {
+            UnlockManager.instance.CraftedItem(_itemToCraft);
+            _equipmentUI.GetComponent<UI_CraftList>().CallCraft();
+        }    
+
         return true;
     }
 

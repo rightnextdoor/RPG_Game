@@ -5,6 +5,16 @@ using UnityEngine;
 
 public class Enemy_Boss : Enemy
 {
+    public enum BossNames
+    {
+        None,
+        DeathBringer,
+        CatWarrior,
+        Wizard,
+        Black_Knight,
+        DragonWarrior
+    }
+
     public enum Stage
     {
         WaitingToStart,
@@ -64,7 +74,7 @@ public class Enemy_Boss : Enemy
 
         bossIsDefeated = true;
         BossHealthBarManager.instance.BossFightOver();
-
+        GameManager.instance.UpdateBosses();
         UnlockEquipment();
     }
 
@@ -108,27 +118,11 @@ public class Enemy_Boss : Enemy
 
     public override void SelfDestroy() => Destroy(transform.parent.gameObject, 4f);
 
-    private void UnlockEquipment()
+    public virtual void UnlockEquipment()
     {
-        UnlockArmor();
-        UnlockAmulet();
-        UnlockWapon();
+        
     }
 
-    public virtual void UnlockArmor()
-    {
-
-    }
-
-    public virtual void UnlockWapon()
-    {
-
-    }
-
-    public virtual void UnlockAmulet()
-    {
-
-    }
 
     private void ChangeStages()
     {
