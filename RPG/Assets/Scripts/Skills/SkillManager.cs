@@ -98,6 +98,14 @@ public class SkillManager : MonoBehaviour, ISaveManager
         }
     }
 
+    public void LockSkills()
+    {
+        foreach (var item in skillDataBase)
+        {
+            item.unlocked = false;
+        }
+    }
+
     public void LoadData(GameData _data)
     {
         foreach (KeyValuePair<string, bool> pair in _data.skillTree)

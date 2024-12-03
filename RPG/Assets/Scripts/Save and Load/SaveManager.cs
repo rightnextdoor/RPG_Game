@@ -21,6 +21,7 @@ public class SaveManager : MonoBehaviour
         dataHandler = new FileDataHandler(Application.persistentDataPath, fileName, encryptData);
         //dataHandler = new FileDataHandler(filePath, fileName, encryptData); // for web
         dataHandler.Delete();
+        SkillManager.instance.LockSkills();
     }
 
     private void Awake()
