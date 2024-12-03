@@ -11,33 +11,31 @@ public class UI_MainMenu : MonoBehaviour
 
     private void Start()
     {
+        StartCoroutine(LoadWithDelay());
+    }
+
+    private IEnumerator LoadWithDelay()
+    {
+        yield return new WaitForSeconds(.1f);
+
         if (SaveManager.instance.HasSavedData() == false)
             continueButton.SetActive(false);
     }
 
     public void ContinueGame()
     {
-        StartCoroutine(LoadSceneWithFadeEffect(1.5f));
+        fadeScreen.FadeTo(sceneName);
     }
 
     public void NewGame()
     {
         SaveManager.instance.DeleteSavedData();
-        StartCoroutine(LoadSceneWithFadeEffect(1.5f));
+        fadeScreen.FadeTo(sceneName);
     }
 
     public void ExitGame()
     {
         Debug.Log("Exit game");
         Application.Quit();
-    }
-
-    IEnumerator LoadSceneWithFadeEffect(float _delay)
-    {
-        fadeScreen.FadeOut();
-
-        yield return new WaitForSeconds(_delay);
-
-        SceneManager.LoadScene(sceneName);
     }
 }

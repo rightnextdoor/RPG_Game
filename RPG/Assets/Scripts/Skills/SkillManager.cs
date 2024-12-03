@@ -108,6 +108,10 @@ public class SkillManager : MonoBehaviour, ISaveManager
 
     public void LoadData(GameData _data)
     {
+        if (_data.skillTree == null)
+        {
+            LockSkills();
+        }
         foreach (KeyValuePair<string, bool> pair in _data.skillTree)
         {
             foreach (var item in skillDataBase)

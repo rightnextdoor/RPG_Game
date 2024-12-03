@@ -73,6 +73,7 @@ public class UnlockManager : MonoBehaviour, ISaveManager
                 if (item.levelUnlock == _level)
                 {
                     shopItemData.Add(item);
+                    itemToRemove.Add(item);
                 }
             }
         }

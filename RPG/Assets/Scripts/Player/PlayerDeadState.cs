@@ -17,7 +17,7 @@ public class PlayerDeadState : PlayerState
     {
         base.Enter();
 
-        UIManager.instance.GetUI().SwitchOnEndScreen();
+        GameManager.instance.GameOver();
     }
 
     public override void Exit()

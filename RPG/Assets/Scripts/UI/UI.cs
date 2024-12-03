@@ -6,17 +6,12 @@ using UnityEngine.UI;
 
 public class UI : MonoBehaviour, ISaveManager
 {
-    [Header("End screen")]
-    [SerializeField] private UI_FadeScreen fadeScreen;
-    [SerializeField] private GameObject endText;
-    [SerializeField] private GameObject restartButton;
-    [Space]
-
     [SerializeField] private GameObject charcaterUI;
     [SerializeField] private GameObject skillTreeUI;
     [SerializeField] private GameObject craftUI;
     [SerializeField] private GameObject optionsUI;
     [SerializeField] private GameObject inGameUI;
+    [SerializeField] private GameObject gameOverUI;
 
     [SerializeField] private GameObject checkpointUI;
 
@@ -31,18 +26,13 @@ public class UI : MonoBehaviour, ISaveManager
 
     [SerializeField] private UI_VolumeSlider[] volumeSettings;
 
-    private void Awake()
-    {
-        fadeScreen.gameObject.SetActive(true);
-    }
-
     void Start()
     {
         SetUpUIList();
         SwitchTo(inGameUI);
 
         itemToolTip.gameObject.SetActive(false);
-        statToolTip.gameObject.SetActive(false); 
+        statToolTip.gameObject.SetActive(false);
     }
 
     void Update()
@@ -61,14 +51,15 @@ public class UI : MonoBehaviour, ISaveManager
 
         if (Input.GetKeyDown(KeyCode.O))
             SwitchWithKeyTo(optionsUI);
-        
+
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             if (inGameUI.activeSelf)
             {
                 SwitchWithKeyTo(charcaterUI);
-            } else
+            }
+            else
             {
                 CloseMenu();
             }
@@ -82,6 +73,7 @@ public class UI : MonoBehaviour, ISaveManager
         uiList.Add(craftUI);
         uiList.Add(optionsUI);
         uiList.Add(inGameUI);
+        uiList.Add(gameOverUI);
     }
 
     public void CloseMenu()
@@ -96,10 +88,7 @@ public class UI : MonoBehaviour, ISaveManager
     {
         foreach (GameObject list in uiList)
         {
-            bool fadeScreen = list.GetComponent<UI_FadeScreen>() != null; // we need this to keep fade screen game object active
-
-            if (!fadeScreen)
-                list.gameObject.SetActive(false);
+            list.gameObject.SetActive(false);
         }
 
         if (_menu != null)
@@ -118,7 +107,7 @@ public class UI : MonoBehaviour, ISaveManager
         {
             if (_menu == inGameUI)
             {
-                GameManager.instance.PauseGame(false);              
+                GameManager.instance.PauseGame(false);
             }
             else
             {
@@ -131,43 +120,24 @@ public class UI : MonoBehaviour, ISaveManager
     {
         if (_menu != null && _menu.activeSelf)
         {
-            _menu.SetActive(false);           
+            _menu.SetActive(false);
             CheckForInGameUI();
             return;
         }
         SwitchTo(_menu);
-        
+
     }
 
     private void CheckForInGameUI()
     {
         for (int i = 0; i < transform.childCount; i++)
         {
-            if (transform.GetChild(i).gameObject.activeSelf && transform.GetChild(i).GetComponent<UI_FadeScreen>() == null)
+            if (transform.GetChild(i).gameObject.activeSelf)
                 return;
         }
 
         SwitchTo(inGameUI);
     }
-
-    public void SwitchOnEndScreen()
-    {
-        fadeScreen.FadeOut();
-        
-        StartCoroutine(EndScreenCorutione());
-    }
-
-    IEnumerator EndScreenCorutione()
-    {
-        yield return new WaitForSeconds(1f);
-        endText.SetActive(true);  
-        AudioManager.instance.PlaySFX("GameOver", null);
-
-        yield return new WaitForSeconds(1.5f);
-        restartButton.SetActive(true);
-    }
-
-    public void RestartGameButton() => GameManager.instance.RestartScene();
 
     public void LoadData(GameData _data)
     {
@@ -175,7 +145,7 @@ public class UI : MonoBehaviour, ISaveManager
         {
             foreach (UI_VolumeSlider item in volumeSettings)
             {
-                if(item.parameter == pair.Key)
+                if (item.parameter == pair.Key)
                     item.LoadSlider(pair.Value);
             }
         }

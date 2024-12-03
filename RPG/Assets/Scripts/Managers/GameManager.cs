@@ -7,15 +7,17 @@ public class GameManager : MonoBehaviour, ISaveManager
 {
     public static GameManager instance;
 
+    [SerializeField] GameObject gameOverUI;
+
     private Transform player;
 
     [SerializeField] private Checkpoint[] checkpoints;
     private List<Checkpoint> travelCheckpoints = new List<Checkpoint>();
     private string savedCheckpointId;
-    
+
     private Enemy_Boss[] getBosses;
     private SerializableDictionary<string, bool> saveBosses;
-    
+
     private bool once;
 
     private void Awake()
@@ -47,6 +49,12 @@ public class GameManager : MonoBehaviour, ISaveManager
         SaveManager.instance.SaveGame();
         Scene scene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(scene.name);
+    }
+
+    public void GameOver()
+    {
+        AudioManager.instance.PlaySFX("GameOver", null);
+        gameOverUI.SetActive(true);
     }
 
     public List<Checkpoint> TravelCheckpoints()
@@ -84,7 +92,7 @@ public class GameManager : MonoBehaviour, ISaveManager
         }
     }
 
-    public void LoadData(GameData _data) 
+    public void LoadData(GameData _data)
     {
         LoadBosses(_data);
         StartCoroutine(LoadWithDelay(_data));
@@ -119,12 +127,12 @@ public class GameManager : MonoBehaviour, ISaveManager
         yield return new WaitForSeconds(.1f);
 
         LoadCheckpoints(_data);
-        LoadCheckpoint(_data);        
+        LoadCheckpoint(_data);
     }
 
     public void SaveData(ref GameData _data)
     {
-        if(GetLastSavedCheckpoint() != null)
+        if (GetLastSavedCheckpoint() != null)
             _data.savedCheckpointId = GetLastSavedCheckpoint().id;
 
         _data.checkpoints.Clear();
