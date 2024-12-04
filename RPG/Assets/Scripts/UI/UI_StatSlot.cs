@@ -8,20 +8,16 @@ public class UI_StatSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 {
     private UI ui;
 
-    [SerializeField] private string statName;
-    [SerializeField] private StatType statType;
+    [SerializeField] private StatsData statData;
     [SerializeField] private TextMeshProUGUI statValueText;
     [SerializeField] private TextMeshProUGUI statNameText;
 
-    [TextArea]
-    [SerializeField] private string statDescription;
-
     private void OnValidate()
     {
-        gameObject.name = "Stat - " + statName;
+        gameObject.name = "Stat - " + statData.statName;
 
         if(statNameText != null )
-            statNameText.text = statName;
+            statNameText.text = statData.statName;
     }
 
     void Start()
@@ -37,31 +33,31 @@ public class UI_StatSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
         if (playerStats != null)
         {
-            statValueText.text = playerStats.GetStat(statType).GetValue().ToString();
+            statValueText.text = playerStats.GetStat(statData.statType).GetValue().ToString();
 
-            if(statType == StatType.health)
+            if(statData.statType == StatType.health)
                 statValueText.text = playerStats.GetMaxHealthValue().ToString();
 
-            if (statType == StatType.damage)
+            if (statData.statType == StatType.damage)
                 statValueText.text = (playerStats.damage.GetValue() + playerStats.strength.GetValue()).ToString();
 
-            if (statType == StatType.critPower)
+            if (statData.statType == StatType.critPower)
                 statValueText.text = (playerStats.critPower.GetValue() + playerStats.strength.GetValue()).ToString();
 
-            if (statType == StatType.critChance)
+            if (statData.statType == StatType.critChance)
                 statValueText.text = (playerStats.critChance.GetValue() + playerStats.agility.GetValue()).ToString();
 
-            if (statType == StatType.evasion)
+            if (statData.statType == StatType.evasion)
                 statValueText.text = (playerStats.evasion.GetValue() + playerStats.agility.GetValue()).ToString();
 
-            if (statType == StatType.magicResistance)
+            if (statData.statType == StatType.magicResistance)
                 statValueText.text = (playerStats.magicResistance.GetValue() + playerStats.intelligence.GetValue() * 3).ToString();
         }
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        ui.statToolTip.ShowStatToolTip(statDescription);
+        ui.statToolTip.ShowStatToolTip(statData.statsDescription);
     }
 
     public void OnPointerExit(PointerEventData eventData)

@@ -23,7 +23,6 @@ public class UI_SkillTreeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
     private Button button;
 
-
     private void OnValidate()
     {
         skillImage = GetComponent<Image>();
@@ -47,8 +46,6 @@ public class UI_SkillTreeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
         SetupSkillSlot();
 
-        //if (unlocked)
-        //    skillImage.color = Color.white; 
     }
 
     private void SetupSkillSlot()
@@ -116,7 +113,8 @@ public class UI_SkillTreeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExi
         if (isCheckpoint)
         {
             UIManager.instance.GetUICheckpoint().skillToolTip.ShowToolTip(skillDescription, skillName, skillCost);
-        }else
+        }
+        else
         {
             ui.skillToolTip.ShowToolTip(skillDescription, skillName, skillCost);
         }
@@ -127,7 +125,8 @@ public class UI_SkillTreeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExi
         if (isCheckpoint)
         {
             UIManager.instance.GetUICheckpoint().skillToolTip.HideToolTip();
-        }else
+        }
+        else
         {
             ui.skillToolTip.HideToolTip();
         }
