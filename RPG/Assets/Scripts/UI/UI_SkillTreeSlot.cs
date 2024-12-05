@@ -6,9 +6,6 @@ using UnityEngine.UI;
 
 public class UI_SkillTreeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    private UI ui;
-    [SerializeField] private bool isCheckpoint;
-
     [SerializeField] private SkillData skillData;
     private string skillName;
     private Image skillImage;
@@ -39,8 +36,6 @@ public class UI_SkillTreeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExi
     private void Start()
     {
         skillImage = GetComponent<Image>();
-
-        ui = UIManager.instance.GetUI();
 
         skillImage.color = lockedSkillColor;
 
@@ -110,25 +105,11 @@ public class UI_SkillTreeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (isCheckpoint)
-        {
-            UIManager.instance.GetUICheckpoint().skillToolTip.ShowToolTip(skillDescription, skillName, skillCost);
-        }
-        else
-        {
-            ui.skillToolTip.ShowToolTip(skillDescription, skillName, skillCost);
-        }
+        ToolTipManager.instance.skillToolTip.ShowTooltip(skillDescription, skillName, skillCost);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (isCheckpoint)
-        {
-            UIManager.instance.GetUICheckpoint().skillToolTip.HideToolTip();
-        }
-        else
-        {
-            ui.skillToolTip.HideToolTip();
-        }
+        ToolTipManager.instance.skillToolTip.HideTooltip();
     }
 }

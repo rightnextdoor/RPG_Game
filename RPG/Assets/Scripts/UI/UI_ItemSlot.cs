@@ -8,12 +8,10 @@ public class UI_ItemSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHand
     [SerializeField] protected Image itemImage;
     [SerializeField] protected TextMeshProUGUI itemText;
 
-    protected UI ui;
     public InventoryItem item;
 
     protected virtual void Start()
     {
-        ui = GetComponentInParent<UI>();
     }
 
     public void UpdateSlot(InventoryItem _newItem)
@@ -60,7 +58,7 @@ public class UI_ItemSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHand
         if (item.data.itemType == ItemType.Equipment)
             Inventory.instance.EquipItem(item.data);
 
-        UIManager.instance.GetUI().itemToolTip.HideToolTip();
+        ToolTipManager.instance.itemToolTip.HideItemTooltip();
     }
 
     public virtual void OnPointerEnter(PointerEventData eventData)
@@ -68,7 +66,7 @@ public class UI_ItemSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHand
         if(item == null) 
             return;
 
-        UIManager.instance.GetUI().itemToolTip.ShowToolTip(item.data as ItemData_Equipment);
+        ToolTipManager.instance.itemToolTip.ShowItemTooltip(item.data as ItemData_Equipment);
     }
 
     public virtual void OnPointerExit(PointerEventData eventData)
@@ -76,6 +74,6 @@ public class UI_ItemSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHand
         if (item == null)
             return;
 
-        UIManager.instance.GetUI().itemToolTip.HideToolTip();
+        ToolTipManager.instance.itemToolTip.HideItemTooltip();
     }
 }

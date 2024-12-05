@@ -2,51 +2,71 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UI_ToolTip : MonoBehaviour
 {
-    [SerializeField] private float xLimit;
-    [SerializeField] private float yLimit;
 
-    [SerializeField] private float xOffset = 150;
-    [SerializeField] private float yOffset = 150;
+    [SerializeField] private RectTransform canvasRectTransform;
+    [SerializeField] GameObject background;
+    [SerializeField]private TextMeshProUGUI tooltipText;
+    private RectTransform backgroundRectTransform;
+    private RectTransform rectTransform;
 
-    private void Start()
+    //private System.Func<string> getTooltipTextFunc;
+
+    private void Awake()
     {
-        Debug.Log("screen height " + Screen.height);
-        Debug.Log("screen width " + Screen.width);
-        xLimit = Screen.width / 2;
-        yLimit = Screen.height / 2;
-        Debug.Log("x limit " + xLimit);
-        Debug.Log("y limit " + yLimit);
+
+        backgroundRectTransform = background.GetComponent<RectTransform>();
+        rectTransform = transform.GetComponent<RectTransform>();
+
+        HideTooltip();
     }
+
     private void Update()
     {
-        Debug.Log("mouse pos " + Input.mousePosition);
+        //SetText(getTooltipTextFunc());
+
+        Vector2 anchoredPosition = Input.mousePosition / canvasRectTransform.localScale.x;
+
+        anchoredPosition.x = Mathf.Clamp(anchoredPosition.x, 0, canvasRectTransform.rect.width - backgroundRectTransform.rect.width);
+        anchoredPosition.y = Mathf.Clamp(anchoredPosition.y, 0, canvasRectTransform.rect.height - backgroundRectTransform.rect.height);
+
+        rectTransform.anchoredPosition = anchoredPosition;
     }
-    public virtual void AdjustPosition()
+
+    private void SetText(string tooltipString)
     {
-        Vector2 mousePosition = Input.mousePosition;
+        tooltipText.SetText(tooltipString);
+        tooltipText.ForceMeshUpdate();
 
-        float newXOffset = 0;
-        float newYOffset = 0;
-
-        if (mousePosition.x > xLimit)
-            xOffset = -xOffset;
-        else
-            newXOffset = xOffset;
-
-        if (mousePosition.y > yLimit)
-            yOffset = -yOffset;
-        else
-            newYOffset = yOffset;
-
-        transform.position = new Vector2(mousePosition.x + newXOffset, mousePosition.y + newYOffset);
+        Vector2 textSize = tooltipText.GetRenderedValues(false);
+        Vector2 paddingSize = tooltipText.margin * 2;
+        backgroundRectTransform.sizeDelta = textSize + paddingSize;
     }
 
-    public void AdjustFontSize(TextMeshProUGUI _text)
+    //private void ShowTooltip(System.Func<string> getTooltipTextFunc)
+    //{
+    //    this.getTooltipTextFunc = getTooltipTextFunc;
+    //    gameObject.SetActive(true);
+    //    SetText(getTooltipTextFunc());
+    //}
+
+    public void ShowTooltip(string tooltipString)
     {
-        if (_text.text.Length > 12)
-            _text.fontSize = _text.fontSize * .8f;
+        gameObject.SetActive(true);
+        SetText(tooltipString);
+    }  
+
+    public void HideTooltip()
+    {
+        gameObject.SetActive(false);
     }
+
+    //public static void ShowTooltip_Static(System.Func<string> getTooltipTextFunc)
+    //{
+    //    Instance.ShowTooltip(getTooltipTextFunc);
+    //}
+
 }

@@ -1,13 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class UI_StatSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    private UI ui;
-
     [SerializeField] private StatsData statData;
     [SerializeField] private TextMeshProUGUI statValueText;
     [SerializeField] private TextMeshProUGUI statNameText;
@@ -23,8 +22,6 @@ public class UI_StatSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     void Start()
     {
         UpdateStatValueUI();
-
-        ui = UIManager.instance.GetUI();
     }
 
     public void UpdateStatValueUI()
@@ -57,11 +54,11 @@ public class UI_StatSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        ui.statToolTip.ShowStatToolTip(statData.statsDescription);
+        ToolTipManager.instance.toolTip.ShowTooltip(statData.statsDescription);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        ui.statToolTip.HideStatToolTip();
+        ToolTipManager.instance.toolTip.HideTooltip();
     }
 }

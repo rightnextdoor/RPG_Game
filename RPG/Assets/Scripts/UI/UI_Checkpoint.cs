@@ -21,7 +21,6 @@ public class UI_Checkpoint : MonoBehaviour
 
     public UI_ShopWindow shopWindow;
     public UI_CraftWindow craftWindow;
-    public UI_SkillToolTip skillToolTip;
 
     private void Start()
     {

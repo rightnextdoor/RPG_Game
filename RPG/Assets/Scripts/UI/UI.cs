@@ -19,9 +19,6 @@ public class UI : MonoBehaviour, ISaveManager
 
     [SerializeField] private GameObject craftWeapon;
 
-    public UI_SkillToolTip skillToolTip;
-    public UI_ItemToolTip itemToolTip;
-    public UI_StatToolTip statToolTip;
     public UI_CraftWindow craftWindow;
 
     [SerializeField] private UI_VolumeSlider[] volumeSettings;
@@ -30,9 +27,6 @@ public class UI : MonoBehaviour, ISaveManager
     {
         SetUpUIList();
         SwitchTo(inGameUI);
-
-        itemToolTip.gameObject.SetActive(false);
-        statToolTip.gameObject.SetActive(false);
     }
 
     void Update()
@@ -86,6 +80,7 @@ public class UI : MonoBehaviour, ISaveManager
 
     public void SwitchTo(GameObject _menu)
     {
+        ToolTipManager.instance.HideToolTip();
         foreach (GameObject list in uiList)
         {
             list.gameObject.SetActive(false);
