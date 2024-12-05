@@ -64,8 +64,11 @@ public class UnlockManager : MonoBehaviour, ISaveManager
 
     public void LevelUnlockData(int _level)
     {
-        List<ItemData> itemToRemove = new List<ItemData>();
+        if (lockItemData.Count == 0)
+            return;
 
+        List<ItemData> itemToRemove = new List<ItemData>();
+        
         foreach (ItemData item in lockItemData)
         {
             if (item.levelUnlock != 0)

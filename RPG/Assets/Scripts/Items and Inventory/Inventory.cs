@@ -67,6 +67,13 @@ public class Inventory : MonoBehaviour, ISaveManager
         checkpointStashItemSlots = checkpointStashSlotParent.GetComponentsInChildren<UI_ItemSlot>();
         equipmentSlots = equpmentSlotParent.GetComponentsInChildren<UI_EquipmentSlot>();
         statSlot = statSlotParent.GetComponentsInChildren<UI_StatSlot>();
+        
+        StartCoroutine(LoadWithDelay());
+    }
+
+    private IEnumerator LoadWithDelay()
+    {
+        yield return new WaitForSeconds(.1f);
         AddStartingItems();
     }
 
@@ -87,7 +94,7 @@ public class Inventory : MonoBehaviour, ISaveManager
                 }
             }
 
-            return;
+            return; 
         }
 
         for (int i = 0; i < startingItems.Count; i++)
