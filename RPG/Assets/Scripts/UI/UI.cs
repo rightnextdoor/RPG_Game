@@ -88,7 +88,9 @@ public class UI : MonoBehaviour, ISaveManager
 
         if (_menu != null)
         {
-            AudioManager.instance.PlaySFX("MenuClick", null);
+            if(_menu != inGameUI)
+                AudioManager.instance.PlaySFX("MenuClick", null);
+            
             _menu.SetActive(true);
 
             if (_menu == craftUI)
