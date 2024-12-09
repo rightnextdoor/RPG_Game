@@ -108,7 +108,7 @@ public class SkillManager : MonoBehaviour, ISaveManager
 
     public void LoadData(GameData _data)
     {
-        if (_data.skillTree == null)
+        if (_data.skillTree.Count == 0)
         {
             LockSkills();
         }

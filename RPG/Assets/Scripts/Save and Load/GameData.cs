@@ -15,6 +15,7 @@ public class GameData
     public float requiredXp;
 
     public int maxHealth;
+    public int currentHealth;
     public int damage;
     public int strength;
     public int agility;
@@ -34,6 +35,8 @@ public class GameData
     public int savedIntelligencePoints;
     public int savedAgilityPoints;
     public int savedVitalityPoints;
+
+    public bool changeScenes;
 
     public SerializableDictionary<string, bool> skillTree;
     public SerializableDictionary<string, int> inventory;
@@ -57,6 +60,7 @@ public class GameData
         skillsPoints = 0;
         maxHealth = 100;
         damage = 50;
+        changeScenes = false;
 
         skillTree = new SerializableDictionary<string, bool>();
         inventory = new SerializableDictionary<string, int>();

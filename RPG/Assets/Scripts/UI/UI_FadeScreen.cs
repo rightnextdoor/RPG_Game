@@ -16,6 +16,8 @@ public class UI_FadeScreen : MonoBehaviour
 
     public void FadeTo(string scene)
     {
+        PlayerManager.instance.player.GetComponent<PlayerStats>().changeScenes = true;
+        SaveManager.instance.SaveGame();
         StartCoroutine(FadeOut(scene));
     }
 

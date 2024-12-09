@@ -6,6 +6,8 @@ public class PlayerStats : CharacterStats, ISaveManager
 {
     private Player player;
 
+    public bool changeScenes;
+
     protected override void Start()
     {
         base.Start();
@@ -83,7 +85,15 @@ public class PlayerStats : CharacterStats, ISaveManager
     public void LoadData(GameData _data)
     {
         maxHealth.SetDefaultValue(_data.maxHealth);
-        currentHealth = _data.maxHealth + _data.vitality * 5;
+        if (_data.changeScenes)
+        {
+            currentHealth = _data.currentHealth;
+            changeScenes = false;
+        }else
+        {
+            currentHealth = _data.maxHealth + _data.vitality * 5;
+        }
+        
         damage.SetDefaultValue(_data.damage);
         strength.SetDefaultValue(_data.strength);
         agility.SetDefaultValue(_data.agility);
@@ -115,5 +125,8 @@ public class PlayerStats : CharacterStats, ISaveManager
         _data.fireDamage = fireDamage.GetBaseValue();
         _data.iceDamage = iceDamage.GetBaseValue();
         _data.lightingDamage = lightingDamage.GetBaseValue();
+
+        _data.currentHealth = currentHealth;
+        _data.changeScenes = changeScenes;
     }
 }
