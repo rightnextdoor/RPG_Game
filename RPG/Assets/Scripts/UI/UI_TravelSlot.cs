@@ -14,7 +14,7 @@ public class UI_TravelSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHa
     [SerializeField] private Color highlightColor;
     [SerializeField] private Image image;
 
-    private Checkpoint checkpoint;
+    private CheckpointData checkpoint;
 
     private void Start()
     {
@@ -22,7 +22,7 @@ public class UI_TravelSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHa
         originalColor = image.color;
     }
 
-    public void SetupTravelSlot(Checkpoint _checkpoint)
+    public void SetupTravelSlot(CheckpointData _checkpoint)
     {
         if(_checkpoint == null)
             return;
@@ -37,10 +37,15 @@ public class UI_TravelSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHa
             travelName.fontSize = 24;
     }
 
+
+
     public void OnPointerDown(PointerEventData eventData)
     {
-        checkpoint.UpdateLastSaveCheckpoint();
-        GameManager.instance.RestartScene();
+        CheckpointManager.instance.UpdateLastSaveCheckpoint(checkpoint);
+        //GameManager.instance.RestartScene();
+        CheckpointManager.instance.isTraveling = true;
+        CheckpointManager.instance.TravelTo(checkpoint);
+        UIManager.instance.GetUICheckpoint().CloseMenu();
     }
 
     public void OnPointerEnter(PointerEventData eventData)

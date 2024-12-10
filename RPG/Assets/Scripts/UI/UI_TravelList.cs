@@ -7,11 +7,11 @@ public class UI_TravelList : MonoBehaviour
     [SerializeField] private Transform travelSlotParent;
     [SerializeField] private GameObject travelSlotPrefab;
 
-    private List<Checkpoint> checkpointList;
+    private List<CheckpointData> checkpointList;
 
     public void SetupTravelList()
     {
-        checkpointList = GameManager.instance.TravelCheckpoints();
+        checkpointList = CheckpointManager.instance.UI_TravelCheckpoints();
         CreateTravelSlot();
     }
 

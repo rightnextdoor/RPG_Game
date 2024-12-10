@@ -6,8 +6,18 @@ using UnityEngine.SceneManagement;
 
 public class UI_FadeScreen : MonoBehaviour
 {
+    public static UI_FadeScreen instance;
+
     [SerializeField] private Image img;
     [SerializeField] private AnimationCurve curve;
+
+    private void Awake()
+    {
+        if (instance != null)
+            Destroy(instance.gameObject);
+        else
+            instance = this;
+    }
 
     private void Start()
     {
@@ -16,14 +26,22 @@ public class UI_FadeScreen : MonoBehaviour
 
     public void FadeTo(string scene)
     {
-        PlayerManager.instance.player.GetComponent<PlayerStats>().changeScenes = true;
+        PlayerManager.instance.player.GetComponent<PlayerStats>().changeScenes = true; //to keep current health when changing scenes
+        CheckpointManager.instance.checkpointChangeScenes = true; //when scence load not to spawn player to checkpoint pos
         SaveManager.instance.SaveGame();
         StartCoroutine(FadeOut(scene));
     }
 
+    public void TravelTo(string scene)
+    {
+        PlayerManager.instance.player.GetComponent<PlayerStats>().changeScenes = true;
+        SaveManager.instance.SaveGame();
+        StartCoroutine(FadeOutFast(scene));
+    }
+
     private IEnumerator FadeIn()
     {
-        float t = 1f;
+        float t = 1.2f;
 
         while (t > 0f)
         {
@@ -34,7 +52,21 @@ public class UI_FadeScreen : MonoBehaviour
             yield return 0;
         }
     }
+    private IEnumerator FadeOutFast(string scene)
+    {
+        float t = .9f;
 
+        while (t < 1f)
+        {
+
+            t += Time.deltaTime;
+            float a = curve.Evaluate(t);
+            img.color = new Color(0f, 0f, 0f, a);
+            yield return 0;
+        }
+
+        SceneManager.LoadScene(scene);
+    }
     private IEnumerator FadeOut(string scene)
     {
         float t = 0f;

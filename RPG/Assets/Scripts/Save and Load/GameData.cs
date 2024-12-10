@@ -43,7 +43,10 @@ public class GameData
     public List<string> equipmentId;
 
     public SerializableDictionary<string, bool> checkpoints;
+    public List<CheckpointData> travelCheckpoints;
     public string savedCheckpointId;
+    public bool checkpointChangeScenes;
+    public bool isTraveling;
 
     public SerializableDictionary<string, bool> bosses;
 
@@ -61,6 +64,7 @@ public class GameData
         maxHealth = 100;
         damage = 50;
         changeScenes = false;
+        checkpointChangeScenes = false;
 
         skillTree = new SerializableDictionary<string, bool>();
         inventory = new SerializableDictionary<string, int>();
@@ -75,5 +79,7 @@ public class GameData
         lockItemData = new List<ItemData>();
         shopItemData = new List<ItemData>();
         craftItemData = new List<ItemData_Equipment>();
+
+        travelCheckpoints = new List<CheckpointData>();
     }
 }

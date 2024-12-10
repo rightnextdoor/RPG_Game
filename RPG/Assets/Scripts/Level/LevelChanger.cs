@@ -19,7 +19,14 @@ public class LevelChanger : MonoBehaviour
             Player player = PlayerManager.instance.player;
             if (player != null)
             {
-                player.transform.position = spawnPoint.position;
+                if (CheckpointManager.instance.isTraveling)
+                {
+                    CheckpointManager.instance.isTraveling = false;
+                } else
+                {
+                    player.transform.position = spawnPoint.position;
+                }
+
                 if (isFacingRight)
                     player.Flip();
             }

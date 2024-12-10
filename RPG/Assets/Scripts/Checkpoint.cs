@@ -1,41 +1,43 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Checkpoint : MonoBehaviour
 {
     private Animator anim;
     [SerializeField] private GameObject popup;
-    public string id;
-    public string checkpointName;
-    public bool activatedCheckpoint;
-    public bool lastSavedCheckpoint;
+    public CheckpointData checkpointData;
 
     private bool playerInCheckpoint;
+    public bool menuOpen;
 
     private void Start()
     {
         anim = GetComponent<Animator>();
         popup.gameObject.SetActive(false);
+        
     }
 
     private void Update()
     {
+        menuOpen = UIManager.instance.GetUICheckpoint().isMenuOpen;
         if (playerInCheckpoint)
         {
-            if (Input.GetKeyDown(KeyCode.W))
+            if (Input.GetKeyDown(KeyCode.W) && !menuOpen)
             {
-                ActivatedCheckpoint();
-                UpdateLastSaveCheckpoint();
+                checkpointData.position = transform.position;
+                AudioManager.instance.PlaySFX("Checkpoint", transform);
+                CheckpointManager.instance.ActivatedCheckpoint(checkpointData);
+                CheckpointManager.instance.UpdateLastSaveCheckpoint(checkpointData);
                 UIManager.instance.GetUICheckpoint().OpenMenu();
             }
         }
     }
 
-    [ContextMenu("Generate checkpoint id")]
-    private void GenerateId()
+    public void ActivateAnim()
     {
-        id = System.Guid.NewGuid().ToString(); 
+        anim.SetBool("active", true);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -55,19 +57,5 @@ public class Checkpoint : MonoBehaviour
             playerInCheckpoint = false; 
         }
     }
-
-    public void ActivatedCheckpoint()
-    {
-        if(activatedCheckpoint == false)
-            AudioManager.instance.PlaySFX("Checkpoint", transform);
-
-        activatedCheckpoint = true;
-        anim.SetBool("active", true);      
-    }
-
-    public void UpdateLastSaveCheckpoint()
-    {
-        GameManager.instance.ClearAllSaveCheckpoint();
-        lastSavedCheckpoint = true;       
-    }
+    
 }

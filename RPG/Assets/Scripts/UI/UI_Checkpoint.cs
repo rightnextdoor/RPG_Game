@@ -21,6 +21,7 @@ public class UI_Checkpoint : MonoBehaviour
 
     public UI_ShopWindow shopWindow;
     public UI_CraftWindow craftWindow;
+    public bool isMenuOpen;
 
     private void Start()
     {
@@ -31,6 +32,7 @@ public class UI_Checkpoint : MonoBehaviour
 
     public void OpenMenu()
     {
+        isMenuOpen = true;
         if (!checkpointUI.activeSelf)
         {
             checkpointUI.SetActive(true);
@@ -39,7 +41,7 @@ public class UI_Checkpoint : MonoBehaviour
                 GameManager.instance.PauseGame(true);
             }
         }
-        if (GameManager.instance.TravelCheckpoints().Count == 0)
+        if (CheckpointManager.instance.UI_TravelCheckpoints().Count == 0)
         {
             travelButton.SetActive(false);
         }
@@ -51,6 +53,7 @@ public class UI_Checkpoint : MonoBehaviour
 
     public void CloseMenu()
     {
+        isMenuOpen = false;
         if (checkpointUI.activeSelf)
         {
             checkpointUI.SetActive(false);
