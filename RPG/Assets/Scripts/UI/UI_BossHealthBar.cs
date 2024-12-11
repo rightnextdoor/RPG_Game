@@ -39,7 +39,7 @@ public class UI_BossHealthBar : MonoBehaviour
         sliderBackbar.maxValue = enemy.GetMaxHealthValue();
         sliderFrontBar.value = enemy.currentHealth;
         sliderBackbar.value = enemy.currentHealth;
-        bossNameText.text = boss.bossName;
+        bossNameText.text = boss.enemyData.bossName;
     }
 
     public void BossFightOver()

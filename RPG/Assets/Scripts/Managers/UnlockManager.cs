@@ -41,14 +41,14 @@ public class UnlockManager : MonoBehaviour, ISaveManager
         }
     }
 
-    public void BossUnlockData(BossNames bossNames)
+    public void BossUnlockData(BossType bossType)
     {
         List<ItemData> itemToRemove = new List<ItemData>();
         foreach (ItemData item in lockItemData)
         {
-            if (item.bossUnlockName != BossNames.None)
+            if (item.bossUnlockName != BossType.None)
             {
-                if (item.bossUnlockName == bossNames)
+                if (item.bossUnlockName == bossType)
                 {
                     shopItemData.Add(item);
                     itemToRemove.Add(item);

@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Enemy_Boss : Enemy
 {
-    public enum BossNames
+    public enum BossType
     {
         None,
         DeathBringer,
@@ -25,15 +25,15 @@ public class Enemy_Boss : Enemy
     }
 
     [Header("Boss info")]
-    public string bossName;
+    public EnemyData_Boss enemyData;
+
+    //public string bossName;
     public bool bossFightStart;
     public BoxCollider2D arena;
-    public bool bossIsDefeated;
-    public string bossId;
+    //public bool bossIsDefeated;
+    //public string bossId;
 
     public Stage stage;
-
-    private bool once;
     private bool callHealthBarOnce;
 
     [Header("Teleport Details")]
@@ -46,7 +46,7 @@ public class Enemy_Boss : Enemy
     protected override void Awake()
     {
         base.Awake();
-        once = true;
+
         callHealthBarOnce = true;
 
         stage = Stage.WaitingToStart;
@@ -55,14 +55,14 @@ public class Enemy_Boss : Enemy
     protected override void Start()
     {
         base.Start();
+
+        StartCoroutine(CheckWithDelay());
     }
 
     protected override void Update()
     {
         base.Update();
         teleportCooldownTimer -= Time.deltaTime;
-        if (once)
-            CheckIfBossIsDefeated();
 
         CheckToStartFight();
         ChangeStages();
@@ -72,17 +72,11 @@ public class Enemy_Boss : Enemy
     {
         base.Die();
 
-        bossIsDefeated = true;
+        enemyData.isDead = true;
         BossHealthBarManager.instance.BossFightOver();
-        GameManager.instance.UpdateBosses();
+        EnemyManager.instance.UpdateBosses();
         UnlockEquipment();
-    }
-
-    [ContextMenu("Generate boss id")]
-    private void GenerateId()
-    {
-        if(bossId == "")
-            bossId = System.Guid.NewGuid().ToString();
+        Destroy(gameObject, 4f);
     }
 
     public virtual bool CheckToStartFight()
@@ -101,11 +95,16 @@ public class Enemy_Boss : Enemy
         return bossFightStart;
     }
 
+    private IEnumerator CheckWithDelay()
+    {
+        yield return new WaitForSeconds(.1f);
+
+        CheckIfBossIsDefeated();
+    }
+
     private void CheckIfBossIsDefeated()
     {
-        once = false;
-
-        if (bossIsDefeated)
+        if (enemyData.isDead)
         {        
             Destroy(transform.parent.gameObject);
         }

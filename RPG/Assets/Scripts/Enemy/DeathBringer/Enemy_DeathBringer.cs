@@ -65,7 +65,7 @@ public class Enemy_DeathBringer : Enemy_Boss
 
     public override void UnlockEquipment()
     {
-        UnlockManager.instance.BossUnlockData(BossNames.DeathBringer);
+        UnlockManager.instance.BossUnlockData(BossType.DeathBringer);
     }
 
     public override bool CanTeleport()

@@ -59,7 +59,7 @@ public class Enemy_DragonWarrior : Enemy_Boss
 
     public override void UnlockEquipment()
     {
-        UnlockManager.instance.BossUnlockData(BossNames.DragonWarrior);
+        UnlockManager.instance.BossUnlockData(BossType.DragonWarrior);
     }
 
     public override void SelfDestroy() => Destroy(transform.parent.gameObject, .5f);

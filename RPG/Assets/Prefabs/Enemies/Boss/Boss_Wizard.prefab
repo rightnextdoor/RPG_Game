@@ -2093,7 +2093,6 @@ MonoBehaviour:
     m_Bits: 64
   playerDistance: 10
   moveSpeed: 8
-  runSpeed: 5
   idleTime: 2
   moveTime: 5
   battleTime: 7
@@ -2103,16 +2102,10 @@ MonoBehaviour:
   minAttackCooldown: 0.22
   maxAttackCooldown: 0.33
   lastTimeAttacked: 0
-  blockCooldown: 0
-  minBlockCooldown: 1
-  maxBlockCooldown: 2
-  lastTimeBlock: 0
   isSummon: 0
-  bossName: Wizard Girl
+  enemyData: {fileID: 11400000, guid: 49ebb999c8843274abe2d0b85e23e167, type: 2}
   bossFightStart: 0
   arena: {fileID: 8757780174663125929}
-  bossIsDefeated: 0
-  bossId: 27b48141-2d1f-4582-b6cd-f5db9814574e
   stage: 0
   surroundingCheckSize: {x: 0, y: 0}
   chanceToTeleport: 30
@@ -11288,7 +11281,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &398238698703736038
 Transform:
   m_ObjectHideFlags: 0

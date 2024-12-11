@@ -49,6 +49,7 @@ public class GameData
     public bool isTraveling;
 
     public SerializableDictionary<string, bool> bosses;
+    public SerializableDictionary<string, bool> enemies;
 
     public SerializableDictionary<string, float> volumeSettings;
 
@@ -73,6 +74,7 @@ public class GameData
         savedCheckpointId = string.Empty;
         checkpoints = new SerializableDictionary<string, bool>();
         bosses = new SerializableDictionary<string, bool>();
+        enemies = new SerializableDictionary<string, bool>();
 
         volumeSettings = new SerializableDictionary<string, float>();
 

@@ -118,7 +118,7 @@ public class Enemy_Wizard : Enemy_Boss
 
     public override void UnlockEquipment()
     {
-        UnlockManager.instance.BossUnlockData(BossNames.Wizard);
+        UnlockManager.instance.BossUnlockData(BossType.Wizard);
     }
 
     public override void FindPosition()

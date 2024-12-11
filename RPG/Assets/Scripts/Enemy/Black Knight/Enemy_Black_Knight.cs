@@ -72,7 +72,7 @@ public class Enemy_Black_Knight : Enemy_Boss
         if(restartCooldown)
             SpawnCooldown();
 
-        if(bossIsDefeated)
+        if(enemyData.isDead)
             KillSpawnEnemies();
     }
 
@@ -93,7 +93,7 @@ public class Enemy_Black_Knight : Enemy_Boss
 
     public override void UnlockEquipment()
     {
-        UnlockManager.instance.BossUnlockData(BossNames.Black_Knight);
+        UnlockManager.instance.BossUnlockData(BossType.Black_Knight);
     }
 
     private void SpawnCooldown()

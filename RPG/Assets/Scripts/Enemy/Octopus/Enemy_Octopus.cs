@@ -49,6 +49,14 @@ public class Enemy_Octopus : Enemy_Regular
         base.Die();
         stateMachine.ChangeState(deadState);
     }
+
+    protected override void CheckIfEnemyisDead()
+    {
+        if (enemyData.isDead)
+        {
+            Destroy(transform.parent.gameObject);
+        }
+    }
     public override void AnimationSpecialAttackTrigger()
     {
         GameObject newBubble = Instantiate(bubblePrefab, attackCheck.position, Quaternion.identity);

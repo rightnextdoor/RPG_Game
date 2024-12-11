@@ -924,11 +924,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   playerDistance: 10
-  stunDuration: 1
-  stunDirection: {x: 10, y: 12}
-  counterImage: {fileID: 3240035308732653146}
-  moveSpeed: 2
-  runSpeed: 5
+  moveSpeed: 5
   idleTime: 2
   moveTime: 9
   battleTime: 7
@@ -938,10 +934,11 @@ MonoBehaviour:
   minAttackCooldown: 1
   maxAttackCooldown: 2
   lastTimeAttacked: 0
-  blockCooldown: 0
-  minBlockCooldown: 1
-  maxBlockCooldown: 2
-  lastTimeBlock: 0
+  isSummon: 0
+  enemyData: {fileID: 0}
+  stunDuration: 1
+  stunDirection: {x: 10, y: 12}
+  counterImage: {fileID: 3240035308732653146}
   hitTimer: 1
   hitCountdown: 0
 --- !u!1001 &3561147633914051210

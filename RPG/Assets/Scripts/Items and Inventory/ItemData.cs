@@ -25,7 +25,7 @@ public class ItemData : ScriptableObject
     [Range(0,100)]
     public float dropChance;
 
-    public BossNames bossUnlockName;
+    public BossType bossUnlockName;
     public int levelUnlock = 0;
 
     protected StringBuilder sb = new StringBuilder();

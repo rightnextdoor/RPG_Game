@@ -63,7 +63,7 @@ public class Enemy_CatWarrior : Enemy_Boss
 
     public override void UnlockEquipment()
     {
-        UnlockManager.instance.BossUnlockData(BossNames.CatWarrior);
+        UnlockManager.instance.BossUnlockData(BossType.CatWarrior);
     }
 
     public bool CanCastTornado()

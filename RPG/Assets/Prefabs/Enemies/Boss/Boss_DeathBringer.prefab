@@ -15,7 +15,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8261119304561069846
 Transform:
   m_ObjectHideFlags: 0
@@ -10213,7 +10213,6 @@ MonoBehaviour:
     m_Bits: 64
   playerDistance: 10
   moveSpeed: 4
-  runSpeed: 5
   idleTime: 0.7
   moveTime: 5
   battleTime: 7
@@ -10223,27 +10222,21 @@ MonoBehaviour:
   minAttackCooldown: 0.33
   maxAttackCooldown: 0.55
   lastTimeAttacked: 0
-  blockCooldown: 0
-  minBlockCooldown: 1
-  maxBlockCooldown: 2
-  lastTimeBlock: 0
   isSummon: 0
-  bossName: Death Bringer
+  enemyData: {fileID: 11400000, guid: d0ed28dc91ab75d4780563862ad94807, type: 2}
   bossFightStart: 0
   arena: {fileID: 8942691436590509484}
-  bossIsDefeated: 0
-  bossId: d3cf436a-d7de-48cd-a45c-a37267474f27
-  bossHealthBar: {fileID: 0}
   stage: 0
+  surroundingCheckSize: {x: 3, y: 3.5}
+  chanceToTeleport: 25
+  defaultChanceToTeleport: 25
+  teleportCooldown: 1.5
   spellPrefab: {fileID: 6564673949625156073, guid: 1660a6fc21601c84c86eb0387a4c31db, type: 3}
   amountOfSpells: 5
   spellCooldown: 2
   lastTimeCast: 0
   spellStateCooldown: 10
   spellOffset: {x: 3, y: 2}
-  surroundingCheckSize: {x: 3, y: 3.5}
-  chanceToTeleport: 25
-  defaultChanceToTeleport: 25
 --- !u!1 &4978202850785596539
 GameObject:
   m_ObjectHideFlags: 0
@@ -15499,7 +15492,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1164006390194606555, guid: 95e3569be82ee4040be3130b57f1f9ed, type: 3}
       propertyPath: m_Size.x
-      value: 35.343937
+      value: 20.838676
       objectReference: {fileID: 0}
     - target: {fileID: 1164006390194606555, guid: 95e3569be82ee4040be3130b57f1f9ed, type: 3}
       propertyPath: m_Size.y
@@ -15507,7 +15500,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1164006390194606555, guid: 95e3569be82ee4040be3130b57f1f9ed, type: 3}
       propertyPath: m_Offset.x
-      value: 1.1732998
+      value: 1.5019188
       objectReference: {fileID: 0}
     - target: {fileID: 1164006390194606555, guid: 95e3569be82ee4040be3130b57f1f9ed, type: 3}
       propertyPath: m_Offset.y

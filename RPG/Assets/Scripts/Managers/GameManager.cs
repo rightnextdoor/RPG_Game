@@ -3,15 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GameManager : MonoBehaviour, ISaveManager
+public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
     [SerializeField] GameObject gameOverUI;
-
-    private Enemy_Boss[] getBosses;
-    private SerializableDictionary<string, bool> saveBosses;
- 
 
     private void Awake()
     {
@@ -20,23 +16,10 @@ public class GameManager : MonoBehaviour, ISaveManager
         else
             instance = this;
     }
-
-    private void Start()
-    {
-        getBosses = FindObjectsOfType<Enemy_Boss>();
-        saveBosses = new SerializableDictionary<string, bool>();
-
-        StartCoroutine(loadUpdateBossesWithDelay());
-    }
-
-    private IEnumerator loadUpdateBossesWithDelay()
-    {
-        yield return new WaitForSeconds(.1f);
-        UpdateBosses();
-    }
-
+   
     public void RestartScene()
     {
+        EnemyManager.instance.ResetEnemyDeath();
         SaveManager.instance.SaveGame();
         Scene scene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(scene.name);
@@ -47,42 +30,7 @@ public class GameManager : MonoBehaviour, ISaveManager
         AudioManager.instance.PlaySFX("GameOver", null);
         gameOverUI.SetActive(true);
     }
-
-    public void UpdateBosses()
-    {
-        saveBosses.Clear();
-        foreach (Enemy_Boss _boss in getBosses)
-        {
-            saveBosses.Add(_boss.bossId, _boss.bossIsDefeated);
-        }
-    }
-
-    public void LoadData(GameData _data)
-    {
-        LoadBosses(_data);
-    }
-
-    private void LoadBosses(GameData _data)
-    {
-        foreach (KeyValuePair<string, bool> pair in _data.bosses)
-        {
-            foreach (Enemy_Boss boss in getBosses)
-            {
-                if (boss.bossId == pair.Key)
-                    boss.bossIsDefeated = pair.Value;
-            }
-        }
-    }   
-
-    public void SaveData(ref GameData _data)
-    {
-        _data.bosses.Clear();
-        foreach (KeyValuePair<string, bool> pair in saveBosses)
-        {
-            _data.bosses.Add(pair.Key, pair.Value);
-        }
-    }  
-
+   
     public void PauseGame(bool _pause)
     {
         if (_pause)

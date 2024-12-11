@@ -26,6 +26,8 @@ public class UI_MainMenu : MonoBehaviour
 
     public void ContinueGame()
     {
+        EnemyManager.instance.ResetEnemyDeath();
+
         string scene = CheckpointManager.instance.GetLastSaveScene();
 
         if(scene != null)

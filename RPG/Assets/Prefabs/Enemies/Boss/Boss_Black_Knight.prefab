@@ -9489,7 +9489,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5284901922634551653
 Transform:
   m_ObjectHideFlags: 0
@@ -15044,7 +15044,6 @@ MonoBehaviour:
     m_Bits: 64
   playerDistance: 10
   moveSpeed: 4
-  runSpeed: 5
   idleTime: 0.7
   moveTime: 5
   battleTime: 7
@@ -15054,17 +15053,15 @@ MonoBehaviour:
   minAttackCooldown: 0.33
   maxAttackCooldown: 0.55
   lastTimeAttacked: 0
-  blockCooldown: 0
-  minBlockCooldown: 1
-  maxBlockCooldown: 2
-  lastTimeBlock: 0
   isSummon: 0
-  bossName: Skeleton Knight
+  enemyData: {fileID: 11400000, guid: f21f97946fc525c438ece408dc94279b, type: 2}
   bossFightStart: 0
   arena: {fileID: 6804350636673740332}
-  bossIsDefeated: 0
-  bossId: df4444d6-386a-468f-9366-64d59d3b962c
   stage: 0
+  surroundingCheckSize: {x: 0, y: 0}
+  chanceToTeleport: 0
+  defaultChanceToTeleport: 25
+  teleportCooldown: 1.5
   specialAttackCheck: {fileID: 2479539571343682542}
   specialAttackCheckRadius: 1.6
   specialAttackSize: {x: 0.8, y: 1.8, z: 0}

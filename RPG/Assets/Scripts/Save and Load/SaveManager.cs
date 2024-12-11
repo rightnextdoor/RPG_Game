@@ -43,7 +43,14 @@ public class SaveManager : MonoBehaviour
     public void NewGame()
     {
         gameData = new GameData();
+        
+        DefaultStat();
+    }
+
+    private static void DefaultStat()
+    {
         CheckpointManager.instance.DefaultCheckpoint();
+        EnemyManager.instance.DefaultStat();
     }
 
     public void LoadGame()
