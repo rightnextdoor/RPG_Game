@@ -24,6 +24,12 @@ public class UI_FadeScreen : MonoBehaviour
         StartCoroutine(FadeIn());
     }
 
+    public void MainMenuFadTo(string scene)
+    {
+        StartCoroutine(FadeOut(scene));
+        AudioManager.instance.PlayRandomBGM();
+    }
+
     public void FadeTo(string scene)
     {
         PlayerManager.instance.player.GetComponent<PlayerStats>().changeScenes = true; //to keep current health when changing scenes
@@ -34,6 +40,7 @@ public class UI_FadeScreen : MonoBehaviour
 
     public void TravelTo(string scene)
     {
+        Debug.Log("");
         PlayerManager.instance.player.GetComponent<PlayerStats>().changeScenes = true;
         SaveManager.instance.SaveGame();
         StartCoroutine(FadeOutFast(scene));

@@ -11,6 +11,8 @@ public class UI_MainMenu : MonoBehaviour
 
     private void Start()
     {
+        AudioManager.instance.PlayBGM("MenuTheme");
+
         StartCoroutine(LoadWithDelay());
     }
 
@@ -24,13 +26,18 @@ public class UI_MainMenu : MonoBehaviour
 
     public void ContinueGame()
     {
-        fadeScreen.FadeTo(sceneName);
+        string scene = CheckpointManager.instance.GetLastSaveScene();
+
+        if(scene != null)
+            sceneName = scene;
+
+        fadeScreen.MainMenuFadTo(sceneName);
     }
 
     public void NewGame()
     {
         SaveManager.instance.DeleteSavedData();
-        fadeScreen.FadeTo(sceneName);
+        fadeScreen.MainMenuFadTo(sceneName);
     }
 
     public void ExitGame()

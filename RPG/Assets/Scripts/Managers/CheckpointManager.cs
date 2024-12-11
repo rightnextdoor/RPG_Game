@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -26,7 +27,8 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
 
     private void Start()
     {
-        player = PlayerManager.instance.player.transform;
+        if(PlayerManager.instance != null)
+            player = PlayerManager.instance.player.transform;
     }
 
     public List<CheckpointData> UI_TravelCheckpoints()
@@ -91,9 +93,30 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
         }
     }
 
+    public string GetLastSaveScene()
+    {
+        string scene = null;
+
+        foreach (CheckpointData checkpoint in checkpoints)
+        {
+            if (checkpoint.lastSavedCheckpoint)
+                scene = checkpoint.sceneName;
+        }
+
+        return scene;
+    }
+
     public void LoadData(GameData _data)
     {
         StartCoroutine(LoadWithDelay(_data));
+    }
+
+    private IEnumerator LoadWithDelay(GameData _data)
+    {
+        yield return new WaitForSeconds(.1f);
+
+        LoadCheckpoints(_data);
+        LoadCheckpoint(_data);
     }
 
     private void LoadCheckpoints(GameData _data)
@@ -107,15 +130,7 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
             }
         }
         travelCheckpoints = _data.travelCheckpoints;
-    }
-
-    private IEnumerator LoadWithDelay(GameData _data)
-    {
-        yield return new WaitForSeconds(.1f);
-
-        LoadCheckpoints(_data);
-        LoadCheckpoint(_data);
-    }
+    }   
 
     private void LoadCheckpoint(GameData _data)
     {
@@ -130,6 +145,8 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
             {
                 if (!_data.checkpointChangeScenes)
                 {
+                    if (SceneManager.GetActiveScene().buildIndex == 0)
+                        return;
                     //for development
                     if (SceneManager.GetActiveScene().name == checkpoint.sceneName)
                         player.position = checkpoint.position;
@@ -172,5 +189,25 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
         _data.travelCheckpoints = travelCheckpoints;
         _data.isTraveling = isTraveling;
     }
+
+#if UNITY_EDITOR
+    [ContextMenu("Fill up checkpoint data base")]
+    private void FillUpItemDataBase() => checkpoints = new List<CheckpointData>(GetItemDataBase());
+
+    private List<CheckpointData> GetItemDataBase()
+    {
+        List<CheckpointData> checkDataBase = new List<CheckpointData>();
+        string[] assetName = AssetDatabase.FindAssets("", new[] { "Assets/Data/Checkpoints" });
+
+        foreach (string SOName in assetName)
+        {
+            var SOpath = AssetDatabase.GUIDToAssetPath(SOName);
+            var itemData = AssetDatabase.LoadAssetAtPath<CheckpointData>(SOpath);
+            checkDataBase.Add(itemData);
+        }
+
+        return checkDataBase;
+    }
+#endif
 
 }
