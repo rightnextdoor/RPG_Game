@@ -188,16 +188,23 @@ public class Player : Entity
     }
 
     public override void Die()
-    {
+    {      
         base.Die();
         if (stats.isDeadZone)
         {
-            deadState = new PlayerDeadState(this, stateMachine, "Idle");
-            anim.speed = 0;
-            cd.enabled = false;
+            //deadState = new PlayerDeadState(this, stateMachine, "Idle");
+            //anim.speed = 0;
+            //cd.enabled = false;
+            StartCoroutine(DelayDeath());
         }
-
+        EnemyManager.instance.ResetEnemyDeath();
         stateMachine.ChangeState(deadState);
+    }
+
+    private IEnumerator DelayDeath()
+    {
+        yield return new WaitForSeconds(.1f);
+        rb.constraints = RigidbodyConstraints2D.FreezeAll;
 
     }
 

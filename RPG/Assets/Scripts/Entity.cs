@@ -31,6 +31,9 @@ public class Entity : MonoBehaviour
     public int facingDir { get; private set; } = 1;
     protected bool facingRight = true;
 
+    private bool canMove;
+    private RigidbodyConstraints2D defautConstraints;
+
     public System.Action onFlipped;
 
     protected virtual void Awake()
@@ -55,11 +58,31 @@ public class Entity : MonoBehaviour
         sr = GetComponentInChildren<SpriteRenderer>();
         stats = GetComponent<CharacterStats>();
         cd = GetComponent<CapsuleCollider2D>();
+
+        canMove = true;
+        defautConstraints = rb.constraints;
     }
 
     protected virtual void Update()
     {
+    }
 
+    public void StopPlayer()
+    {
+        SetZeroVelocity();
+        rb.constraints = RigidbodyConstraints2D.FreezeAll;
+    }
+
+    public bool CanMove() { return canMove; }
+
+    public void PlayerCanMove()
+    {
+        rb.constraints = defautConstraints;
+    }
+
+    public void PlayerCanMove(bool _move)
+    {
+        canMove = _move;
     }
 
     public virtual void DamageImpact() => StartCoroutine("HitKnockback");
