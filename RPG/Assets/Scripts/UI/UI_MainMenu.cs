@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class UI_MainMenu : MonoBehaviour
 {
-    [SerializeField] private string sceneName = "MainScene";
+    [SerializeField] private SceneField sceneToLoad;
     [SerializeField] private GameObject continueButton;
     [SerializeField] UI_FadeScreen fadeScreen;
 
@@ -31,15 +31,17 @@ public class UI_MainMenu : MonoBehaviour
         string scene = CheckpointManager.instance.GetLastSaveScene();
 
         if(scene != null)
-            sceneName = scene;
+            fadeScreen.MainMenuFadTo(scene);
+        else
+            fadeScreen.MainMenuFadTo(sceneToLoad);
 
-        fadeScreen.MainMenuFadTo(sceneName);
+
     }
 
     public void NewGame()
     {
         SaveManager.instance.DeleteSavedData();
-        fadeScreen.MainMenuFadTo(sceneName);
+        fadeScreen.MainMenuFadTo(sceneToLoad);
     }
 
     public void ExitGame()

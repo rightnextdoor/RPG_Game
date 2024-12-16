@@ -173,6 +173,10 @@ public class Entity : MonoBehaviour
     }
     #endregion
 
+    public bool IsFacingRight()
+    {
+        return facingRight;
+    }
 
 
     public virtual void Die()

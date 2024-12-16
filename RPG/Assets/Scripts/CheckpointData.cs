@@ -15,7 +15,7 @@ public class CheckpointData : ScriptableObject
     public string checkpointName;
     public bool activatedCheckpoint;
     public bool lastSavedCheckpoint;
-    public string sceneName;
+    public SceneField sceneName;
     public Vector3 position;
 
     private void OnValidate()

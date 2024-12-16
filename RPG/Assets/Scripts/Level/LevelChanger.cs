@@ -8,7 +8,7 @@ public class LevelChanger : MonoBehaviour
     [SerializeField] private LevelConnection levelConnection;
     [SerializeField] private UI_FadeScreen fadeScreen;
 
-    [SerializeField] private string targetSceneName;
+    [SerializeField] private SceneField targetScene;
     [SerializeField] private Transform spawnPoint;
     [SerializeField] private bool isFacingRight;
 
@@ -40,7 +40,7 @@ public class LevelChanger : MonoBehaviour
         if (player != null)
         {
             LevelConnection.ActiveConnection = levelConnection;
-            fadeScreen.FadeTo(targetSceneName);
+            fadeScreen.FadeTo(targetScene);
             //SceneManager.LoadScene(targetSceneName);
         }
     }

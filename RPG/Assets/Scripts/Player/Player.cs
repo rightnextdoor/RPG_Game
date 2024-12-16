@@ -24,6 +24,12 @@ public class Player : Entity
     [Header("Block info")]
     public bool canBeBlock;
     public float blockDuration = 1f;
+
+    [Header("Camer Stuff")]
+    [SerializeField] private GameObject cameraFollow;
+    private CameraFollowObject cameraFollowObject;
+    private float fallSpeedYDampingChangeThreshold;
+
     public float dashDir {  get; private set; }
 
     public SkillManager skill {  get; private set; }
@@ -85,6 +91,9 @@ public class Player : Entity
         defaultMoveSpeed = moveSpeed;
         defaultJumpForce = jumpForce;
         defaultDashSpeed = dashSpeed;
+
+        cameraFollowObject = cameraFollow.GetComponent<CameraFollowObject>();
+        fallSpeedYDampingChangeThreshold = CameraManager.instance.fallSpeedYDampingChangeThreshold;
     }
 
     protected override void Update()
@@ -102,6 +111,18 @@ public class Player : Entity
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
             Inventory.instance.UseFlask();
+
+        if (rb.velocity.y < fallSpeedYDampingChangeThreshold && !CameraManager.instance.IsLerpingYDamping &&
+            !CameraManager.instance.LerpedFromPlayerFalling)
+        {
+            CameraManager.instance.LerpYDamping(true);
+        }
+
+        if (rb.velocity.y >= 0f && !CameraManager.instance.IsLerpingYDamping && CameraManager.instance.LerpedFromPlayerFalling)
+        {
+            CameraManager.instance.LerpedFromPlayerFalling = false;
+            CameraManager.instance.LerpYDamping(false);
+        }
     }
 
     public override void SlowEntityBy(float _slowPercentage, float _slowDuration)
@@ -213,4 +234,17 @@ public class Player : Entity
         knockbackPower = new Vector2(0,0);
     }
 
+    public override void FlipController(float _x)
+    {
+        if (_x > 0 && !facingRight)
+        {
+            Flip();
+            cameraFollowObject.CallTurn();
+        }
+        else if (_x < 0 && facingRight)
+        {
+            Flip();
+            cameraFollowObject.CallTurn();
+        }
+    }
 }
