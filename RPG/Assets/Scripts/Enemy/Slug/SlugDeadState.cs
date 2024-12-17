@@ -20,6 +20,7 @@ public class SlugDeadState : EnemyState
         enemy.cd.enabled = false;
 
         stateTimer = .15f;
+        enemy.rb.gravityScale = 12;
     }
 
     public override void Update()

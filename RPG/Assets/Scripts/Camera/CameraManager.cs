@@ -61,7 +61,7 @@ public class CameraManager : MonoBehaviour
     }
 
     private IEnumerator LerpYAction(bool isPlayerFalling)
-    {
+    {     
         IsLerpingYDamping = true;
 
         float startDampAmount = framingTransposer.m_YDamping;

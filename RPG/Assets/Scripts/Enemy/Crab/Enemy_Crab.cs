@@ -6,7 +6,6 @@ public class Enemy_Crab : Enemy_Regular
 {
     [Header("Crab info")]
     public float hitTimer = 1f;
-    [HideInInspector] public float hitCountdown;
     #region States
     public CrabIdleState idleState { get; private set; }
     public CrabMoveState moveState { get; private set; }
@@ -24,7 +23,6 @@ public class Enemy_Crab : Enemy_Regular
     protected override void Update()
     {
         base.Update();
-        hitCountdown -= Time.deltaTime; 
     }
 
     protected override void Start()

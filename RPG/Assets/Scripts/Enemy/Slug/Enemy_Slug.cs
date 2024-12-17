@@ -6,6 +6,10 @@ public class Enemy_Slug : Enemy_Regular
 {
     [Header("Slug info")]
     public float hitTimer = 1f;
+    public Transform[] waypoints;
+    [HideInInspector]public Transform target;
+    public bool canFlip;
+
     #region States
     public SlugMoveState moveState { get; private set; }
     public SlugDeadState deadState { get; private set; }
@@ -28,5 +32,13 @@ public class Enemy_Slug : Enemy_Regular
     {
         base.Die();
         stateMachine.ChangeState(deadState);
+    }
+
+    protected override void CheckIfEnemyisDead()
+    {
+        if (enemyData.isDead)
+        {
+            Destroy(transform.parent.gameObject);
+        }
     }
 }

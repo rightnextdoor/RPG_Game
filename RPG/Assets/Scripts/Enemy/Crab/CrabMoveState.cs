@@ -5,6 +5,7 @@ using UnityEngine;
 public class CrabMoveState : EnemyState
 {
     private Enemy_Crab enemy;
+    private float hitTimer = 0f;
     public CrabMoveState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Crab enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
@@ -26,7 +27,7 @@ public class CrabMoveState : EnemyState
         base.Update();
 
         enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, rb.velocity.y);
-
+        hitTimer -= Time.deltaTime;
         Attack();
 
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
@@ -53,11 +54,11 @@ public class CrabMoveState : EnemyState
             if (hit.GetComponent<Player>() != null)
             {
                 PlayerStats target = hit.GetComponent<PlayerStats>();
-                if (enemy.hitCountdown < 0f)
+                if (hitTimer < 0f)
                 {
                     enemy.stats.DoDamage(target);
                     //ToDo: knock the player back when hit
-                    enemy.hitCountdown = enemy.hitTimer;
+                    hitTimer = enemy.hitTimer;
                 }
 
             }
