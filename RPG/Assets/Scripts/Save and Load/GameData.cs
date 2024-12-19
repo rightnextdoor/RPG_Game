@@ -36,7 +36,7 @@ public class GameData
     public int savedAgilityPoints;
     public int savedVitalityPoints;
 
-    public bool changeScenes;
+    public bool keepPlayerHealthSceneChange;
 
     public SerializableDictionary<string, bool> skillTree;
     public SerializableDictionary<string, int> inventory;
@@ -57,6 +57,8 @@ public class GameData
     public List<ItemData> shopItemData;
     public List<ItemData_Equipment> craftItemData;
 
+    public bool continueGame;
+
     public GameData()
     {
         currency = 0;
@@ -64,7 +66,7 @@ public class GameData
         skillsPoints = 0;
         maxHealth = 100;
         damage = 50;
-        changeScenes = false;
+        keepPlayerHealthSceneChange = false;
         checkpointChangeScenes = false;
 
         skillTree = new SerializableDictionary<string, bool>();
@@ -83,5 +85,7 @@ public class GameData
         craftItemData = new List<ItemData_Equipment>();
 
         travelCheckpoints = new List<CheckpointData>();
+
+        continueGame = false;
     }
 }

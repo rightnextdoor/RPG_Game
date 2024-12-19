@@ -6,7 +6,6 @@ using UnityEngine.SceneManagement;
 public class LevelChanger : MonoBehaviour
 {
     [SerializeField] private LevelConnection levelConnection;
-    [SerializeField] private UI_FadeScreen fadeScreen;
 
     [SerializeField] private SceneField targetScene;
     [SerializeField] private Transform spawnPoint;
@@ -40,7 +39,7 @@ public class LevelChanger : MonoBehaviour
         if (player != null)
         {
             LevelConnection.ActiveConnection = levelConnection;
-            fadeScreen.FadeTo(targetScene);
+            UI_FadeScreen.instance.FadeTo(targetScene);
             //SceneManager.LoadScene(targetSceneName);
         }
     }

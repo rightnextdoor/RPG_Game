@@ -34,10 +34,7 @@ public class SlugMoveState : EnemyState
         Vector3 dir = enemy.target.position - enemy.transform.position;
         enemy.transform.Translate(dir.normalized * enemy.moveSpeed * Time.deltaTime, Space.World);
         dist = Vector2.Distance(enemy.transform.position, enemy.target.transform.position);
-        //enemy.transform.position = Vector2.MoveTowards(enemy.transform.position, enemy.target.transform.position,
-        //    enemy.moveSpeed * Time.deltaTime);
 
-        //if (dist < 0.48f)
         if (Vector3.Distance(enemy.transform.position, enemy.target.position) <= 0.48f)
             {      
             GetNextWaypoint();

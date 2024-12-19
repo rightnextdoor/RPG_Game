@@ -6,7 +6,7 @@ public class PlayerStats : CharacterStats, ISaveManager
 {
     private Player player;
 
-    public bool changeScenes;
+    public bool keepPlayerHealthSceneChange;
 
     protected override void Start()
     {
@@ -85,10 +85,10 @@ public class PlayerStats : CharacterStats, ISaveManager
     public void LoadData(GameData _data)
     {
         maxHealth.SetDefaultValue(_data.maxHealth);
-        if (_data.changeScenes)
+        if (_data.keepPlayerHealthSceneChange)
         {
             currentHealth = _data.currentHealth;
-            changeScenes = false;
+            keepPlayerHealthSceneChange = false;
         }else
         {
             currentHealth = _data.maxHealth + _data.vitality * 5;
@@ -127,6 +127,6 @@ public class PlayerStats : CharacterStats, ISaveManager
         _data.lightingDamage = lightingDamage.GetBaseValue();
 
         _data.currentHealth = currentHealth;
-        _data.changeScenes = changeScenes;
+        _data.keepPlayerHealthSceneChange = keepPlayerHealthSceneChange;
     }
 }

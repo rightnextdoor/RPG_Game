@@ -42,7 +42,7 @@ public class UI_FadeScreen : MonoBehaviour
 
     public void FadeTo(string scene)
     {
-        PlayerManager.instance.player.GetComponent<PlayerStats>().changeScenes = true; //to keep current health when changing scenes
+        PlayerManager.instance.player.GetComponent<PlayerStats>().keepPlayerHealthSceneChange = true; //to keep current health when changing scenes
         CheckpointManager.instance.checkpointChangeScenes = true; //when scence load not to spawn player to checkpoint pos
         SaveManager.instance.SaveGame();
         StartCoroutine(FadeOut(scene));
@@ -50,15 +50,15 @@ public class UI_FadeScreen : MonoBehaviour
 
     public void TravelTo(string scene)
     {
-        Debug.Log("");
-        PlayerManager.instance.player.GetComponent<PlayerStats>().changeScenes = true;
+        PlayerManager.instance.player.GetComponent<PlayerStats>().keepPlayerHealthSceneChange = true;
+        //CheckpointManager.instance.isTraveling = true;
         SaveManager.instance.SaveGame();
         StartCoroutine(FadeOutFast(scene));
     }
 
     private IEnumerator FadeIn()
     {
-        float t = 1.2f;
+        float t = 1.8f;
 
         while (t > 0f)
         {

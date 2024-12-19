@@ -4875,7 +4875,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6760727490624575699}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: AimDotParent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4906,7 +4906,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3303818447611386180}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: GroundCheck
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5291,7 +5291,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 137320033345145181}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: AttackCheck
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5307,7 +5307,7 @@ Transform:
   m_GameObject: {fileID: 8369155976231050496}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.04, y: -0.31, z: 0}
+  m_LocalPosition: {x: 1.04, y: -0.17, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5325,7 +5325,7 @@ GameObject:
   - component: {fileID: 2169284784674055709}
   - component: {fileID: 6820894340259856334}
   - component: {fileID: 4698104360406993907}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: Animator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5441,7 +5441,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3877527617837554007}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: WallCheck
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5480,7 +5480,7 @@ GameObject:
   - component: {fileID: 8355479855558127824}
   m_Layer: 6
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5586,9 +5586,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   knockbackPower: {x: 0, y: 0}
   knockbackOffset: {x: 0, y: 0}
-  knockbackDuration: 0.3
+  knockbackDuration: 0.05
   attackCheck: {fileID: 137320033345145181}
-  attackCheckRadius: 0.8
+  attackCheckRadius: 1.2
   groundCheck: {fileID: 3303818447611386180}
   groundCheackDistance: 0.15
   wallCheck: {fileID: 3877527617837554007}
@@ -5602,10 +5602,13 @@ MonoBehaviour:
   - {x: 4, y: 1.5}
   counterAttackDuration: 0.2
   moveSpeed: 8
-  jumpForce: 15
+  jumpForce: 20
   swordReturnImpact: 5
   dashSpeed: 25
   dashDuration: 0.2
+  canBeBlock: 0
+  blockDuration: 1
+  cameraFollow: {fileID: 0}
 --- !u!114 &6231234708013107995
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5619,7 +5622,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   popUpTextPrefab: {fileID: 4704151152020466029, guid: a2b7ae1d86db385449cdd2297dd82294, type: 3}
-  flashDuration: 0.2
+  flashDuration: 0.5
   hitMat: {fileID: 2100000, guid: 8552047a4ed8e7242bcd0b1c855186d7, type: 2}
   igniteColor:
   - {r: 1, g: 0.35686275, b: 0.35686275, a: 1}
@@ -5656,11 +5659,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lerpTimer: 0
   maxHealth:
-    baseValue: 200
+    baseValue: 100
     modifiers: 
   currentHealth: 0
   damage:
-    baseValue: 10
+    baseValue: 50
     modifiers: 
   strength:
     baseValue: 0
@@ -5672,7 +5675,7 @@ MonoBehaviour:
     baseValue: 0
     modifiers: 
   vitality:
-    baseValue: 5
+    baseValue: 0
     modifiers: 
   critChance:
     baseValue: 15
@@ -5681,7 +5684,7 @@ MonoBehaviour:
     baseValue: 0
     modifiers: 
   armor:
-    baseValue: 20
+    baseValue: 0
     modifiers: 
   evasion:
     baseValue: 0
@@ -5703,6 +5706,7 @@ MonoBehaviour:
   isShocked: 0
   ailmentsDuration: 4
   shockStrikePrefab: {fileID: 6889908486227579018, guid: 78970814a6fb9434a91ec678a0d80fdd, type: 3}
+  changeScenes: 0
 --- !u!114 &8355479855558127824
 MonoBehaviour:
   m_ObjectHideFlags: 0

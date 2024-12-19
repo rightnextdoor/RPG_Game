@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
     public void RestartScene()
     {
         EnemyManager.instance.ResetEnemyDeath();
-        SaveManager.instance.SaveGame();
+        CheckpointManager.instance.ContinueGame();
         Scene scene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(scene.name);
     }

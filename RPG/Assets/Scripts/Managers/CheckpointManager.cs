@@ -14,6 +14,7 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
 
     public bool checkpointChangeScenes;
     public bool isTraveling;
+    private bool continueGame;
 
     private Transform player;
 
@@ -31,18 +32,27 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
             player = PlayerManager.instance.player.transform;
     }
 
+    public void ContinueGame()
+    {
+        continueGame = true;
+        SaveManager.instance.SaveGame();
+    }
+
     public List<CheckpointData> UI_TravelCheckpoints()
     {
         travelCheckpoints.Clear();
         foreach (CheckpointData item in checkpoints)
         {
-            if (item.activatedCheckpoint)
+            if (item != null)
             {
-                if (!item.lastSavedCheckpoint)
+                if (item.activatedCheckpoint)
                 {
-                    travelCheckpoints.Add(item);
+                    if (!item.lastSavedCheckpoint)
+                    {
+                        travelCheckpoints.Add(item);
+                    }
                 }
-            }
+            }       
         }
         travelCheckpoints.Reverse();
         return travelCheckpoints;
@@ -52,8 +62,11 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
     {
         foreach (CheckpointData item in checkpoints)
         {
-            item.activatedCheckpoint = false;
-            item.lastSavedCheckpoint = false;
+            if (item != null)
+            {
+                item.activatedCheckpoint = false;
+                item.lastSavedCheckpoint = false;
+            }           
         }
     }
 
@@ -82,6 +95,7 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
 
     public void TravelTo(CheckpointData _checkpoint)
     {
+        isTraveling = true;
         UI_FadeScreen.instance.TravelTo(_checkpoint.sceneName);
     }
 
@@ -89,7 +103,8 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
     {
         foreach (CheckpointData checkpoint in checkpoints)
         {
-            checkpoint.lastSavedCheckpoint = false;
+            if(checkpoint!=null)
+                checkpoint.lastSavedCheckpoint = false;
         }
     }
 
@@ -99,8 +114,12 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
 
         foreach (CheckpointData checkpoint in checkpoints)
         {
-            if (checkpoint.lastSavedCheckpoint)
-                scene = checkpoint.sceneName;
+            if (checkpoint != null)
+            {
+                if (checkpoint.lastSavedCheckpoint)
+                    scene = checkpoint.sceneName;
+            }
+            
         }
 
         return scene;
@@ -108,6 +127,7 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
 
     public void LoadData(GameData _data)
     {
+        continueGame = _data.continueGame;
         StartCoroutine(LoadWithDelay(_data));
     }
 
@@ -125,8 +145,11 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
         {
             foreach (CheckpointData checkpoint in checkpoints)
             {
-                if (checkpoint.checkpointId == pair.Key && pair.Value == true)
-                    ActivatedCheckpoint(checkpoint);
+                if (checkpoint != null)
+                {
+                    if (checkpoint.checkpointId == pair.Key && pair.Value == true)
+                        ActivatedCheckpoint(checkpoint);
+                }           
             }
         }
         travelCheckpoints = _data.travelCheckpoints;
@@ -141,19 +164,31 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
 
         foreach (CheckpointData checkpoint in checkpoints)
         {
-            if (savedCheckpointId == checkpoint.checkpointId)
+            if (checkpoint != null)
             {
-                if (!_data.checkpointChangeScenes)
+                if (savedCheckpointId == checkpoint.checkpointId)
                 {
-                    if (SceneManager.GetActiveScene().buildIndex == 0)
-                        return;
-                    //for development
-                    if (SceneManager.GetActiveScene().name == checkpoint.sceneName)
-                        player.position = checkpoint.position;
-                    else
-                        TravelTo(checkpoint);
+                    if (!_data.checkpointChangeScenes)
+                    {
+                        if (SceneManager.GetActiveScene().buildIndex == 0)
+                            return;
+
+                        if (continueGame)
+                        {
+                            continueGame = false;
+                            if (SceneManager.GetActiveScene().name == checkpoint.sceneName)
+                            {
+                                player.position = checkpoint.position;
+                            }
+                            else
+                            {
+                                TravelTo(checkpoint);
+                            }
+                        }
+                        
+                    }
                 }
-            }
+            }           
         }
     }
 
@@ -163,11 +198,13 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
 
         foreach (var checkpoint in checkpoints)
         {
-
-            if (checkpoint.lastSavedCheckpoint == true)
+            if (checkpoint != null)
             {
-                savedCheckpoint = checkpoint;
-            }
+                if (checkpoint.lastSavedCheckpoint == true)
+                {
+                    savedCheckpoint = checkpoint;
+                }
+            }          
         }
 
         return savedCheckpoint;
@@ -175,6 +212,7 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
 
     public void SaveData(ref GameData _data)
     {
+        _data.continueGame = continueGame;
         if (GetLastSavedCheckpoint() != null)
             _data.savedCheckpointId = GetLastSavedCheckpoint().checkpointId;
 
@@ -182,7 +220,8 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
 
         foreach (CheckpointData checkpoint in checkpoints)
         {
-            _data.checkpoints.Add(checkpoint.checkpointId, checkpoint.activatedCheckpoint);
+            if(checkpoint != null)
+                _data.checkpoints.Add(checkpoint.checkpointId, checkpoint.activatedCheckpoint);
         }
 
         _data.checkpointChangeScenes = checkpointChangeScenes;

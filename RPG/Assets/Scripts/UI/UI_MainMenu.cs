@@ -30,6 +30,8 @@ public class UI_MainMenu : MonoBehaviour
 
         string scene = CheckpointManager.instance.GetLastSaveScene();
 
+        CheckpointManager.instance.ContinueGame();
+
         if(scene != null)
             fadeScreen.MainMenuFadTo(scene);
         else

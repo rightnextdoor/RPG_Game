@@ -42,8 +42,6 @@ public class UI_TravelSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHa
     public void OnPointerDown(PointerEventData eventData)
     {
         CheckpointManager.instance.UpdateLastSaveCheckpoint(checkpoint);
-        //GameManager.instance.RestartScene();
-        CheckpointManager.instance.isTraveling = true;
         CheckpointManager.instance.TravelTo(checkpoint);
         UIManager.instance.GetUICheckpoint().CloseMenu();
     }
