@@ -26,8 +26,6 @@ public class Player : Entity
     public float blockDuration = 1f;
 
     [Header("Camer Stuff")]
-    [SerializeField] private GameObject cameraFollow;
-    private CameraFollowObject cameraFollowObject;
     private float fallSpeedYDampingChangeThreshold;
 
     public float dashDir {  get; private set; }
@@ -92,7 +90,6 @@ public class Player : Entity
         defaultJumpForce = jumpForce;
         defaultDashSpeed = dashSpeed;
 
-        cameraFollowObject = cameraFollow.GetComponent<CameraFollowObject>();
         fallSpeedYDampingChangeThreshold = CameraManager.instance.fallSpeedYDampingChangeThreshold;
     }
 
@@ -234,17 +231,4 @@ public class Player : Entity
         knockbackPower = new Vector2(0,0);
     }
 
-    public override void FlipController(float _x)
-    {
-        if (_x > 0 && !facingRight)
-        {
-            Flip();
-            cameraFollowObject.CallTurn();
-        }
-        else if (_x < 0 && facingRight)
-        {
-            Flip();
-            cameraFollowObject.CallTurn();
-        }
-    }
 }

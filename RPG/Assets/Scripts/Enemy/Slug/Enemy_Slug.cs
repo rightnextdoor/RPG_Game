@@ -32,6 +32,7 @@ public class Enemy_Slug : Enemy_Regular
     {
         base.Die();
         stateMachine.ChangeState(deadState);
+        Destroy(transform.parent.gameObject, 2f);
     }
 
     protected override void CheckIfEnemyisDead()
@@ -41,4 +42,5 @@ public class Enemy_Slug : Enemy_Regular
             Destroy(transform.parent.gameObject);
         }
     }
+    public override void SelfDestroy() => Destroy(transform.parent.gameObject, 2f);
 }
