@@ -37,10 +37,7 @@ public class KnightBlockState : EnemyState
         {
             if (hit.GetComponent<Player>() != null)
             {
-                if (hit.GetComponent<Player>().CanBeBlocked())
-                {
-                    SuccesfulBlockAttack();
-                }
+                Debug.Log("do a counter attack hit");
             }
         }
 

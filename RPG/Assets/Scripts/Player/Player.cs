@@ -21,9 +21,6 @@ public class Player : Entity
     public float dashDuration;
     private float defaultDashSpeed;
 
-    [Header("Block info")]
-    public bool canBeBlock;
-    public float blockDuration = 1f;
 
     [Header("Camer Stuff")]
     private float fallSpeedYDampingChangeThreshold;
@@ -174,31 +171,6 @@ public class Player : Entity
         transtionUp = _transitionUP;
 
         stateMachine.ChangeState(levelTransition);
-    }
-
-    #region Block Attack Window
-    public virtual void OpenBlockAttackWindow()
-    {
-        canBeBlock = true;
-    }
-    public virtual void CloseBlockAttackWindow()
-    {
-        canBeBlock = false;
-    }
-    #endregion
-
-    public virtual bool CanBeBlocked()
-    {
-        if (canBeBlock)
-        {
-            SetupKnockbackPower(new Vector2(10, 15));
-            SetupKnockbackDir(transform);
-            DamageImpact();
-            CloseBlockAttackWindow();
-            //stateMachine.ChangeState(blockState);
-            return true;
-        }
-        return false;
     }
 
     public void AnimationTrigger() => stateMachine.currentState.AnimationFinishTrigger();

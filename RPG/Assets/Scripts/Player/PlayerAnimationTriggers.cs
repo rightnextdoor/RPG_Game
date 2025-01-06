@@ -39,6 +39,4 @@ public class PlayerAnimationTriggers : MonoBehaviour
         SkillManager.instance.sword.CreateSword();
     }
 
-    private void OpenBlockWindow() => player.OpenBlockAttackWindow();
-    private void CloseBlockWindow() => player.CloseBlockAttackWindow();
 }

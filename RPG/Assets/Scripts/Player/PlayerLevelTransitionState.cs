@@ -17,7 +17,6 @@ public class PlayerLevelTransitionState : PlayerState
         gravityScale = player.rb.gravityScale;
         player.rb.gravityScale = 0;
         player.SetZeroVelocity();
-        //AudioManager.instance.PlaySFX("Footsteps", null);
     }
 
     public override void Exit()
@@ -25,7 +24,6 @@ public class PlayerLevelTransitionState : PlayerState
         base.Exit();
         player.rb.gravityScale = gravityScale;
         player.PlayerCanMove(true);
-        //AudioManager.instance.StopSFX("Footsteps");
     }
 
     public override void Update()
