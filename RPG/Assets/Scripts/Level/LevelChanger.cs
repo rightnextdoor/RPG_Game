@@ -10,6 +10,8 @@ public class LevelChanger : MonoBehaviour
     [SerializeField] private SceneField targetScene;
     [SerializeField] private Transform spawnPoint;
     [SerializeField] private bool isFacingRight;
+    [SerializeField] private bool transitionUp;
+    [SerializeField] private bool transitionDown;
 
     private void Start()
     {
@@ -28,19 +30,22 @@ public class LevelChanger : MonoBehaviour
 
                 if (isFacingRight)
                     player.Flip();
+
+                PlayerManager.instance.LevelTranstion(false);
             }
         }
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        Player player = collision.collider.GetComponent<Player>();
+        Player player = collision.GetComponent<Player>();
 
         if (player != null)
         {
+            player.LevelTransition(transitionDown, transitionUp);
+            PlayerManager.instance.LevelTranstion(true);
             LevelConnection.ActiveConnection = levelConnection;
             UI_FadeScreen.instance.FadeTo(targetScene);
-            //SceneManager.LoadScene(targetSceneName);
         }
     }
 }

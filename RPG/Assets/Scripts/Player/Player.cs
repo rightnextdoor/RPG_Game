@@ -34,6 +34,9 @@ public class Player : Entity
     public GameObject sword { get; private set; }
     public PlayerFX fX { get; private set; }
 
+    [HideInInspector] public bool transtionUp;
+    [HideInInspector] public bool transtionDown;
+
     #region States
     public PlayerStateMachine stateMachine { get; private set; }
 
@@ -51,6 +54,7 @@ public class Player : Entity
     public PlayerCatchSwordState catchSword { get; private set; }
     public PlayerBlackholeState blackHole { get; private set; }
     public PlayerDeadState deadState { get; private set; }
+    public PlayerLevelTransitionState levelTransition { get; private set; }
     #endregion
 
     protected override void Awake()
@@ -74,6 +78,7 @@ public class Player : Entity
         blackHole = new PlayerBlackholeState(this, stateMachine, "Jump");
 
         deadState = new PlayerDeadState(this, stateMachine, "Die");
+        levelTransition = new PlayerLevelTransitionState(this, stateMachine, "Move");
     }
 
     protected override void Start()
@@ -157,6 +162,18 @@ public class Player : Entity
         isBusy = true;
         yield return new WaitForSeconds(_seconds);
         isBusy = false;
+    }
+
+    public void LevelTransition(bool _transitionDown, bool _transitionUP)
+    {
+        if (_transitionDown || _transitionUP)
+        {
+            levelTransition = new PlayerLevelTransitionState(this, stateMachine, "Jump");
+        }
+        transtionDown = _transitionDown;
+        transtionUp = _transitionUP;
+
+        stateMachine.ChangeState(levelTransition);
     }
 
     #region Block Attack Window

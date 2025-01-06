@@ -20,6 +20,8 @@ public class PlayerManager : MonoBehaviour, ISaveManager
     public float currentXp = 0;
     public float requiredXp = 0;
 
+    private bool levelTransition;
+
     private void Awake()
     {
         if (instance != null)
@@ -32,6 +34,12 @@ public class PlayerManager : MonoBehaviour, ISaveManager
     private void Update()
     {
         currencyText.text = currency.ToString();
+    }
+
+    public bool IsLevelTranstion() => levelTransition;
+    public void LevelTranstion(bool isTranstion)
+    {
+        levelTransition = isTranstion;
     }
 
     public void GainXP(float _xpGained, int _passedLevel)

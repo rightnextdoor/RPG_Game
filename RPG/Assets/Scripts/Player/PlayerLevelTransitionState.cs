@@ -1,0 +1,50 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class PlayerLevelTransitionState : PlayerState
+{
+    private float gravityScale;
+
+    public PlayerLevelTransitionState(Player _player, PlayerStateMachine _stateMachine, string animBoolName) : base(_player, _stateMachine, animBoolName)
+    {
+    }
+
+    public override void Enter()
+    {
+        base.Enter();
+        player.PlayerCanMove(false);
+        gravityScale = player.rb.gravityScale;
+        player.rb.gravityScale = 0;
+        player.SetZeroVelocity();
+        //AudioManager.instance.PlaySFX("Footsteps", null);
+    }
+
+    public override void Exit()
+    {
+        base.Exit();
+        player.rb.gravityScale = gravityScale;
+        player.PlayerCanMove(true);
+        //AudioManager.instance.StopSFX("Footsteps");
+    }
+
+    public override void Update()
+    {
+        base.Update();
+
+        if (player.transtionUp)
+        {
+            player.SetVelocity(rb.velocity.x, player.jumpForce);
+        } else if (player.transtionDown)
+        {
+            player.SetVelocity(rb.velocity.x, -player.jumpForce);
+        } else
+        {
+            player.SetVelocity(player.moveSpeed * player.facingDir, rb.velocity.y);
+        }
+
+        if(!PlayerManager.instance.IsLevelTranstion())
+            stateMachine.ChangeState(player.idleState);
+
+    }
+}
