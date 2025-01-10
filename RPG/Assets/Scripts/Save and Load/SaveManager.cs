@@ -29,10 +29,7 @@ public class SaveManager : MonoBehaviour
             Destroy(instance.gameObject);
         else
             instance = this;
-    }
 
-    private void Start()
-    {
         dataHandler = new FileDataHandler(Application.persistentDataPath, fileName, encryptData);
         //dataHandler = new FileDataHandler(filePath, fileName, encryptData); // for web
         saveManagers = FindAllSaveMangers();
@@ -51,6 +48,7 @@ public class SaveManager : MonoBehaviour
     {
         CheckpointManager.instance.DefaultCheckpoint();
         EnemyManager.instance.DefaultStat();
+        GateManager.instance.DefaultGates();
     }
 
     public void LoadGame()

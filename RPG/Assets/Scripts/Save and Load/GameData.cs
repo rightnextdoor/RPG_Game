@@ -59,6 +59,8 @@ public class GameData
 
     public bool continueGame;
 
+    public SerializableDictionary<string, bool> gates;
+
     public GameData()
     {
         currency = 0;
@@ -87,5 +89,7 @@ public class GameData
         travelCheckpoints = new List<CheckpointData>();
 
         continueGame = false;
+
+        gates = new SerializableDictionary<string, bool>();
     }
 }

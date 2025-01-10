@@ -31,6 +31,11 @@ public class PlayerAnimationTriggers : MonoBehaviour
                 if (weaponData != null)
                     weaponData.Effect(_target.transform);
             }
+            if (hit.GetComponent<Gate>() != null)
+            {
+                Gate gate = hit.GetComponent<Gate>();
+                gate.UnlockGate();
+            }
         }
     }
 
