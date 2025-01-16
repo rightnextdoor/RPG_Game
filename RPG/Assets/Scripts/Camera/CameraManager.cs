@@ -96,7 +96,8 @@ public class CameraManager : MonoBehaviour
 
     public void PanCameraOnContact(float panDistance, float panTime, PanDirection panDirection, bool panToStartingPos)
     {
-        panCameraCoroutine = StartCoroutine(PanCamera(panDistance, panTime, panDirection, panToStartingPos));
+        if(currentCamera.isActiveAndEnabled)
+            panCameraCoroutine = StartCoroutine(PanCamera(panDistance, panTime, panDirection, panToStartingPos));
     }
 
     private IEnumerator PanCamera(float panDistance, float panTime, PanDirection panDirection, bool panToStartingPos)

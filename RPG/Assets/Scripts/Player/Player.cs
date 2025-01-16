@@ -25,6 +25,8 @@ public class Player : Entity
     [Header("Camer Stuff")]
     private float fallSpeedYDampingChangeThreshold;
 
+    [HideInInspector] public bool canWallSlide;
+
     public float dashDir {  get; private set; }
 
     public SkillManager skill {  get; private set; }
@@ -93,6 +95,8 @@ public class Player : Entity
         defaultDashSpeed = dashSpeed;
 
         fallSpeedYDampingChangeThreshold = CameraManager.instance.fallSpeedYDampingChangeThreshold;
+
+        canWallSlide = true;
     }
 
     protected override void Update()

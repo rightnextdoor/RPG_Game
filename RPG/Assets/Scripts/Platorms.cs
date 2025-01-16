@@ -38,11 +38,13 @@ public class Platorms : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        PlayerManager.instance.player.canWallSlide = false;
         SetPlayerOnPlatform(collision, true);  
     }
 
     private void OnCollisionExit2D(Collision2D collision)
     {
+        PlayerManager.instance.player.canWallSlide = true;
         SetPlayerOnPlatform(collision, true);
     }
 }
