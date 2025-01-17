@@ -217,6 +217,15 @@ public class AudioManager : MonoBehaviour
 
         s.source.Play();
         isPlaying = true;
+        StartCoroutine(PlayNextSong(s));
+    }
+
+    private IEnumerator PlayNextSong(BGM_Random song)
+    {
+        yield return new WaitForSeconds(song.clip.length);
+        song.source.Stop();
+        RemoveBGMFromList(song.clip);
+        isPlaying = false;
     }
 
 
@@ -236,13 +245,11 @@ public class AudioManager : MonoBehaviour
             s.source.Stop();
         }
         isPlaying = false;
-
-        RemoveBGMFromList(name);
     }
 
-    private void RemoveBGMFromList(string name)
+    private void RemoveBGMFromList(AudioClip clip)
     {
-        if (name != null)
+        if (clip != null)
         {
             if (bgmChange.Length == 1)
             {
@@ -255,7 +262,7 @@ public class AudioManager : MonoBehaviour
             int count = 0;
             for (int i = 0; i < bgmChange.Length; i++)
             {
-                if (bgmChange[i].name != name)
+                if (bgmChange[i].clip != clip)
                 {
                     _bgmList[count] = bgmChange[i];
                     count++;
