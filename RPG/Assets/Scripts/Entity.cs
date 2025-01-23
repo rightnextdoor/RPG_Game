@@ -75,7 +75,7 @@ public class Entity : MonoBehaviour
 
     public bool CanMove() { return canMove; }
 
-    public void PlayerCanMove()
+    public void ReturnPlayerMove()
     {
         rb.constraints = defautConstraints;
     }

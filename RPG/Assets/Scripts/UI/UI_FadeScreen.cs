@@ -58,7 +58,7 @@ public class UI_FadeScreen : MonoBehaviour
 
     private IEnumerator FadeIn()
     {
-        float t = 1.8f;
+        float t = 1.2f;
 
         while (t > 0f)
         {

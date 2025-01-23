@@ -39,7 +39,7 @@ public class Spike_Controller : MonoBehaviour
     private IEnumerator RespawnPlayer()
     {
         yield return new WaitForSeconds(.1f);
-        player.PlayerCanMove();
+        player.ReturnPlayerMove();
         player.transform.position = spawnPoint.position;
     }
 }
