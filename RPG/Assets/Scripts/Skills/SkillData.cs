@@ -16,7 +16,8 @@ public enum SkillType
     Dash,
     Dodge,
     Parry,
-    Sword
+    Sword,
+    Jump
 }
 
 [CreateAssetMenu(fileName = "New Skill Data", menuName = "Data/Skills")]

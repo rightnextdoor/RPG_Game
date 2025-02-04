@@ -22,6 +22,7 @@ public class Player : Entity
     private float defaultDashSpeed;
     public bool canDash;
 
+    [HideInInspector] public bool canDoubleJump;
 
     [Header("Camer Stuff")]
     private float fallSpeedYDampingChangeThreshold;
@@ -187,7 +188,7 @@ public class Player : Entity
 
         if (skill.dash.dashUnlocked == false)
             return;
-        Debug.Log("can dash " + canDash);
+
         if (!IsGroundDetected())
         {
             if (!canDash)

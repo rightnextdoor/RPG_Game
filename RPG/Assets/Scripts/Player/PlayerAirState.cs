@@ -22,6 +22,16 @@ public class PlayerAirState : PlayerState
     {
         base.Update();
 
+        if (Input.GetKeyDown(KeyCode.Space) && player.skill.doubleJump.doubleJumpUnlocked)
+        {
+            if (player.skill.doubleJump.CanUseSkill())
+            {
+                stateMachine.ChangeState(player.jumpState);
+                player.canDoubleJump = false;
+            }
+            
+        }
+
         if (player.IsWallDetected() && player.canWallSlide)
         {
             if (xInput != 0 && player.facingDir == xInput)
@@ -33,5 +43,7 @@ public class PlayerAirState : PlayerState
 
         if (xInput != 0)
             player.SetVelocity(player.moveSpeed * .8f * xInput, rb.velocity.y);
+
+        
     }
 }

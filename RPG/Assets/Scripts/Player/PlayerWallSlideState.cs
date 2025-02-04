@@ -12,6 +12,7 @@ public class PlayerWallSlideState : PlayerState
     {
         base.Enter();
         player.canDash = true;
+        player.canDoubleJump = true;
     }
 
     public override void Exit()

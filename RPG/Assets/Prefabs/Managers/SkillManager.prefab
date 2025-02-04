@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 5746109508374502757}
   - component: {fileID: 8498113508483255438}
   - component: {fileID: 4275397207395508769}
+  - component: {fileID: 5481014397436724877}
   m_Layer: 0
   m_Name: SkillManager
   m_TagString: Untagged
@@ -32,7 +33,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 826508743716226413}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -997.3763, y: -503.8101, z: -5.612248}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -67,6 +68,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2439f01440fc13942884bea072033262, type: 2}
   - {fileID: 11400000, guid: cbfe86e158b19a04b90c343db9145351, type: 2}
   - {fileID: 11400000, guid: f7708d13e8f36ad4398e31e6f6ca1e53, type: 2}
+  - {fileID: 11400000, guid: c9fd78f0a7645ec49ac2400f27f0c608, type: 2}
   - {fileID: 11400000, guid: 267f6ca9e32163642910eddd40bfa521, type: 2}
   - {fileID: 11400000, guid: c54d0920f4312f344b24d44aa60183d3, type: 2}
   - {fileID: 11400000, guid: 54346a49003ef634f8e1b882eb51af4c, type: 2}
@@ -235,3 +237,17 @@ MonoBehaviour:
   evasionAmount: 10
   dodgeUnlocked: 0
   dodgeMirageUnlocked: 0
+--- !u!114 &5481014397436724877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 826508743716226413}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1497449e64c608145b595317b90660e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cooldown: 0
+  cooldownTimer: 0

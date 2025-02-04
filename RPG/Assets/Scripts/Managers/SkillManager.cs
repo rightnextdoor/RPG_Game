@@ -19,6 +19,7 @@ public class SkillManager : MonoBehaviour, ISaveManager
     public Crystal_Skill crystal { get; private set; }
     public Parry_Skill parry { get; private set; }
     public Dodge_Skill dodge { get; private set; }
+    public DoubleJump_Skill doubleJump { get; private set; }
 
     private void Awake()
     {
@@ -37,6 +38,7 @@ public class SkillManager : MonoBehaviour, ISaveManager
         crystal = GetComponent<Crystal_Skill>();
         parry = GetComponent<Parry_Skill>(); 
         dodge = GetComponent<Dodge_Skill>();
+        doubleJump = GetComponent<DoubleJump_Skill>(); 
 
         Invoke("CheckUnlocks", .2f);
     }
@@ -50,8 +52,9 @@ public class SkillManager : MonoBehaviour, ISaveManager
         List<SkillData> crystalData = new List<SkillData>();
         List<SkillData> parryData = new List<SkillData>();
         List<SkillData> dodgeData = new List<SkillData>();
+        List<SkillData> jumpData = new List<SkillData>();
         
-        SetupList(swordData, dashData, cloneData, blackholeData, crystalData, parryData, dodgeData);
+        SetupList(swordData, dashData, cloneData, blackholeData, crystalData, parryData, dodgeData, jumpData);
 
         dash.CheckUnlock(dashData);
         clone.CheckUnlock(cloneData);
@@ -60,9 +63,11 @@ public class SkillManager : MonoBehaviour, ISaveManager
         crystal.CheckUnlock(crystalData);
         parry.CheckUnlock(parryData);
         dodge.CheckUnlock(dodgeData);
+        doubleJump.CheckUnlock(jumpData);
+        
     }
 
-    private void SetupList(List<SkillData> swordData, List<SkillData> dashData, List<SkillData> cloneData, List<SkillData> blackholeData, List<SkillData> crystalData, List<SkillData> parryData, List<SkillData> dodgeData)
+    private void SetupList(List<SkillData> swordData, List<SkillData> dashData, List<SkillData> cloneData, List<SkillData> blackholeData, List<SkillData> crystalData, List<SkillData> parryData, List<SkillData> dodgeData, List<SkillData> jumpData)
     {
         foreach (SkillData skillData in skillDataBase)
         {
@@ -94,7 +99,10 @@ public class SkillManager : MonoBehaviour, ISaveManager
             {
                 dodgeData.Add(skillData);
             }
-
+            if (SkillType.Jump == skillData.skillType)
+            {
+                jumpData.Add(skillData);
+            }
         }
     }
 
