@@ -20,6 +20,7 @@ public class Player : Entity
     public float dashSpeed;
     public float dashDuration;
     private float defaultDashSpeed;
+    public bool canDash;
 
 
     [Header("Camer Stuff")]
@@ -186,9 +187,18 @@ public class Player : Entity
 
         if (skill.dash.dashUnlocked == false)
             return;
+        Debug.Log("can dash " + canDash);
+        if (!IsGroundDetected())
+        {
+            if (!canDash)
+                return;
+        }
 
         if (Input.GetKeyDown(KeyCode.LeftShift) && SkillManager.instance.dash.CanUseSkill())
         {
+            if(!IsGroundDetected())
+                canDash = false;
+
             dashDir = Input.GetAxisRaw("Horizontal");
 
             if (dashDir == 0)

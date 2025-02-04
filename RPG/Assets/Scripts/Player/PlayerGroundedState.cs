@@ -11,6 +11,8 @@ public class PlayerGroundedState : PlayerState
     public override void Enter()
     {
         base.Enter();
+        if(player.IsGroundDetected())
+            player.canDash = true;
     }
 
     public override void Exit()
