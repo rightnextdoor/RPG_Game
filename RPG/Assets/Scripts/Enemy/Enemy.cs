@@ -125,25 +125,25 @@ public class Enemy : Entity
         Transform player = PlayerManager.instance.player.transform;
         if (player.GetComponent<PlayerStats>().isDead)
             return default(RaycastHit2D);
+        
+        Vector3 direction = player.position - wallCheck.position;
 
+        RaycastHit2D playerDetected = Physics2D.Raycast(wallCheck.position, direction, playerDistance, whatIsPlayer);
+        RaycastHit2D wallDetected = Physics2D.Raycast(wallCheck.position, direction, playerDistance, whatIsGround);
 
-        RaycastHit2D playerDetected = Physics2D.Raycast(wallCheck.position, Vector2.right * facingDir, playerDistance, whatIsPlayer);
-        RaycastHit2D playerBack = Physics2D.Raycast(wallCheck.position, Vector2.right * -facingDir, playerDistance, whatIsPlayer);
-        RaycastHit2D wallDetected = Physics2D.Raycast(wallCheck.position, Vector2.right * facingDir, playerDistance, whatIsGround);
-
-        if (playerBack)
-        {
-            Flip();
-            return playerBack;
-        }
 
         if (wallDetected)
         {
-            if(wallDetected.distance < playerDetected.distance)
+            if (wallDetected.distance < playerDetected.distance)
+            {
+                Debug.DrawRay(wallCheck.position, direction, Color.red);
                 return default(RaycastHit2D);
+            }
         }
+        Debug.DrawRay(wallCheck.position, direction, Color.green);
         return playerDetected;
     }
+
     protected override void OnDrawGizmos()
     {
         base.OnDrawGizmos();

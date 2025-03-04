@@ -74,7 +74,8 @@ public class Enemy_Archer : Enemy_Regular
     public override void AnimationSpecialAttackTrigger()
     {
         GameObject newArrow = Instantiate(arrowPrefab, attackCheck.position,Quaternion.identity);
-        newArrow.GetComponent<Arrow_Controller>().SetupArrow(arrowSpeed * facingDir, stats);
+        Transform player = PlayerManager.instance.player.transform;
+        newArrow.GetComponent<Arrow_Controller>().SetupArrow(arrowSpeed * facingDir, stats, player.position);
         AudioManager.instance.PlaySFX("ArcherAttack", transform);
     }
 

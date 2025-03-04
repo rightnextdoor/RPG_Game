@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Arrow_Controller : MonoBehaviour
@@ -7,26 +8,36 @@ public class Arrow_Controller : MonoBehaviour
     [SerializeField] private int damage;
     [SerializeField] private string targetLayerName = "Player";
 
-    [SerializeField] private float xVelocity;
+    [SerializeField] private Vector3 xVelocity;
     [SerializeField] private Rigidbody2D rb;
 
     [SerializeField] private bool canMove = true;
     [SerializeField] private bool flipped;
+    Vector3 direction;
 
     private CharacterStats myStats;
 
     private void Update()
     {
-        if(canMove)
-            rb.velocity = new Vector2(xVelocity, rb.velocity.y);
+        if (canMove)
+            rb.velocity = xVelocity;
     }
 
-    public void SetupArrow(float _speed, CharacterStats _myStats)
+    public void SetupArrow(float _speed, CharacterStats _myStats, Vector3 _playerPos)
     {
-        xVelocity = _speed;
         myStats = _myStats;
-        if(xVelocity < 0)
-            transform.Rotate(0, 180, 0);
+        direction = (_playerPos - transform.position).normalized;
+
+        if (_playerPos.x < transform.position.x)
+        {
+            xVelocity = direction * _speed * -1;
+        }
+        else
+        {
+            xVelocity = direction * _speed * 1;
+        }
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0,0,angle);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -63,7 +74,8 @@ public class Arrow_Controller : MonoBehaviour
         if (flipped)
             return;
 
-        xVelocity = xVelocity * -1;
+        xVelocity.x = xVelocity.x * -1;
+        xVelocity.y = xVelocity.y * -1;
         flipped = true;
         transform.Rotate(0, 180, 0);
         targetLayerName = "Enemy";
