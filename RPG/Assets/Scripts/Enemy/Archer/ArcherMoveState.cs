@@ -25,9 +25,10 @@ public class ArcherMoveState : ArcherGroundedState
 
         enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, rb.velocity.y);
 
+
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {
-            enemy.Flip();
+
             stateMachine.ChangeState(enemy.idleState);
         }
 

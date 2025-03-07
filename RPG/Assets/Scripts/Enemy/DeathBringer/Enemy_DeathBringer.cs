@@ -35,7 +35,7 @@ public class Enemy_DeathBringer : Enemy_Boss
         SetupDefaultFacingDir(-1);
 
         idleState = new DeathBringerIdleState(this, stateMachine, "Idle", this);
-        battleState = new DeathBringerBattleState(this, stateMachine, "Move", this);
+        battleState = new DeathBringerBattleState(this, stateMachine, "Battle", this);
         attackState = new DeathBringerAttackState(this, stateMachine, "Attack", this);
         deadState = new DeathBringerDeadState(this, stateMachine, "Die", this);
         teleportState = new DeathBringerTeleportState(this, stateMachine, "Teleport", this);

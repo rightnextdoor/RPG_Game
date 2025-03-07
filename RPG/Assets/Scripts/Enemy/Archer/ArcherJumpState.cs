@@ -5,6 +5,7 @@ using UnityEngine;
 public class ArcherJumpState : EnemyState
 {
     private Enemy_Archer enemy;
+    private float fallTimer = 1f;
     public ArcherJumpState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Archer enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;        
@@ -16,6 +17,7 @@ public class ArcherJumpState : EnemyState
 
         AudioManager.instance.PlaySFX("ArcherJump", enemy.transform);
         rb.velocity = new Vector2(enemy.jumpVelocity.x * -enemy.facingDir, enemy.jumpVelocity.y);
+        stateTimer = fallTimer;
     }
 
     public override void Exit()
@@ -31,5 +33,10 @@ public class ArcherJumpState : EnemyState
 
         if(rb.velocity.y < 0 && enemy.IsGroundDetected())
             stateMachine.ChangeState(enemy.battleState);
+
+        if (stateTimer < 0f)
+        {
+            stateMachine.ChangeState(enemy.battleState);
+        }
     }
 }

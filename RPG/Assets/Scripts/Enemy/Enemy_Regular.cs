@@ -32,8 +32,8 @@ public class Enemy_Regular : Enemy
     public override void Die()
     {
         base.Die();
-
-        enemyData.isDead = true;
+        if(enemyData != null ) 
+            enemyData.isDead = true;
 
         Destroy(gameObject, 2f);
     }
@@ -47,6 +47,9 @@ public class Enemy_Regular : Enemy
 
     protected virtual void CheckIfEnemyisDead()
     {
+        if (enemyData == null)
+            return;
+
         if (enemyData.isDead)
         {
             Destroy(gameObject);
@@ -80,7 +83,8 @@ public class Enemy_Regular : Enemy
     public void SummonEnemy(bool _isSummon)
     {
         isSummon = _isSummon;
-        enemyData.canBeSummon = _isSummon;
+        if(enemyData != null)
+            enemyData.canBeSummon = _isSummon;
     }
 
 }

@@ -2,17 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Black_KnightEvasionState : EnemyState
+public class SlimeEvasionState : EnemyState
 {
-    private Enemy_Black_Knight enemy;
+    private Enemy_Slime enemy;
     private Transform player;
     private int moveDir;
-
-    public Black_KnightEvasionState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Black_Knight enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+    public SlimeEvasionState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Slime enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
     }
-
     public override void Enter()
     {
         base.Enter();
@@ -21,14 +19,14 @@ public class Black_KnightEvasionState : EnemyState
 
         if (player.position.x > enemy.transform.position.x)
         {
-            moveDir = -1;
+            moveDir = 1;
         }
         else if (player.position.x < enemy.transform.position.x)
         {
-            moveDir = 1;
+            moveDir = -1;
         }
 
-        if (enemy.IsBackWallDetected() || !enemy.IsBackGroundDetected())
+        if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
             moveDir = -moveDir;
     }
 
@@ -45,7 +43,7 @@ public class Black_KnightEvasionState : EnemyState
         {
             enemy.SetZeroVelocity();
             enemy.Flip();
-            stateMachine.ChangeState(enemy.laughState);
+            stateMachine.ChangeState(enemy.battleState);
             return;
         }
 
@@ -54,7 +52,7 @@ public class Black_KnightEvasionState : EnemyState
         if (stateTimer < 0)
         {
             enemy.Flip();
-            stateMachine.ChangeState(enemy.laughState);
+            stateMachine.ChangeState(enemy.battleState);
         }
     }
 }

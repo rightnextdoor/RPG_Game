@@ -21,6 +21,7 @@ public class DeathBringerStartState : EnemyState
     public override void Exit()
     {
         base.Exit();
+        enemy.lastTimeCast = Time.time;
     }
 
     public override void Update()

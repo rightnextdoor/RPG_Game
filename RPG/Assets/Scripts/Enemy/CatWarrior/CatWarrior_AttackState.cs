@@ -18,8 +18,6 @@ public class CatWarrior_AttackState : EnemyState
     public override void Exit()
     {
         base.Exit();
-
-        enemy.lastTimeAttacked = Time.time;
     }
 
     public override void Update()

@@ -6,9 +6,7 @@ using static UnityEngine.RuleTile.TilingRuleOutput;
 public class SlugMoveState : EnemyState
 {
     private Enemy_Slug enemy;
-    private float hitTimer = 0;
     private int wavePointIndex = 0;
-    private float dist;
     
     public SlugMoveState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Slug enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
@@ -19,7 +17,6 @@ public class SlugMoveState : EnemyState
     {
         base.Enter();
         stateTimer = enemy.moveTime;
-        enemy.target = enemy.waypoints[0];
     }
 
     public override void Exit()
@@ -30,10 +27,12 @@ public class SlugMoveState : EnemyState
     public override void Update()
     {
         base.Update();
-        hitTimer -= Time.deltaTime;
+
+        if (stateTimer < 0f)
+            enemy.RunIntoPlayerAttack(enemy.moveState);
+
         Vector3 dir = enemy.target.position - enemy.transform.position;
         enemy.transform.Translate(dir.normalized * enemy.moveSpeed * Time.deltaTime, Space.World);
-        dist = Vector2.Distance(enemy.transform.position, enemy.target.transform.position);
 
         if (Vector3.Distance(enemy.transform.position, enemy.target.position) <= 0.48f)
             {      
@@ -41,8 +40,6 @@ public class SlugMoveState : EnemyState
             if(enemy.canFlip)
                 enemy.Flip();
         }
-
-        Attack();
 
     }
 
@@ -68,25 +65,5 @@ public class SlugMoveState : EnemyState
         Vector3 currRot = enemy.transform.eulerAngles;
         currRot.z += enemy.waypoints[wavePointIndex].transform.eulerAngles.z;
         enemy.transform.eulerAngles = currRot;
-    }
-
-    private void Attack()
-    {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(enemy.attackCheck.position, enemy.attackCheckRadius);
-
-        foreach (var hit in colliders)
-        {
-            if (hit.GetComponent<Player>() != null)
-            {
-                PlayerStats target = hit.GetComponent<PlayerStats>();
-                if (hitTimer < 0f)
-                {
-                    enemy.stats.DoDamage(target);
-                    //ToDo: knock the player back when hit
-                    hitTimer = enemy.hitTimer;
-                }
-                
-            }
-        }
     }
 }

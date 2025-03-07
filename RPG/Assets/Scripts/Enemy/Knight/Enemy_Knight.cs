@@ -22,6 +22,7 @@ public class Enemy_Knight : Enemy_Regular
     public KnightAttackState attackState { get; private set; }
     public KnightStunnedState stunnedState { get; private set; }
     public KnightDeadState deadState { get; private set; }
+    public KnightEvasionState evasionState { get; private set; }
     public KnightBlockState blockState { get; private set; }
     #endregion
 
@@ -35,6 +36,7 @@ public class Enemy_Knight : Enemy_Regular
         attackState = new KnightAttackState(this, stateMachine, "Attack", this);
         stunnedState = new KnightStunnedState(this, stateMachine, "Stunned", this);
         deadState = new KnightDeadState(this, stateMachine, "Die", this);
+        evasionState = new KnightEvasionState(this, stateMachine, "Move", this);
         blockState = new KnightBlockState(this, stateMachine, "Block", this);
     }
 

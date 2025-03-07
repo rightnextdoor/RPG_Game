@@ -11,6 +11,7 @@ public class Enemy_Jumper : Enemy_Regular
     public Vector2 jumpVelocity;
     public float jumpCooldown;
     public float safeDistance;
+    public float fallTimer = .5f;
     [HideInInspector] public float lastTimeJumped;
 
     [Header("Additional collision check")]

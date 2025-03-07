@@ -17,6 +17,7 @@ public class JumperIdleState : EnemyState
 
         stateTimer = enemy.idleTime;
         player = PlayerManager.instance.player.transform;
+        enemy.SetZeroVelocity();
     }
 
     public override void Exit()
@@ -31,31 +32,21 @@ public class JumperIdleState : EnemyState
 
         enemy.Attack();
 
-        if (enemy.IsPlayerDetected() && !enemy.IsGroundDetected() || enemy.IsWallDetected())
+        if (enemy.IsWallDetected())
         {
-            enemy.Flip();
-            stateMachine.ChangeState(enemy.idleState);
-            return;
+            if (stateTimer < 0f)
+            {
+                enemy.Flip();
+                stateMachine.ChangeState(enemy.jumpState);
+            }
         }
-        if (CanJump())
+        if (stateTimer < 0f)
+        {
+            if (enemy.IsPlayerDetected() || Vector2.Distance(enemy.transform.position, player.transform.position) < enemy.agroDistance)
+                stateMachine.ChangeState(enemy.battleState);
+
             stateMachine.ChangeState(enemy.jumpState);
-
-        if (enemy.IsPlayerDetected() || Vector2.Distance(enemy.transform.position, player.transform.position) < enemy.agroDistance)
-            stateMachine.ChangeState(enemy.battleState);
-
+        }       
     }
 
-    private bool CanJump()
-    {
-        if (enemy.GroundBehind() == false || enemy.WallBehind() == true)
-            return false;
-
-        if (Time.time >= enemy.lastTimeJumped + enemy.jumpCooldown)
-        {
-            enemy.lastTimeJumped = Time.time;
-            return true;
-        }
-
-        return false;
-    }
 }

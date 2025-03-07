@@ -15,7 +15,6 @@ public class CatWarrior_StartState : EnemyState
         base.Enter();
 
         stateTimer = enemy.idleTime;
-
     }
 
     public override void Exit()

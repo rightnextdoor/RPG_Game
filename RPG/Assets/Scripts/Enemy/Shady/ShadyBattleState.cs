@@ -6,9 +6,6 @@ public class ShadyBattleState : EnemyState
 {
     private Enemy_Shady enemy;
     private Transform player;
-    private int moveDir;
-
-    private float defaultSpeed;
 
     public ShadyBattleState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Shady _enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
@@ -22,71 +19,71 @@ public class ShadyBattleState : EnemyState
         player = PlayerManager.instance.player.transform;
 
         if (player.GetComponent<PlayerStats>().isDead)
+        {
             stateMachine.ChangeState(enemy.moveState);
+            return;
+        }
+
+        stateTimer = enemy.battleTime;
+        enemy.BattleStateFlipControll(player);
     }
 
     public override void Exit()
     {
         base.Exit();
 
-        //enemy.moveSpeed = defaultSpeed;
     }
 
     public override void Update()
     {
         base.Update();
 
+        enemy.anim.SetFloat("xVelocity", enemy.rb.velocity.x);
+
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {
-            enemy.Flip();
-            stateMachine.ChangeState(enemy.moveState);
+            if (enemy.IsPlayerDetected())
+            {
+                PlayerDetected();
+            }
+            else
+            {
+                stateMachine.ChangeState(enemy.moveState);
+            }
             return;
         }
+
+        PlayerDetected();
+    }
+
+    private void PlayerDetected()
+    {
         if (enemy.IsPlayerDetected())
         {
             stateTimer = enemy.battleTime;
 
-            if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
-            {
-                if (CanAttack())
-                {
-                    stateMachine.ChangeState(enemy.meleeAttack);
-                    AudioManager.instance.PlaySFX("ShadyAttack", enemy.transform);
-                }
-            } else if (enemy.IsPlayerDetected().distance < enemy.specialAttackDistance && 
-                enemy.IsPlayerDetected().distance > enemy.attackDistance + 5)
-            {
-                if (CanAttack())
-                {
-                    stateMachine.ChangeState(enemy.attackState);
-                }
-            }
+            
+
+            if (enemy.IsPlayerDetected().distance <= enemy.rangeAttackDistance &&
+                enemy.IsPlayerDetected().distance > enemy.rangeAttackDistance / 2)
+                enemy.RangeAttack(player, enemy.attackState, enemy.evasionState, null);
+            else 
+            if(enemy.IsPlayerDetected().distance <= enemy.meleeAttackDistance)
+                enemy.MeleeAttack(player, enemy.meleeAttack, enemy.evasionState, "ShadyAttack", false, 0);
+            else
+                enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, rb.velocity.y);
+
+
+
         }
         else
         {
-            if (stateTimer < 0 || Vector2.Distance(player.transform.position, enemy.transform.position) > 10)
+
+            if (stateTimer < 0 || Vector2.Distance(player.transform.position, enemy.transform.position) > enemy.playerDistance)
                 stateMachine.ChangeState(enemy.idleState);
         }
 
-        if (player.position.x > enemy.transform.position.x)
-            moveDir = 1;
-        else if (player.position.x < enemy.transform.position.x)
-            moveDir = -1;
+        enemy.BattleStateFlipControll(player);
 
-        if (enemy.IsPlayerDetected() && enemy.IsPlayerDetected().distance < enemy.attackDistance - 1f)
-            return;
-
-        enemy.SetVelocity(enemy.moveSpeed * moveDir, rb.velocity.y);
-    }
-
-    private bool CanAttack()
-    {
-        if (Time.time >= enemy.lastTimeAttacked + enemy.attackCooldown)
-        {
-            enemy.attackCooldown = Random.Range(enemy.minAttackCooldown, enemy.maxAttackCooldown);
-            enemy.lastTimeAttacked = Time.time;
-            return true;
-        }
-        return false;
     }
 }

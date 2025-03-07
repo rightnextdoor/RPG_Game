@@ -2,10 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CatWarrior_IdleState : CatWarrior_GroundedState
+public class CatWarrior_IdleState : EnemyState
 {
-    public CatWarrior_IdleState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_CatWarrior enemy) : base(_enemyBase, _stateMachine, _animBoolName, enemy)
+    private Enemy_CatWarrior enemy;
+    public CatWarrior_IdleState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_CatWarrior enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
+        this.enemy = enemy;
     }
 
     public override void Enter()
@@ -13,6 +15,7 @@ public class CatWarrior_IdleState : CatWarrior_GroundedState
         base.Enter();
 
         stateTimer = enemy.idleTime;
+        enemy.SetZeroVelocity();
     }
 
     public override void Exit()
@@ -27,12 +30,13 @@ public class CatWarrior_IdleState : CatWarrior_GroundedState
         if (enemy.IsPlayerDetected() && !enemy.IsGroundDetected() || enemy.IsWallDetected())
         {
             enemy.Flip();
-            stateMachine.ChangeState(enemy.idleState);
-            return;
+            stateMachine.ChangeState(enemy.battleState);
         }
 
-        if (stateTimer < 0f)
-            stateMachine.ChangeState(enemy.moveState);
+        if (stateTimer < 0 && enemy.bossFightStart)
+        {
+            stateMachine.ChangeState(enemy.battleState);
+        }
 
     }
 }

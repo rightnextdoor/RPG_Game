@@ -71,7 +71,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -763691063
-  m_SortingLayer: 5
+  m_SortingLayer: 7
   m_SortingOrder: -10
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 0.8235294, g: 0.078431375, b: 0.078431375, a: 0.6862745}
@@ -427,7 +427,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -763691063
-  m_SortingLayer: 5
+  m_SortingLayer: 7
   m_SortingOrder: 0
   m_Sprite: {fileID: 926170719, guid: d7d21cb816b53434cb571f52793121ef, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -903,27 +903,31 @@ MonoBehaviour:
   whatIsPlayer:
     serializedVersion: 2
     m_Bits: 64
-  playerDistance: 10
-  stunDuration: 1
-  stunDirection: {x: 10, y: 12}
-  counterImage: {fileID: 556552288427255572}
+  playerDistance: 15
+  canPatrol: 1
   moveSpeed: 5
-  runSpeed: 5
   idleTime: 2
   moveTime: 2
   battleTime: 4
   agroDistance: 5
-  attackDistance: 2
-  attackCooldown: 0.4
-  minAttackCooldown: 1
-  maxAttackCooldown: 2
-  lastTimeAttacked: 0
-  blockCooldown: 0
-  minBlockCooldown: 1
-  maxBlockCooldown: 2
-  lastTimeBlock: 0
-  battleStateMoveSpeed: 6
-  specialAttackDistance: 15
+  rangeAttackDistance: 10
+  rangeAttackCooldown: 0
+  minRangeAttackCooldown: 1
+  maxRangeAttackCooldown: 2
+  lastTimeRangeAttacked: 0
+  meleeAttackDistance: 1
+  meleeAttackCooldown: 0
+  minMeleeAttackCooldown: 1
+  maxMeleeAttackCooldown: 2
+  lastTimeMeleeAttacked: 0
+  evasionTimer: 1.5
+  evasionSpeed: 10
+  evasionDistance: 0.5
+  isSummon: 0
+  enemyData: {fileID: 0}
+  stunDuration: 1
+  stunDirection: {x: 10, y: 12}
+  counterImage: {fileID: 556552288427255572}
   specialAttack: {fileID: 38657904299698884}
   specialAttackRadius: 2.5
   explosivePrefab: {fileID: 6716726427099878741, guid: bc464ad7b7b86d74b832331ef517693b, type: 3}

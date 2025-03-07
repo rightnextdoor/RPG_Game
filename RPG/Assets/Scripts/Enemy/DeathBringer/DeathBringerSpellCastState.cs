@@ -43,7 +43,11 @@ public class DeathBringerSpellCastState : EnemyState
         if (amountOfSpells <= 0)
         {
             AudioManager.instance.StopSFX("DeathBringerSpellUP");
-            stateMachine.ChangeState(enemy.teleportState);
+
+            if (enemy.CanTeleport())
+                stateMachine.ChangeState(enemy.teleportState);
+            else
+                stateMachine.ChangeState(enemy.battleState);
         }
     }
 

@@ -18,8 +18,6 @@ public class ShadyAttackState : EnemyState
     public override void Exit()
     {
         base.Exit();
-
-        enemy.lastTimeAttacked = Time.time;
     }
 
     public override void Update()

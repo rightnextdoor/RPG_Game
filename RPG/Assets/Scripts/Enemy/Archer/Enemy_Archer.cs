@@ -25,6 +25,7 @@ public class Enemy_Archer : Enemy_Regular
     public ArcherStunnedState stunnedState { get; private set; }
     public ArcherDeadState deadState { get; private set; }
     public ArcherJumpState jumpState { get; private set; }
+    public ArcherEvasionState evasionState { get; private set; }
 
     #endregion
 
@@ -34,11 +35,12 @@ public class Enemy_Archer : Enemy_Regular
 
         idleState = new ArcherIdleState(this, stateMachine, "Idle", this);
         moveState = new ArcherMoveState(this, stateMachine, "Move", this);
-        battleState = new ArcherBattleState(this, stateMachine, "Idle", this);
+        battleState = new ArcherBattleState(this, stateMachine, "Battle", this);
         attackState = new ArcherAttackState(this, stateMachine, "Attack", this);
         stunnedState = new ArcherStunnedState(this, stateMachine, "Stunned", this);
         deadState = new ArcherDeadState(this, stateMachine, "Die", this);
         jumpState = new ArcherJumpState(this, stateMachine, "Jump", this);
+        evasionState = new ArcherEvasionState(this, stateMachine, "Move", this);
     }
 
     protected override void Start()

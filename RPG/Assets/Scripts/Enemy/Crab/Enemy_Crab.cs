@@ -7,7 +7,6 @@ public class Enemy_Crab : Enemy_Regular
     [Header("Crab info")]
     public float hitTimer = 1f;
     #region States
-    public CrabIdleState idleState { get; private set; }
     public CrabMoveState moveState { get; private set; }
     public CrabDeadState deadState { get; private set; }
     #endregion
@@ -15,7 +14,6 @@ public class Enemy_Crab : Enemy_Regular
     protected override void Awake()
     {
         base.Awake();
-        idleState = new CrabIdleState(this, stateMachine, "Idle", this);
         moveState = new CrabMoveState(this, stateMachine, "Move", this);
         deadState = new CrabDeadState(this, stateMachine, "Idle", this);
     }
@@ -28,7 +26,7 @@ public class Enemy_Crab : Enemy_Regular
     protected override void Start()
     {
         base.Start();
-        stateMachine.Initialize(idleState);
+        stateMachine.Initialize(moveState);
     }
 
     public override void Die()

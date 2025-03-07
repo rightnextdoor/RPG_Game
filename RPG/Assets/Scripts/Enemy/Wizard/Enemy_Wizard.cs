@@ -60,7 +60,6 @@ public class Enemy_Wizard : Enemy_Boss
     public Wizard_AttackState attackState { get; private set; }
     public Wizard_DeadState deadState { get; private set; }
     public Wizard_StartState startState { get; private set; }
-    public Wizard_MoveState moveState { get; private set; }
     public Wizard_TeleportState teleportState { get; private set; }
     public Wizard_SpellState spellState { get; private set; }
     public Wizard_AirWalkState airWalkState { get; private set; }
@@ -79,7 +78,6 @@ public class Enemy_Wizard : Enemy_Boss
         attackState = new Wizard_AttackState(this, stateMachine, "Attack", this);
         deadState = new Wizard_DeadState(this, stateMachine, "Die", this);
         startState = new Wizard_StartState(this, stateMachine, "Idle", this);
-        moveState = new Wizard_MoveState(this, stateMachine, "Move", this);
         teleportState = new Wizard_TeleportState(this, stateMachine, "Teleport", this);
         spellState = new Wizard_SpellState(this, stateMachine, "Idle", this);
         airWalkState = new Wizard_AirWalkState(this, stateMachine, "AirWalk", this);

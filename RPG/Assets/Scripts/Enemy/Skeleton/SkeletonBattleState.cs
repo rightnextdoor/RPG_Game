@@ -6,9 +6,6 @@ public class SkeletonBattleState : EnemyState
 {
     private Enemy_Skeleton enemy;
     private Transform player;
-    private int moveDir;
-
-    private bool flippedOnce;
 
     public SkeletonBattleState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Skeleton _enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
@@ -20,11 +17,14 @@ public class SkeletonBattleState : EnemyState
         base.Enter();
         player = PlayerManager.instance.player.transform;
 
-        if(player.GetComponent<PlayerStats>().isDead)
+        if (player.GetComponent<PlayerStats>().isDead)
+        {
             stateMachine.ChangeState(enemy.moveState);
-        
+            return;
+        }
+
         stateTimer = enemy.battleTime;
-        flippedOnce = false;
+        enemy.BattleStateFlipControll(player);
     }
 
     public override void Exit()
@@ -40,58 +40,37 @@ public class SkeletonBattleState : EnemyState
 
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {
-            enemy.Flip();
-            stateMachine.ChangeState(enemy.moveState);
+            if (enemy.IsPlayerDetected())
+            {
+                PlayerDetected();
+            }
+            else
+            {
+                stateMachine.ChangeState(enemy.moveState);
+            }
             return;
         }
 
+        PlayerDetected();
+    }
+
+    private void PlayerDetected()
+    {
         if (enemy.IsPlayerDetected())
         {
             stateTimer = enemy.battleTime;
-            if(enemy.IsPlayerDetected().distance < enemy.attackDistance) 
-            {
-                if (CanAttack())
-                {
-                    stateMachine.ChangeState(enemy.attackState);
-                    AudioManager.instance.PlaySFX("SkeletonAttack", enemy.transform);
-                }
-            }
+
+            enemy.MeleeAttack(player, enemy.attackState, enemy.evasionState, "SkeletonAttack", false, 0);
         }
         else
         {
-            if (flippedOnce == false)
-            {
-                flippedOnce = true;
-                enemy.Flip();
-            }
 
-            if(stateTimer < 0 || Vector2.Distance(player.transform.position, enemy.transform.position) > 7)
-                stateMachine.ChangeState(enemy.idleState); 
+            if (stateTimer < 0 || Vector2.Distance(player.transform.position, enemy.transform.position) > enemy.playerDistance)
+                stateMachine.ChangeState(enemy.idleState);
         }
 
-        //float distanceToPlayerX = Mathf.Abs(player.position.x - enemy.transform.position.x);
-        //if(distanceToPlayerX < 1f)
-        //    return;  
+        enemy.BattleStateFlipControll(player);
 
-        if (player.position.x > enemy.transform.position.x) 
-            moveDir = 1;
-        else if (player.position.x < enemy.transform.position.x)
-            moveDir = -1;
-
-        if (enemy.IsPlayerDetected() && enemy.IsPlayerDetected().distance < enemy.attackDistance - .8f)
-            return;
-
-        enemy.SetVelocity(enemy.moveSpeed * moveDir, rb.velocity.y);
     }
 
-    private bool CanAttack()
-    {
-        if(Time.time >= enemy.lastTimeAttacked + enemy.attackCooldown)
-        {
-            enemy.attackCooldown = Random.Range(enemy.minAttackCooldown, enemy.maxAttackCooldown);
-            enemy.lastTimeAttacked = Time.time;
-            return true;
-        }
-        return false;
-    }
 }

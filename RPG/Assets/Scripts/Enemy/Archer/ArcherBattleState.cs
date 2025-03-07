@@ -6,7 +6,6 @@ public class ArcherBattleState : EnemyState
 {
     private Enemy_Archer enemy;
     private Transform player;
-    private int moveDir;
 
     public ArcherBattleState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Archer _enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
@@ -19,7 +18,13 @@ public class ArcherBattleState : EnemyState
         player = PlayerManager.instance.player.transform;
 
         if (player.GetComponent<PlayerStats>().isDead)
+        {
             stateMachine.ChangeState(enemy.moveState);
+            return;
+        }
+
+        stateTimer = enemy.battleTime;
+        enemy.BattleStateFlipControll(player);
     }
 
     public override void Exit()
@@ -31,16 +36,31 @@ public class ArcherBattleState : EnemyState
     {
         base.Update();
 
+        enemy.anim.SetFloat("xVelocity", enemy.rb.velocity.x);
+
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {
-            enemy.Flip();
-            stateMachine.ChangeState(enemy.moveState);
+            if (enemy.IsPlayerDetected())
+            {
+                PlayerDetected();
+            }
+            else
+            {
+                stateMachine.ChangeState(enemy.moveState);
+            }
             return;
         }
 
+        PlayerDetected();
+
+    }
+
+    private void PlayerDetected()
+    {
         if (enemy.IsPlayerDetected())
         {
             stateTimer = enemy.battleTime;
+            enemy.RangeAttack(player, enemy.attackState, enemy.evasionState, null);
 
             if (enemy.IsPlayerDetected().distance < enemy.safeDistance)
             {
@@ -48,39 +68,14 @@ public class ArcherBattleState : EnemyState
                     stateMachine.ChangeState(enemy.jumpState);
             }
 
-            if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
-            {
-                if (CanAttack())
-                    stateMachine.ChangeState(enemy.attackState);
-            }
         }
         else
         {
-            if (stateTimer < 0 || Vector2.Distance(player.transform.position, enemy.transform.position) > 10)
+            if (stateTimer < 0 || Vector2.Distance(player.transform.position, enemy.transform.position) > enemy.playerDistance)
                 stateMachine.ChangeState(enemy.idleState);
         }
 
-        BattleStateFlipControll();
-
-    }
-
-    private void BattleStateFlipControll()
-    {
-        if (player.position.x > enemy.transform.position.x && enemy.facingDir == -1)
-            enemy.Flip();
-        else if (player.position.x < enemy.transform.position.x && enemy.facingDir == 1)
-            enemy.Flip();
-    }
-
-    private bool CanAttack()
-    {
-        if (Time.time >= enemy.lastTimeAttacked + enemy.attackCooldown)
-        {
-            enemy.attackCooldown = Random.Range(enemy.minAttackCooldown, enemy.maxAttackCooldown);
-            enemy.lastTimeAttacked = Time.time;
-            return true;
-        }
-        return false;
+        enemy.BattleStateFlipControll(player);
     }
 
     private bool CanJump()

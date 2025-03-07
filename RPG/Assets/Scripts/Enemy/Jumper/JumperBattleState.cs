@@ -18,7 +18,13 @@ public class JumperBattleState : EnemyState
         player = PlayerManager.instance.player.transform;
 
         if (player.GetComponent<PlayerStats>().isDead)
+        {
             stateMachine.ChangeState(enemy.idleState);
+            return;
+        }
+
+        stateTimer = enemy.battleTime;
+        enemy.BattleStateFlipControll(player);
     }
 
     public override void Exit()
@@ -32,13 +38,12 @@ public class JumperBattleState : EnemyState
 
         enemy.Attack();
 
-        if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
-        {
-            enemy.Flip();
-            stateMachine.ChangeState(enemy.idleState);
-            return;
-        }
+        PlayerDetected();
+        
+    }
 
+    private void PlayerDetected()
+    {
         if (enemy.IsPlayerDetected())
         {
             stateTimer = enemy.battleTime;
@@ -47,11 +52,10 @@ public class JumperBattleState : EnemyState
                 stateMachine.ChangeState(enemy.jumpState);
                 AudioManager.instance.PlaySFX("JumperJump", enemy.transform);
             }
-            
         }
         else
         {
-            if (stateTimer < 0 || Vector2.Distance(player.transform.position, enemy.transform.position) > 10)
+            if (stateTimer < 0 || Vector2.Distance(player.transform.position, enemy.transform.position) > enemy.playerDistance)
                 stateMachine.ChangeState(enemy.idleState);
         }
     }
@@ -61,9 +65,9 @@ public class JumperBattleState : EnemyState
         if (enemy.GroundBehind() == false || enemy.WallBehind() == true)
             return false;
 
-        if (Time.time >= enemy.lastTimeJumped + enemy.attackCooldown)
+        if (Time.time >= enemy.lastTimeJumped + enemy.rangeAttackCooldown)
         {
-            enemy.attackCooldown = Random.Range(enemy.minAttackCooldown, enemy.maxAttackCooldown);
+            enemy.rangeAttackCooldown = Random.Range(enemy.minRangeAttackCooldown, enemy.maxRangeAttackCooldown);
             enemy.lastTimeJumped = Time.time;
             return true;
         }

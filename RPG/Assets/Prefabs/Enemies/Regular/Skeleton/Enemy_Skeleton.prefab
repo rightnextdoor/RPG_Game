@@ -387,17 +387,26 @@ MonoBehaviour:
   whatIsPlayer:
     serializedVersion: 2
     m_Bits: 64
-  playerDistance: 5
+  playerDistance: 10
+  canPatrol: 1
   moveSpeed: 2.5
   idleTime: 6
   moveTime: 5
   battleTime: 4
   agroDistance: 2
-  attackDistance: 2
-  attackCooldown: 0.4
-  minAttackCooldown: 0.35
-  maxAttackCooldown: 0.55
-  lastTimeAttacked: 0
+  rangeAttackDistance: 0
+  rangeAttackCooldown: 0
+  minRangeAttackCooldown: 1
+  maxRangeAttackCooldown: 2
+  lastTimeRangeAttacked: 0
+  meleeAttackDistance: 2.2
+  meleeAttackCooldown: 0
+  minMeleeAttackCooldown: 1
+  maxMeleeAttackCooldown: 2
+  lastTimeMeleeAttacked: 0
+  evasionTimer: 1.5
+  evasionSpeed: 10
+  evasionDistance: 0.5
   isSummon: 0
   enemyData: {fileID: 0}
   stunDuration: 1
@@ -638,7 +647,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -763691063
-  m_SortingLayer: 5
+  m_SortingLayer: 7
   m_SortingOrder: -10
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
   m_Color: {r: 0.82210237, g: 0.078664735, b: 0.078664735, a: 0.6862745}
@@ -906,7 +915,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -763691063
-  m_SortingLayer: 5
+  m_SortingLayer: 7
   m_SortingOrder: 0
   m_Sprite: {fileID: -85727878, guid: 687df074731fbf744b668d2275dbb675, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -5748,7 +5757,7 @@ ParticleSystemRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1506869901
-  m_SortingLayer: 7
+  m_SortingLayer: 9
   m_SortingOrder: 0
   m_RenderMode: 0
   m_MeshDistribution: 0
@@ -10578,7 +10587,7 @@ ParticleSystemRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1506869901
-  m_SortingLayer: 7
+  m_SortingLayer: 9
   m_SortingOrder: 0
   m_RenderMode: 0
   m_MeshDistribution: 0
@@ -15408,7 +15417,7 @@ ParticleSystemRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1506869901
-  m_SortingLayer: 7
+  m_SortingLayer: 9
   m_SortingOrder: 0
   m_RenderMode: 0
   m_MeshDistribution: 0

@@ -13,6 +13,7 @@ public class ArcherIdleState : ArcherGroundedState
         base.Enter();
 
         stateTimer = enemy.idleTime;
+        enemy.SetZeroVelocity();
     }
 
     public override void Exit()
@@ -25,15 +26,19 @@ public class ArcherIdleState : ArcherGroundedState
     {
         base.Update();
 
-        if (enemy.IsPlayerDetected() && !enemy.IsGroundDetected() || enemy.IsWallDetected())
+        if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {
-            enemy.Flip();
-            stateMachine.ChangeState(enemy.idleState);
-            return;
+            if (stateTimer < 0f)
+            {              
+                if (enemy.canPatrol)
+                {
+                    enemy.Flip();
+                    stateMachine.ChangeState(enemy.moveState);
+                }
+            }
         }
 
-        if (stateTimer < 0f)
+        if (stateTimer < 0f && enemy.canPatrol)
             stateMachine.ChangeState(enemy.moveState);
-
     }
 }

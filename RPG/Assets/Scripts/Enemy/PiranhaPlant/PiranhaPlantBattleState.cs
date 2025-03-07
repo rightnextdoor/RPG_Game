@@ -17,9 +17,13 @@ public class PiranhaPlantBattleState : EnemyState
         player = PlayerManager.instance.player.transform;
 
         if (player.GetComponent<PlayerStats>().isDead)
+        {
             stateMachine.ChangeState(enemy.idleState);
+            return;
+        }
 
         stateTimer = enemy.battleTime;
+        enemy.BattleStateFlipControll(player);
     }
 
     public override void Exit()
@@ -34,7 +38,7 @@ public class PiranhaPlantBattleState : EnemyState
         if (enemy.IsPlayerDetected())
         {
             stateTimer = enemy.battleTime;
-            if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
+            if (enemy.IsPlayerDetected().distance < enemy.meleeAttackDistance)
             {
                 if (CanAttack())
                 {
@@ -52,10 +56,10 @@ public class PiranhaPlantBattleState : EnemyState
 
     private bool CanAttack()
     {
-        if (Time.time >= enemy.lastTimeAttacked + enemy.attackCooldown)
+        if (Time.time >= enemy.lastTimeMeleeAttacked + enemy.meleeAttackCooldown)
         {
-            enemy.attackCooldown = Random.Range(enemy.minAttackCooldown, enemy.maxAttackCooldown);
-            enemy.lastTimeAttacked = Time.time;
+            enemy.meleeAttackCooldown = Random.Range(enemy.minMeleeAttackCooldown, enemy.maxMeleeAttackCooldown);
+            enemy.lastTimeMeleeAttacked = Time.time;
             return true;
         }
         return false;

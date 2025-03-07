@@ -277,7 +277,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -763691063
-  m_SortingLayer: 5
+  m_SortingLayer: 7
   m_SortingOrder: 0
   m_Sprite: {fileID: -737125027, guid: 5b37f7e31a19796489c254db0005907c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -516,7 +516,7 @@ MonoBehaviour:
     modifiers: 
   currentHealth: 0
   damage:
-    baseValue: 50
+    baseValue: 10
     modifiers: 
   strength:
     baseValue: 0
@@ -630,7 +630,7 @@ MonoBehaviour:
   groundCheck: {fileID: 6015064783006167260}
   groundCheackDistance: 1
   wallCheck: {fileID: 3173047208862999890}
-  wallCheckDistance: 2.17
+  wallCheckDistance: 1.1
   whatIsGround:
     serializedVersion: 2
     m_Bits: 8
@@ -638,24 +638,30 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   playerDistance: 10
-  stunDuration: 2.5
-  stunDirection: {x: 10, y: 12}
-  counterImage: {fileID: 7282544709359142337}
+  canPatrol: 1
   moveSpeed: 2
-  runSpeed: 5
   idleTime: 2
   moveTime: 5
   battleTime: 5
   agroDistance: 3.5
-  attackDistance: 1.5
-  attackCooldown: 0
-  minAttackCooldown: 0.8
-  maxAttackCooldown: 1
-  lastTimeAttacked: 0
-  blockCooldown: 0
-  minBlockCooldown: 1
-  maxBlockCooldown: 2
-  lastTimeBlock: 0
+  rangeAttackDistance: 0
+  rangeAttackCooldown: 0
+  minRangeAttackCooldown: 1
+  maxRangeAttackCooldown: 2
+  lastTimeRangeAttacked: 0
+  meleeAttackDistance: 1.3
+  meleeAttackCooldown: 0
+  minMeleeAttackCooldown: 1
+  maxMeleeAttackCooldown: 2
+  lastTimeMeleeAttacked: 0
+  evasionTimer: 1.5
+  evasionSpeed: 10
+  evasionDistance: 0.5
+  isSummon: 0
+  enemyData: {fileID: 0}
+  stunDuration: 2.5
+  stunDirection: {x: 10, y: 12}
+  counterImage: {fileID: 7282544709359142337}
   slimeType: 0
   slimesToCreate: 2
   slimePrefab: {fileID: 1450702144433794135, guid: a15738b7148fa234ca0f8fd949b0f777, type: 3}
@@ -838,7 +844,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -763691063
-  m_SortingLayer: 5
+  m_SortingLayer: 7
   m_SortingOrder: -10
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 0.8235294, g: 0.078431375, b: 0.078431375, a: 0.6862745}

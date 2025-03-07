@@ -19,11 +19,6 @@ public class Enemy_Black_Knight : Enemy_Boss
     private float lastTimeSummon;
 
     [Header("Evasion")]
-    public float minEvasionCooldown = 3f;
-    public float maxEvasionCooldown = 5f;
-    public float evasionCooldown;
-    public float lastTimeEvade;
-    public float evasionSpeed = 8f;
     public Transform backWallCheck;
     [SerializeField] private float backWallCheckDistance = 1;
     public Transform backGroundCheck;

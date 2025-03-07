@@ -6,8 +6,7 @@ using UnityEngine;
 public class Enemy_Shady : Enemy_Regular
 {
     [Header("Shady specific")]
-    public float battleStateMoveSpeed;
-    public float specialAttackDistance = 2;
+    //public float battleStateMoveSpeed;
     public Transform specialAttack;
     public float specialAttackRadius = 1.2f;
 
@@ -27,6 +26,7 @@ public class Enemy_Shady : Enemy_Regular
     public ShadyDeadState deadState { get; private set; }
     public ShadyAttackState attackState { get; private set; }
     public ShadyMeleeAttack meleeAttack { get; private set; }
+    public ShadyEvasionState evasionState { get; private set; }
     #endregion
 
     protected override void Awake()
@@ -35,11 +35,12 @@ public class Enemy_Shady : Enemy_Regular
 
         idleState = new ShadyIdleState(this, stateMachine, "Idle", this);
         moveState = new ShadyMoveState(this, stateMachine, "Move", this);
-        battleState = new ShadyBattleState(this, stateMachine, "Idle", this);
+        battleState = new ShadyBattleState(this, stateMachine, "Battle", this);
         stunnedState = new ShadyStunnedState(this, stateMachine, "Stunned", this);
         deadState = new ShadyDeadState(this, stateMachine, "Die", this);
         attackState = new ShadyAttackState(this, stateMachine, "Attack", this);
         meleeAttack = new ShadyMeleeAttack(this, stateMachine, "Melee", this);
+        evasionState = new ShadyEvasionState(this, stateMachine, "Move", this);
     }
 
     protected override void Start()

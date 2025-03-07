@@ -19,7 +19,7 @@ public class PiranhaPlantAttackState : EnemyState
     {
         base.Exit();
 
-        enemy.lastTimeAttacked = Time.time;
+        enemy.lastTimeRangeAttacked = Time.time;
     }
 
     public override void Update()

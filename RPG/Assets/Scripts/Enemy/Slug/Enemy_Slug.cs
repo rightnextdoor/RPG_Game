@@ -5,7 +5,6 @@ using UnityEngine;
 public class Enemy_Slug : Enemy_Regular
 {
     [Header("Slug info")]
-    public float hitTimer = 1f;
     public Transform[] waypoints;
     [HideInInspector]public Transform target;
     public bool canFlip;
@@ -26,6 +25,8 @@ public class Enemy_Slug : Enemy_Regular
     {
         base.Start();
         stateMachine.Initialize(moveState);
+
+        target = waypoints[0];
     }
 
     public override void Die()

@@ -2,10 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DragonWarrior_IdleState : DragonWarrior_GroundedState
+public class DragonWarrior_IdleState : EnemyState
 {
-    public DragonWarrior_IdleState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_DragonWarrior enemy) : base(_enemyBase, _stateMachine, _animBoolName, enemy)
+    private Enemy_DragonWarrior enemy;
+    public DragonWarrior_IdleState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_DragonWarrior enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
+        this.enemy = enemy;
     }
 
     public override void Enter()
@@ -13,6 +15,7 @@ public class DragonWarrior_IdleState : DragonWarrior_GroundedState
         base.Enter();
 
         stateTimer = enemy.idleTime;
+        enemy.SetZeroVelocity();
     }
 
     public override void Exit()
@@ -27,12 +30,12 @@ public class DragonWarrior_IdleState : DragonWarrior_GroundedState
         if (enemy.IsPlayerDetected() && !enemy.IsGroundDetected() || enemy.IsWallDetected())
         {
             enemy.Flip();
-            stateMachine.ChangeState(enemy.idleState);
-            return;
+            stateMachine.ChangeState(enemy.battleState);
         }
 
-        if (stateTimer < 0f)
-            stateMachine.ChangeState(enemy.moveState);
-
+        if (stateTimer < 0 && enemy.bossFightStart)
+        {
+            stateMachine.ChangeState(enemy.battleState);
+        }
     }
 }

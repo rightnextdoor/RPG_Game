@@ -14,8 +14,8 @@ public class JumperJumpState : EnemyState
     {
         base.Enter();
 
-        //AudioManager.instance.PlaySFX("ArcherJump", enemy.transform);
-        rb.velocity = new Vector2(enemy.jumpVelocity.x * enemy.facingDir, enemy.jumpVelocity.y);
+        enemy.SetVelocity(enemy.jumpVelocity.x * enemy.facingDir, enemy.jumpVelocity.y);
+        stateTimer = enemy.fallTimer;
     }
 
     public override void Exit()
@@ -28,16 +28,31 @@ public class JumperJumpState : EnemyState
         base.Update();
 
         enemy.Attack();
+        
 
         if (rb.velocity.y < 0 && enemy.IsGroundDetected())
         {
+            if (enemy.IsWallDetected())
+            {
+                stateMachine.ChangeState(enemy.idleState);
+            }
+
             if (!enemy.IsPlayerDetected())
             {
-                int flip = Random.Range(1, 3);
+                int flip = Random.Range(1, 5);
                 if (flip == 2)
                     enemy.Flip();
+                stateMachine.ChangeState(enemy.idleState);
             }
-            stateMachine.ChangeState(enemy.idleState);
+
+            if (stateTimer < 0f)
+            {
+                if (enemy.IsWallDetected())
+                {
+                    stateMachine.ChangeState(enemy.idleState);
+                }
+                stateMachine.ChangeState(enemy.idleState);
+            }
         }
     }
     

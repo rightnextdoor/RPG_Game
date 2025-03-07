@@ -6,7 +6,6 @@ public class Black_KnightBattleState : EnemyState
 {
     private Enemy_Black_Knight enemy;
     private Transform player;
-    private int moveDir;
     
     public Black_KnightBattleState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Black_Knight enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
@@ -16,10 +15,16 @@ public class Black_KnightBattleState : EnemyState
     public override void Enter()
     {
         base.Enter();
-        player = PlayerManager.instance.player.transform;       
+        player = PlayerManager.instance.player.transform;
 
         if (player.GetComponent<PlayerStats>().isDead)
+        {
             stateMachine.ChangeState(enemy.idleState);
+            return;
+        }
+
+        stateTimer = enemy.battleTime;
+        enemy.BattleStateFlipControll(player);
     }
 
     public override void Exit()
@@ -29,57 +34,46 @@ public class Black_KnightBattleState : EnemyState
 
     public override void Update()
     {
-        base.Update();        
+        base.Update();
 
         enemy.anim.SetFloat("xVelocity", enemy.rb.velocity.x);
 
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {
-            enemy.SetZeroVelocity();
-            enemy.Flip();
-            stateMachine.ChangeState(enemy.idleState);
+            if (enemy.IsPlayerDetected())
+            {
+                PlayerDetected();
+            }
+            else
+            {
+                stateMachine.ChangeState(enemy.idleState);
+            }
             return;
         }
 
+        PlayerDetected();
+    }
+
+    private void PlayerDetected()
+    {
         if (enemy.IsPlayerDetected())
         {
             stateTimer = enemy.battleTime;
-            if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
+            if (enemy.CanSummonSkeleton())
             {
-                
-
-                if (CanAttack())
-                {
-                    AudioManager.instance.PlaySFXWithDelay("BlackKnightAttack", null,.2f);
-                    stateMachine.ChangeState(enemy.attackState);
-                }
-                else
-                    stateMachine.ChangeState(enemy.battleState);
+                stateMachine.ChangeState(enemy.summonState);
             }
+            enemy.MeleeAttack(player, enemy.attackState, enemy.evasionState, "BlackKnightAttack", true, .2f);
         }
-
-        if (player.position.x > enemy.transform.position.x)
-            moveDir = 1;
-        else if (player.position.x < enemy.transform.position.x)
-            moveDir = -1;
-
-        if (enemy.IsPlayerDetected() && enemy.IsPlayerDetected().distance < enemy.attackDistance - 2f)
-            return;
-
-        enemy.SetVelocity(enemy.moveSpeed * moveDir, rb.velocity.y);
-    }
-
-    private bool CanAttack()
-    {
-        if (Time.time >= enemy.lastTimeAttacked + enemy.attackCooldown)
+        else
         {
-            enemy.attackCooldown = Random.Range(enemy.minAttackCooldown, enemy.maxAttackCooldown);
-            enemy.lastTimeAttacked = Time.time;
-            return true;
+
+            if (stateTimer < 0 || Vector2.Distance(player.transform.position, enemy.transform.position) > enemy.playerDistance)
+                stateMachine.ChangeState(enemy.idleState);
         }
-        return false;
+
+        enemy.BattleStateFlipControll(player);
+
     }
 
-    
-    
 }

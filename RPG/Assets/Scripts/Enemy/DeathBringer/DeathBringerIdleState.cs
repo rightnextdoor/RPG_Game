@@ -5,7 +5,6 @@ using UnityEngine;
 public class DeathBringerIdleState : EnemyState
 {
     private Enemy_DeathBringer enemy;
-    private Transform player;
     public DeathBringerIdleState(Enemy_Boss _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_DeathBringer _enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = _enemy;
@@ -16,7 +15,6 @@ public class DeathBringerIdleState : EnemyState
         base.Enter();
 
         stateTimer = enemy.idleTime;
-        player = PlayerManager.instance.player.transform;
     }
 
     public override void Exit()
@@ -31,8 +29,7 @@ public class DeathBringerIdleState : EnemyState
         if (enemy.IsPlayerDetected() && !enemy.IsGroundDetected() || enemy.IsWallDetected())
         {
             enemy.Flip();
-            stateMachine.ChangeState(enemy.idleState);
-            return;
+            stateMachine.ChangeState(enemy.battleState);
         }
 
         if (stateTimer < 0 && enemy.bossFightStart)

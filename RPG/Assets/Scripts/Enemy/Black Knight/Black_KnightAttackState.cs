@@ -18,8 +18,6 @@ public class Black_KnightAttackState : EnemyState
     public override void Exit()
     {
         base.Exit();
-
-        enemy.lastTimeAttacked = Time.time;
     }
 
     public override void Update()
@@ -29,24 +27,7 @@ public class Black_KnightAttackState : EnemyState
         enemy.SetZeroVelocity();
 
         if (triggerCalled)
-        {
-            if (CanEvade())
-            {
-                stateMachine.ChangeState(enemy.evasionState);
-            }
-            else
-                stateMachine.ChangeState(enemy.idleState);
-        }
+            stateMachine.ChangeState(enemy.battleState);
     }
 
-    private bool CanEvade()
-    {
-        if (Time.time >= enemy.lastTimeEvade + enemy.evasionCooldown)
-        {
-            enemy.evasionCooldown = Random.Range(enemy.minEvasionCooldown, enemy.maxEvasionCooldown);
-            enemy.lastTimeEvade = Time.time;
-            return true;
-        }
-        return false;
-    }
 }

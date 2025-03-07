@@ -6,8 +6,6 @@ public class CatWarrior_BattleState : EnemyState
 {
     private Enemy_CatWarrior enemy;
     private Transform player;
-    private int moveDir;
-    private bool flippedOnce;
     public CatWarrior_BattleState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_CatWarrior enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
@@ -19,10 +17,13 @@ public class CatWarrior_BattleState : EnemyState
         player = PlayerManager.instance.player.transform;
 
         if (player.GetComponent<PlayerStats>().isDead)
-            stateMachine.ChangeState(enemy.moveState);
+        {
+            stateMachine.ChangeState(enemy.idleState);
+            return;
+        }
 
         stateTimer = enemy.battleTime;
-        flippedOnce = false;
+        enemy.BattleStateFlipControll(player);
     }
 
     public override void Exit()
@@ -38,56 +39,47 @@ public class CatWarrior_BattleState : EnemyState
 
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {
-            enemy.Flip();
-            stateMachine.ChangeState(enemy.moveState);
+            if (enemy.IsPlayerDetected())
+            {
+                PlayerDetected();
+            }
+            else
+            {
+                stateMachine.ChangeState(enemy.idleState);
+            }
             return;
         }
 
+        PlayerDetected();
+    }
+
+    private void PlayerDetected()
+    {
         if (enemy.IsPlayerDetected())
         {
             stateTimer = enemy.battleTime;
-            if (enemy.IsPlayerDetected().distance < enemy.attackDistance)
-            {
-                if (enemy.CanCastTornado())
-                {
-                    stateMachine.ChangeState(enemy.magicState);
-                }
-                if (CanAttack())
-                {
-                    stateMachine.ChangeState(enemy.attackState);
-                    AudioManager.instance.PlaySFX("CatWarriorAttack", enemy.transform);
-                }
-            }
+
+            if (enemy.IsPlayerDetected().distance <= enemy.rangeAttackDistance && CanMagicAttack())
+                enemy.RangeAttack(player, enemy.magicState, enemy.evasionState, null);
+            else if (enemy.IsPlayerDetected().distance <= enemy.meleeAttackDistance)
+                enemy.MeleeAttack(player, enemy.attackState, enemy.evasionState, "CatWarriorAttack", false, 0);
+            else
+                enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, rb.velocity.y);
         }
         else
         {
-            if (flippedOnce == false)
-            {
-                flippedOnce = true;
-                enemy.Flip();
-            }
 
-            if (stateTimer < 0 || Vector2.Distance(player.transform.position, enemy.transform.position) > 7)
+            if (stateTimer < 0 || Vector2.Distance(player.transform.position, enemy.transform.position) > enemy.playerDistance)
                 stateMachine.ChangeState(enemy.idleState);
         }
 
-        if (player.position.x > enemy.transform.position.x)
-            moveDir = 1;
-        else if (player.position.x < enemy.transform.position.x)
-            moveDir = -1;
-
-        if (enemy.IsPlayerDetected() && enemy.IsPlayerDetected().distance < enemy.attackDistance - .8f)
-            return;
-
-        enemy.SetVelocity(enemy.moveSpeed * moveDir, rb.velocity.y);
+        enemy.BattleStateFlipControll(player);
     }
 
-    private bool CanAttack()
+    public bool CanMagicAttack()
     {
-        if (Time.time >= enemy.lastTimeAttacked + enemy.attackCooldown)
+        if (Time.time >= enemy.lastTimeRangeAttacked + enemy.rangeAttackCooldown)
         {
-            enemy.attackCooldown = Random.Range(enemy.minAttackCooldown, enemy.maxAttackCooldown);
-            enemy.lastTimeAttacked = Time.time;
             return true;
         }
         return false;

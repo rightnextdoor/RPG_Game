@@ -5,15 +5,13 @@ using UnityEngine;
 
 public class Arrow_Controller : MonoBehaviour
 {
-    [SerializeField] private int damage;
     [SerializeField] private string targetLayerName = "Player";
-
-    [SerializeField] private Vector3 xVelocity;
     [SerializeField] private Rigidbody2D rb;
 
-    [SerializeField] private bool canMove = true;
-    [SerializeField] private bool flipped;
-    Vector3 direction;
+    private Vector3 xVelocity;
+
+    private bool canMove;
+    private bool flipped;
 
     private CharacterStats myStats;
 
@@ -26,7 +24,8 @@ public class Arrow_Controller : MonoBehaviour
     public void SetupArrow(float _speed, CharacterStats _myStats, Vector3 _playerPos)
     {
         myStats = _myStats;
-        direction = (_playerPos - transform.position).normalized;
+        Vector3 direction = (_playerPos - transform.position).normalized;
+        canMove = true;
 
         if (_playerPos.x < transform.position.x)
         {

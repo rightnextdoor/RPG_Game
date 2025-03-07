@@ -221,7 +221,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -763691063
-  m_SortingLayer: 5
+  m_SortingLayer: 7
   m_SortingOrder: -10
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 0.8235294, g: 0.078431375, b: 0.078431375, a: 0.6862745}
@@ -5061,7 +5061,7 @@ ParticleSystemRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1506869901
-  m_SortingLayer: 7
+  m_SortingLayer: 9
   m_SortingOrder: 0
   m_RenderMode: 0
   m_MeshDistribution: 0
@@ -9891,7 +9891,7 @@ ParticleSystemRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1506869901
-  m_SortingLayer: 7
+  m_SortingLayer: 9
   m_SortingOrder: 0
   m_RenderMode: 0
   m_MeshDistribution: 0
@@ -10029,7 +10029,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -763691063
-  m_SortingLayer: 5
+  m_SortingLayer: 7
   m_SortingOrder: 1
   m_Sprite: {fileID: -737125027, guid: 5b37f7e31a19796489c254db0005907c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -10404,7 +10404,7 @@ MonoBehaviour:
   groundCheck: {fileID: 3810002671400183878}
   groundCheackDistance: 1
   wallCheck: {fileID: 6046990077240324492}
-  wallCheckDistance: 1.5
+  wallCheckDistance: 1.1
   whatIsGround:
     serializedVersion: 2
     m_Bits: 8
@@ -10412,24 +10412,30 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   playerDistance: 10
-  stunDuration: 2
-  stunDirection: {x: 10, y: 12}
-  counterImage: {fileID: 3692976791030459451}
+  canPatrol: 1
   moveSpeed: 2
-  runSpeed: 5
   idleTime: 2
   moveTime: 5
   battleTime: 5
   agroDistance: 2
-  attackDistance: 1.5
-  attackCooldown: 0
-  minAttackCooldown: 0.5
-  maxAttackCooldown: 0.8
-  lastTimeAttacked: 0
-  blockCooldown: 0
-  minBlockCooldown: 1
-  maxBlockCooldown: 2
-  lastTimeBlock: 0
+  rangeAttackDistance: 0
+  rangeAttackCooldown: 0
+  minRangeAttackCooldown: 1
+  maxRangeAttackCooldown: 2
+  lastTimeRangeAttacked: 0
+  meleeAttackDistance: 1
+  meleeAttackCooldown: 0
+  minMeleeAttackCooldown: 1
+  maxMeleeAttackCooldown: 2
+  lastTimeMeleeAttacked: 0
+  evasionTimer: 1.5
+  evasionSpeed: 10
+  evasionDistance: 0.5
+  isSummon: 0
+  enemyData: {fileID: 0}
+  stunDuration: 2
+  stunDirection: {x: 10, y: 12}
+  counterImage: {fileID: 3692976791030459451}
   slimeType: 1
   slimesToCreate: 4
   slimePrefab: {fileID: 2467800975849695827, guid: b2cef4548a9dcef48a1d367e16c56fda, type: 3}
@@ -15231,7 +15237,7 @@ ParticleSystemRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1506869901
-  m_SortingLayer: 7
+  m_SortingLayer: 9
   m_SortingOrder: 0
   m_RenderMode: 0
   m_MeshDistribution: 0

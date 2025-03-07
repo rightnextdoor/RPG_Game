@@ -10,22 +10,39 @@ public class Enemy : Entity
 {
     [SerializeField] protected LayerMask whatIsPlayer;
     [Header("Player detected")]
-    [SerializeField] private float playerDistance = 10;
+    public float playerDistance = 10;
 
     [Header("Move info")]
+    public bool canPatrol = true;
     public float moveSpeed = 1.5f;  
     public float idleTime = 2;
     public float moveTime = 5;
     public float battleTime= 7;
     private float defaultMoveSpeed;
 
-    [Header("Attack info")]
+    [Header("Range Attack info")]
     public float agroDistance = 2;
-    public float attackDistance = 2;
-    public float attackCooldown;
-    public float minAttackCooldown = 1;
-    public float maxAttackCooldown = 2;
-    [HideInInspector] public float lastTimeAttacked;
+    public float rangeAttackDistance = 2;
+    [HideInInspector] public float rangeAttackCooldown;
+    public float minRangeAttackCooldown = 1;
+    public float maxRangeAttackCooldown = 2;
+    [HideInInspector] public float lastTimeRangeAttacked;
+    
+    [Header("Melee Attack info")]
+    public float meleeAttackDistance = 2;
+    [HideInInspector] public float meleeAttackCooldown;
+    public float minMeleeAttackCooldown = 1;
+    public float maxMeleeAttackCooldown = 2;
+    [HideInInspector] public float lastTimeMeleeAttacked;
+
+    [Header("Evasion info")]
+    public float evasionTimer = 1.5f;
+    public float evasionSpeed = 10f;
+    [SerializeField] private float evasionDistance = .5f; //How close player should be to trigger before evading
+    [SerializeField] private float minEvasionCooldown = 3f;
+    [SerializeField] private float maxEvasionCooldown = 5f;
+    private float evasionCooldown;
+    private float lastTimeEvade;
 
     [HideInInspector] public bool isSummon = false;
 
@@ -148,8 +165,21 @@ public class Enemy : Entity
     {
         base.OnDrawGizmos();
 
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(attackCheck.position, new Vector3(attackCheck.position.x + playerDistance * facingDir, attackCheck.position.y));
+        
+        Gizmos.color = Color.blue;
+        Vector3 offset = new Vector3(.3f, .3f);
+        Vector3 meleePosition = transform.position + offset;
+        Gizmos.DrawLine(meleePosition, new Vector3(meleePosition.x + meleeAttackDistance * facingDir, meleePosition.y));
+
+        Gizmos.color = Color.green;
+        offset = new Vector3(0, .7f);
+        Vector3 evasionPosition = transform.position + offset;
+        Gizmos.DrawLine(evasionPosition, new Vector3(evasionPosition.x + evasionDistance * facingDir, evasionPosition.y));
+        
         Gizmos.color = Color.yellow;
-        Gizmos.DrawLine(transform.position, new Vector3(transform.position.x + attackDistance * facingDir, transform.position.y));
+        Gizmos.DrawLine(transform.position, new Vector3(transform.position.x + rangeAttackDistance * facingDir, transform.position.y));
     }
     public virtual bool CanBeStunned()
     {
@@ -167,4 +197,148 @@ public class Enemy : Entity
     {
         return isSummon;
     }
+
+    #region Battle States
+
+    public void RangeAttack(Transform player, EnemyState attackState, EnemyState evasionState, string audioName)
+    {
+        if (IsPlayerDetected().distance > rangeAttackDistance)
+        {
+            if (IsWallDetected() || !IsGroundDetected())
+                return;
+            
+            SetVelocity(moveSpeed * facingDir, rb.velocity.y);
+        }
+
+        if (IsPlayerDetected().distance <= rangeAttackDistance)
+        {
+            if (player != null)
+            {
+                if (Vector2.Distance(player.transform.position, transform.position) < evasionDistance)
+                {
+                    if (evasionState != null)
+                    {
+                        if(CanEvade())
+                            stateMachine.ChangeState(evasionState);
+                    }
+                        
+                }
+            }
+
+            if (CanRangeAttack())
+            {
+                if(attackState != null)
+                    stateMachine.ChangeState(attackState);
+
+                if (audioName != null)
+                    AudioManager.instance.PlaySFX(audioName, transform);
+            }
+        }
+    }
+
+    public void MeleeAttack(Transform player, EnemyState attackState, EnemyState evasionState, string audioName, bool soundDelay, float delayTime)
+    {
+        if (IsPlayerDetected().distance > meleeAttackDistance)
+        {
+            if (IsWallDetected() || !IsGroundDetected())
+                return;
+            
+            SetVelocity(moveSpeed * facingDir, rb.velocity.y);
+
+        }
+        if (IsPlayerDetected().distance <= meleeAttackDistance)
+        {
+            if (player != null)
+            {
+                if (Vector2.Distance(player.transform.position, transform.position) < evasionDistance)
+                {
+                    if (evasionState != null)
+                    {
+                        if (CanEvade())
+                            stateMachine.ChangeState(evasionState);
+                    }
+                }
+            }
+
+            if (CanMeleeAttack())
+            {
+                if (attackState != null)
+                    stateMachine.ChangeState(attackState);
+
+                if (audioName != null)
+                {
+                    if (soundDelay)
+                    {
+                        AudioManager.instance.PlaySFXWithDelay(audioName, null, delayTime);
+                    } 
+                    else
+                        AudioManager.instance.PlaySFX(audioName, transform);
+                }
+            }
+        }
+    }
+
+    public bool CanRangeAttack()
+    {
+        if (Time.time >= lastTimeRangeAttacked + rangeAttackCooldown)
+        {
+            rangeAttackCooldown = Random.Range(minRangeAttackCooldown, maxRangeAttackCooldown);
+            lastTimeRangeAttacked = Time.time;
+            return true;
+        }
+        return false;
+    }
+
+    private bool CanMeleeAttack()
+    {
+        Debug.Log("melee is called");
+        if (Time.time >= lastTimeMeleeAttacked + meleeAttackCooldown)
+        {
+            meleeAttackCooldown = Random.Range(minMeleeAttackCooldown, maxMeleeAttackCooldown);
+            lastTimeMeleeAttacked = Time.time;
+            return true;
+        }
+        return false;
+    }
+
+    private bool CanEvade()
+    {
+        if (Time.time >= lastTimeEvade + evasionCooldown)
+        {
+            evasionCooldown = Random.Range(minEvasionCooldown, maxEvasionCooldown);
+            lastTimeEvade = Time.time;
+            return true;
+        }
+        return false;
+    }
+
+    public void RunIntoPlayerAttack(EnemyState moveState)
+    {
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(attackCheck.position, attackCheckRadius);
+        bool hitPlayer = false;
+        foreach (var hit in colliders)
+        {
+            if (hit.GetComponent<Player>() != null)
+            {
+                PlayerStats target = hit.GetComponent<PlayerStats>();
+                if (!hitPlayer)
+                {
+                    stats.DoDamage(target);
+                    hitPlayer = true;
+                    if(moveState != null)
+                        stateMachine.ChangeState(moveState);
+                }
+            }
+        }
+    }
+
+    public void BattleStateFlipControll(Transform player)
+    {
+        if (player.position.x > transform.position.x && facingDir == -1)
+            Flip();
+        else if (player.position.x < transform.position.x && facingDir == 1)
+            Flip();
+    }
+
+    #endregion
 }

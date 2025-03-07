@@ -15,6 +15,7 @@ public class CrabMoveState : EnemyState
     {
         base.Enter();
         stateTimer = enemy.moveTime;
+        hitTimer = enemy.hitTimer;
     }
 
     public override void Exit()
@@ -28,12 +29,12 @@ public class CrabMoveState : EnemyState
 
         enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, rb.velocity.y);
         hitTimer -= Time.deltaTime;
-        Attack();
+        if(hitTimer < 0f)
+            enemy.RunIntoPlayerAttack(enemy.moveState);
 
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {
             enemy.Flip();
-            stateMachine.ChangeState(enemy.idleState);
         }
 
         if (stateTimer < 0f)
@@ -45,23 +46,4 @@ public class CrabMoveState : EnemyState
         }
     }
 
-    private void Attack()
-    {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(enemy.attackCheck.position, enemy.attackCheckRadius);
-
-        foreach (var hit in colliders)
-        {
-            if (hit.GetComponent<Player>() != null)
-            {
-                PlayerStats target = hit.GetComponent<PlayerStats>();
-                if (hitTimer < 0f)
-                {
-                    enemy.stats.DoDamage(target);
-                    //ToDo: knock the player back when hit
-                    hitTimer = enemy.hitTimer;
-                }
-
-            }
-        }
-    }
 }

@@ -18,6 +18,7 @@ public class Enemy_Octopus : Enemy_Regular
     public OctopusAttackState attackState { get; private set; }
     public OctopusDeadState deadState { get; private set; }
     public OctopusWaterState waterState { get; private set; }
+    public OctopusEvasionState evasionState { get; private set; }
     #endregion
 
     protected override void Awake()
@@ -28,6 +29,7 @@ public class Enemy_Octopus : Enemy_Regular
         moveState = new OctopusMoveState(this, stateMachine, "Move", this);
         deadState = new OctopusDeadState(this, stateMachine, "Idle", this);
         waterState = new OctopusWaterState(this, stateMachine, "Idle", this);
+        evasionState = new OctopusEvasionState(this, stateMachine, "Move", this);
     }
 
     protected override void Start()
@@ -60,7 +62,8 @@ public class Enemy_Octopus : Enemy_Regular
     public override void AnimationSpecialAttackTrigger()
     {
         GameObject newBubble = Instantiate(bubblePrefab, attackCheck.position, Quaternion.identity);
-        newBubble.GetComponent<Bubble_Controller>().SetupBubble(bubbleSpeed * facingDir, stats, attackCheckRadius, explosionTimer);
+        Transform player = PlayerManager.instance.player.transform;
+        newBubble.GetComponent<Bubble_Controller>().SetupBubble(bubbleSpeed * facingDir, stats, attackCheckRadius, explosionTimer, player.position);
     }
 
     public bool IsPlayerInZone() => playerDetectedZone.GetComponent<EnemyZone>().PlayerInZone;

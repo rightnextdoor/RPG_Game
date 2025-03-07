@@ -25,6 +25,7 @@ public class Enemy_Slime : Enemy_Regular
     public SlimeAttackState attackState { get; private set; }
     public SlimeStunnedState stunnedState { get; private set; }
     public SlimeDeadState deadState { get; private set; }
+    public SlimeEvasionState evasionState { get; private set; }
 
     #endregion
 
@@ -40,6 +41,7 @@ public class Enemy_Slime : Enemy_Regular
         attackState = new SlimeAttackState(this, stateMachine, "Attack", this);
         stunnedState = new SlimeStunnedState(this, stateMachine, "Stunned", this);
         deadState = new SlimeDeadState(this, stateMachine, "Die", this);
+        evasionState = new SlimeEvasionState(this, stateMachine, "Move", this);
     }
 
     protected override void Start()

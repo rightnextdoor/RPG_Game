@@ -11,7 +11,6 @@ public class Enemy_DragonWarrior : Enemy_Boss
     public DragonWarrior_AttackState attackState { get; private set; }
     public DragonWarrior_DeadState deadState { get; private set; }
     public DragonWarrior_StartState startState { get; private set; }
-    public DragonWarrior_MoveState moveState { get; private set; }
     #endregion
 
     [Header("Attack info")]
@@ -28,7 +27,6 @@ public class Enemy_DragonWarrior : Enemy_Boss
         attackState = new DragonWarrior_AttackState(this, stateMachine, "Attack", this);
         deadState = new DragonWarrior_DeadState(this, stateMachine, "Die", this);
         startState = new DragonWarrior_StartState(this, stateMachine, "Idle", this);
-        moveState = new DragonWarrior_MoveState(this, stateMachine, "Move", this);
     }
 
     protected override void Start()

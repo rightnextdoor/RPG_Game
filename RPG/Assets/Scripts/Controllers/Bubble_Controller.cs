@@ -8,7 +8,7 @@ public class Bubble_Controller : MonoBehaviour
     [SerializeField] private int damage;
     [SerializeField] private string targetLayerName = "Player";
 
-    [SerializeField] private float xVelocity;
+    private Vector3 xVelocity;
     [SerializeField] private Rigidbody2D rb;
 
     [SerializeField] private bool canMove;
@@ -27,18 +27,30 @@ public class Bubble_Controller : MonoBehaviour
         }
 
         if (canMove)
-            rb.velocity = new Vector2(xVelocity, rb.velocity.y);
+            rb.velocity = xVelocity;
     }
 
-    public void SetupBubble(float _speed, CharacterStats _myStats, float _radius, float _explosionTimer)
+    public void SetupBubble(float _speed, CharacterStats _myStats, float _radius, float _explosionTimer, Vector3 _playerPos)
     {
         anim = GetComponent<Animator>();
 
-        xVelocity = _speed;
+        Vector3 direction = (_playerPos - transform.position).normalized;
+
         myStats = _myStats;
         explosionRadius = _radius;
         explosionTimer = _explosionTimer;
         canMove = true;
+
+        if (_playerPos.x < transform.position.x)
+        {
+            xVelocity = direction * _speed * -1;
+        }
+        else
+        {
+            xVelocity = direction * _speed * 1;
+        }
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)

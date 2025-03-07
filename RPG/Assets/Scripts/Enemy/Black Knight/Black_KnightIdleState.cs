@@ -5,7 +5,6 @@ using UnityEngine;
 public class Black_KnightIdleState : EnemyState
 {
     private Enemy_Black_Knight enemy;
-    private Transform player;
     public Black_KnightIdleState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Black_Knight enemy) : base(_enemyBase, _stateMachine, _animBoolName)
     {
         this.enemy = enemy;
@@ -16,7 +15,7 @@ public class Black_KnightIdleState : EnemyState
         base.Enter();
 
         stateTimer = enemy.idleTime;
-        player = PlayerManager.instance.player.transform;
+        enemy.SetZeroVelocity();
     }
 
     public override void Exit()
@@ -31,8 +30,7 @@ public class Black_KnightIdleState : EnemyState
         if (enemy.IsPlayerDetected() && !enemy.IsGroundDetected() || enemy.IsWallDetected())
         {
             enemy.Flip();
-            stateMachine.ChangeState(enemy.idleState);
-            return;
+            stateMachine.ChangeState(enemy.battleState);
         }
 
         if (stateTimer < 0 && enemy.bossFightStart)

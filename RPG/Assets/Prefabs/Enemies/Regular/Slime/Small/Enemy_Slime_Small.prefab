@@ -133,7 +133,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -763691063
-  m_SortingLayer: 5
+  m_SortingLayer: 7
   m_SortingOrder: -10
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 0.8235294, g: 0.078431375, b: 0.078431375, a: 0.6862745}
@@ -529,7 +529,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -763691063
-  m_SortingLayer: 5
+  m_SortingLayer: 7
   m_SortingOrder: 2
   m_Sprite: {fileID: -737125027, guid: 5b37f7e31a19796489c254db0005907c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -695,12 +695,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3941635242805e4ba89dd67e5b092c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lerpTimer: 0
   maxHealth:
     baseValue: 75
     modifiers: 
   currentHealth: 0
   damage:
-    baseValue: 30
+    baseValue: 10
     modifiers: 
   strength:
     baseValue: 0
@@ -743,10 +744,11 @@ MonoBehaviour:
   isShocked: 0
   ailmentsDuration: 4
   shockStrikePrefab: {fileID: 6889908486227579018, guid: 78970814a6fb9434a91ec678a0d80fdd, type: 3}
-  soulsDropAmount:
+  level: 1
+  xpGain: 100
+  xpAmount:
     baseValue: 0
     modifiers: 
-  level: 1
   percantageModifier: 0.4
 --- !u!114 &3829996190415707073
 MonoBehaviour:
@@ -791,6 +793,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxItemsToDrop: 0
   itemPool: []
+  possibleDrop: []
   dropPrefab: {fileID: 7663703077390093099, guid: 2ecceb17b1752e5428f40e73479e555e, type: 3}
 --- !u!114 &5119494134115851833
 MonoBehaviour:
@@ -819,18 +822,31 @@ MonoBehaviour:
   whatIsPlayer:
     serializedVersion: 2
     m_Bits: 64
+  playerDistance: 10
+  canPatrol: 1
+  moveSpeed: 4
+  idleTime: 2
+  moveTime: 5
+  battleTime: 5
+  agroDistance: 2
+  rangeAttackDistance: 0
+  rangeAttackCooldown: 0
+  minRangeAttackCooldown: 1
+  maxRangeAttackCooldown: 2
+  lastTimeRangeAttacked: 0
+  meleeAttackDistance: 1
+  meleeAttackCooldown: 0
+  minMeleeAttackCooldown: 1
+  maxMeleeAttackCooldown: 2
+  lastTimeMeleeAttacked: 0
+  evasionTimer: 1.5
+  evasionSpeed: 10
+  evasionDistance: 0.5
+  isSummon: 0
+  enemyData: {fileID: 0}
   stunDuration: 1.5
   stunDirection: {x: 10, y: 12}
   counterImage: {fileID: 840944007917428638}
-  moveSpeed: 4
-  idleTime: 2
-  battleTime: 5
-  agroDistance: 2
-  attackDistance: 1.5
-  attackCooldown: 0
-  minAttackCooldown: 0.25
-  maxAttackCooldown: 0.5
-  lastTimeAttacked: 0
   slimeType: 2
   slimesToCreate: 0
   slimePrefab: {fileID: 0}
