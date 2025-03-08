@@ -38,9 +38,9 @@ public class Enemy : Entity
     [Header("Evasion info")]
     public float evasionTimer = 1.5f;
     public float evasionSpeed = 10f;
-    [SerializeField] private float evasionDistance = .5f; //How close player should be to trigger before evading
-    [SerializeField] private float minEvasionCooldown = 3f;
-    [SerializeField] private float maxEvasionCooldown = 5f;
+    [SerializeField] private float evasionDistance = 1f; //How close player should be to trigger before evading
+    [SerializeField] private float minEvasionCooldown = 0f;
+    [SerializeField] private float maxEvasionCooldown = .5f;
     private float evasionCooldown;
     private float lastTimeEvade;
 
