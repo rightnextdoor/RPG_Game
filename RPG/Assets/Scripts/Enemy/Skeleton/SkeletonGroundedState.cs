@@ -21,6 +21,8 @@ public class SkeletonGroundedState : EnemyState
     public override void Exit()
     {
         base.Exit();
+
+        enemy.multiAttackCooldownTimer = 5;
     }
 
     public override void Update()

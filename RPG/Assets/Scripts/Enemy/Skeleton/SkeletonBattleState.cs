@@ -25,6 +25,7 @@ public class SkeletonBattleState : EnemyState
 
         stateTimer = enemy.battleTime;
         enemy.BattleStateFlipControll(player);
+        enemy.chanceToMultiAttack += 5;
     }
 
     public override void Exit()
@@ -59,6 +60,22 @@ public class SkeletonBattleState : EnemyState
         if (enemy.IsPlayerDetected())
         {
             stateTimer = enemy.battleTime;
+
+            if (enemy.IsPlayerDetected().distance <= enemy.meleeAttackDistance)
+            {
+                if (enemy.CanMultiAttack() && enemy.HasMultiAttack)
+                {
+                    Debug.Log("multi atack");
+                    stateMachine.ChangeState(enemy.attack2State);
+                    AudioManager.instance.PlaySFX("SkeletonAttack", enemy.transform);
+                    AudioManager.instance.PlaySFXWithDelay("SkeletonAttack", null, .5f);
+                    if (enemy.IsSpearSkeleton)
+                    {
+                        AudioManager.instance.PlaySFXWithDelay("SkeletonAttack", null, .7f);
+                    }
+                }
+                    
+            }
 
             enemy.MeleeAttack(player, enemy.attackState, enemy.evasionState, "SkeletonAttack", false, 0);
         }

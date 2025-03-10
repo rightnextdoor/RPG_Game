@@ -291,7 +291,6 @@ public class Enemy : Entity
 
     private bool CanMeleeAttack()
     {
-        Debug.Log("melee is called");
         if (Time.time >= lastTimeMeleeAttacked + meleeAttackCooldown)
         {
             meleeAttackCooldown = Random.Range(minMeleeAttackCooldown, maxMeleeAttackCooldown);
