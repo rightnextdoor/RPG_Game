@@ -4871,7 +4871,7 @@ ParticleSystemRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1506869901
-  m_SortingLayer: 7
+  m_SortingLayer: 9
   m_SortingOrder: 0
   m_RenderMode: 0
   m_MeshDistribution: 0
@@ -9852,7 +9852,7 @@ ParticleSystemRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1506869901
-  m_SortingLayer: 7
+  m_SortingLayer: 9
   m_SortingOrder: 0
   m_RenderMode: 0
   m_MeshDistribution: 0
@@ -14718,7 +14718,7 @@ ParticleSystemRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1506869901
-  m_SortingLayer: 7
+  m_SortingLayer: 9
   m_SortingOrder: 0
   m_RenderMode: 0
   m_MeshDistribution: 0
@@ -14972,6 +14972,7 @@ MonoBehaviour:
   itemPool:
   - {fileID: 11400000, guid: b67ec3d788f222040b49c8565308b8a7, type: 2}
   - {fileID: 11400000, guid: cf4f32d5f7d1d4d41bb79117521f38d2, type: 2}
+  possibleDrop: []
   dropPrefab: {fileID: 7663703077390093099, guid: 2ecceb17b1752e5428f40e73479e555e, type: 3}
 --- !u!114 &4642704145635950459
 MonoBehaviour:
@@ -15001,26 +15002,35 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   playerDistance: 10
-  stunDuration: 1
-  stunDirection: {x: 10, y: 12}
-  counterImage: {fileID: 7039323591299652735}
+  canPatrol: 0
   moveSpeed: 2.5
-  runSpeed: 5
   idleTime: 2
   moveTime: 5
   battleTime: 7
   agroDistance: 5
-  attackDistance: 2.2
-  attackCooldown: 0
-  minAttackCooldown: 0.5
-  maxAttackCooldown: 0.9
-  lastTimeAttacked: 0
-  blockCooldown: 3
-  minBlockCooldown: 3
-  maxBlockCooldown: 7
-  lastTimeBlock: 0
+  rangeAttackDistance: 2
+  rangeAttackCooldown: 0
+  minRangeAttackCooldown: 1
+  maxRangeAttackCooldown: 2
+  lastTimeRangeAttacked: 0
+  meleeAttackDistance: 1.5
+  meleeAttackCooldown: 0
+  minMeleeAttackCooldown: 1
+  maxMeleeAttackCooldown: 2
+  lastTimeMeleeAttacked: 0
+  evasionTimer: 0.5
+  evasionSpeed: 5
+  evasionDistance: 0.5
+  minEvasionCooldown: 3
+  maxEvasionCooldown: 5
+  isSummon: 0
+  enemyData: {fileID: 0}
+  stunDuration: 1
+  stunDirection: {x: 10, y: 12}
+  counterImage: {fileID: 7039323591299652735}
   knightType: 1
   blockDuration: 3
+  runSpeed: 5
 --- !u!1 &5963012326459556322
 GameObject:
   m_ObjectHideFlags: 0
@@ -15282,7 +15292,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -763691063
-  m_SortingLayer: 5
+  m_SortingLayer: 7
   m_SortingOrder: -10
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
   m_Color: {r: 0.82210237, g: 0.078664735, b: 0.078664735, a: 0.6862745}
@@ -15400,7 +15410,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -763691063
-  m_SortingLayer: 5
+  m_SortingLayer: 7
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 42a8614f5ef33204baac0496bbb89148, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

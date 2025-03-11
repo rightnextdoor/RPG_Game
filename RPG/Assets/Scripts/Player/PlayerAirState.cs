@@ -22,6 +22,9 @@ public class PlayerAirState : PlayerState
     {
         base.Update();
 
+        if (Input.GetKey(KeyCode.Mouse0))
+            stateMachine.ChangeState(player.primaryAttack);
+
         if (Input.GetKeyDown(KeyCode.Space) && player.skill.doubleJump.doubleJumpUnlocked)
         {
             if (player.skill.doubleJump.CanUseSkill())

@@ -71,7 +71,7 @@ public class UnlockManager : MonoBehaviour, ISaveManager
         
         foreach (ItemData item in lockItemData)
         {
-            if (item.levelUnlock != 0)
+            if (item.levelUnlock != 0 && item != null)
             {
                 if (item.levelUnlock == _level)
                 {

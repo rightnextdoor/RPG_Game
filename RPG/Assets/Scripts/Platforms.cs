@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Platorms : MonoBehaviour
+public class Platforms : MonoBehaviour
 {
     private Collider2D collider;
     private bool playerOnPlatform;

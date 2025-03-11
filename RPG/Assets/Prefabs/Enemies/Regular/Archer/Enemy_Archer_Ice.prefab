@@ -248,25 +248,33 @@ MonoBehaviour:
   whatIsPlayer:
     serializedVersion: 2
     m_Bits: 64
-  playerDistance: 10
-  stunDuration: 1
-  stunDirection: {x: 10, y: 12}
-  counterImage: {fileID: 1186740015600344732}
+  playerDistance: 15
+  canPatrol: 0
   moveSpeed: 5
-  runSpeed: 5
   idleTime: 2
   moveTime: 5
   battleTime: 7
   agroDistance: 2
-  attackDistance: 15
-  attackCooldown: 0
-  minAttackCooldown: 1
-  maxAttackCooldown: 2
-  lastTimeAttacked: 0
-  blockCooldown: 0
-  minBlockCooldown: 1
-  maxBlockCooldown: 2
-  lastTimeBlock: 0
+  rangeAttackDistance: 10
+  rangeAttackCooldown: 0
+  minRangeAttackCooldown: 1
+  maxRangeAttackCooldown: 2
+  lastTimeRangeAttacked: 0
+  meleeAttackDistance: 0
+  meleeAttackCooldown: 0
+  minMeleeAttackCooldown: 1
+  maxMeleeAttackCooldown: 2
+  lastTimeMeleeAttacked: 0
+  evasionTimer: 1.5
+  evasionSpeed: 10
+  evasionDistance: 0.5
+  minEvasionCooldown: 3
+  maxEvasionCooldown: 5
+  isSummon: 0
+  enemyData: {fileID: 0}
+  stunDuration: 1
+  stunDirection: {x: 10, y: 12}
+  counterImage: {fileID: 1186740015600344732}
   arrowPrefab: {fileID: 686545104520167440, guid: 4b7cffe5dcb177a419ba0acca868b39a, type: 3}
   arrowSpeed: 7
   jumpVelocity: {x: 20, y: 15}
@@ -274,7 +282,7 @@ MonoBehaviour:
   safeDistance: 3
   lastTimeJumped: 0
   groundBehindCheck: {fileID: 1608893617243786993}
-  groundBehindCheckSize: {x: 1.79, y: 5}
+  groundBehindCheckSize: {x: 0.5, y: 2}
 --- !u!1 &298358671836716403
 GameObject:
   m_ObjectHideFlags: 0
@@ -5107,7 +5115,7 @@ ParticleSystemRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1506869901
-  m_SortingLayer: 7
+  m_SortingLayer: 9
   m_SortingOrder: 0
   m_RenderMode: 0
   m_MeshDistribution: 0
@@ -9937,7 +9945,7 @@ ParticleSystemRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1506869901
-  m_SortingLayer: 7
+  m_SortingLayer: 9
   m_SortingOrder: 0
   m_RenderMode: 0
   m_MeshDistribution: 0
@@ -14767,7 +14775,7 @@ ParticleSystemRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1506869901
-  m_SortingLayer: 7
+  m_SortingLayer: 9
   m_SortingOrder: 0
   m_RenderMode: 0
   m_MeshDistribution: 0
@@ -15197,7 +15205,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -763691063
-  m_SortingLayer: 5
+  m_SortingLayer: 7
   m_SortingOrder: 0
   m_Sprite: {fileID: 914748778, guid: 153ae5445ac704743a4296b65cd75f65, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

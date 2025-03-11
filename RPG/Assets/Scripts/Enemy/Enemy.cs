@@ -144,7 +144,6 @@ public class Enemy : Entity
             return default(RaycastHit2D);
         
         Vector3 direction = player.position - wallCheck.position;
-
         RaycastHit2D playerDetected = Physics2D.Raycast(wallCheck.position, direction, playerDistance, whatIsPlayer);
         RaycastHit2D wallDetected = Physics2D.Raycast(wallCheck.position, direction, playerDistance, whatIsGround);
 
@@ -153,6 +152,8 @@ public class Enemy : Entity
         {
             if (wallDetected.distance < playerDetected.distance)
             {
+                if (wallDetected.collider.gameObject.tag == "Platform")
+                    return playerDetected;
                 Debug.DrawRay(wallCheck.position, direction, Color.red);
                 return default(RaycastHit2D);
             }

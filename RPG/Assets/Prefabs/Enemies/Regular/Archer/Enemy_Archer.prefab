@@ -56,7 +56,7 @@ Transform:
   m_GameObject: {fileID: 1600426506341481082}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5, y: -4, z: 0}
+  m_LocalPosition: {x: -5, y: -1.71, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -715,6 +715,8 @@ MonoBehaviour:
   evasionTimer: 1.5
   evasionSpeed: 10
   evasionDistance: 0.5
+  minEvasionCooldown: 0
+  maxEvasionCooldown: 0.5
   isSummon: 0
   enemyData: {fileID: 0}
   stunDuration: 1
@@ -727,7 +729,7 @@ MonoBehaviour:
   safeDistance: 3
   lastTimeJumped: 0
   groundBehindCheck: {fileID: 4152947364758406094}
-  groundBehindCheckSize: {x: 1.79, y: 5}
+  groundBehindCheckSize: {x: 0.5, y: 2}
 --- !u!1 &6160635913531510251
 GameObject:
   m_ObjectHideFlags: 0

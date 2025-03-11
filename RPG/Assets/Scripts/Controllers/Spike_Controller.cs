@@ -10,6 +10,11 @@ public class Spike_Controller : MonoBehaviour
     {
         if (collision.GetComponent<CharacterStats>() != null)
         {
+            if (collision.gameObject.layer == LayerMask.NameToLayer("Enemy"))
+                {
+                collision.GetComponent<CharacterStats>().KillEntity();
+            }
+
             if (collision.gameObject.tag == "Player")
             {
                 player = PlayerManager.instance.player;

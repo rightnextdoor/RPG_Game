@@ -77,7 +77,8 @@ public class Enemy_Archer : Enemy_Regular
     {
         GameObject newArrow = Instantiate(arrowPrefab, attackCheck.position,Quaternion.identity);
         Transform player = PlayerManager.instance.player.transform;
-        newArrow.GetComponent<Arrow_Controller>().SetupArrow(arrowSpeed * facingDir, stats, player.position);
+        Vector3 direction = player.position - wallCheck.position;
+        newArrow.GetComponent<Arrow_Controller>().SetupArrow(arrowSpeed * facingDir, stats, player.position, direction);
         AudioManager.instance.PlaySFX("ArcherAttack", transform);
     }
 

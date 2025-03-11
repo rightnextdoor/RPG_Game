@@ -22,6 +22,9 @@ public class PlayerPrimaryAttackState : PlayerState
         if (comboCounter > 2 || Time.time >= lastTimeAttacked + comboWindow)
             comboCounter = 0;
 
+        if (!player.IsGroundDetected())
+            comboCounter = 0;
+
         player.anim.SetInteger("ComboCounter", comboCounter);
 
         float attackDir = player.facingDir;
@@ -48,7 +51,7 @@ public class PlayerPrimaryAttackState : PlayerState
     {
         base.Update();
 
-        if (stateTimer < 0)
+        if (stateTimer < 0 && player.IsGroundDetected())
             player.SetZeroVelocity();
 
         if (triggerCalled)
