@@ -64,7 +64,7 @@ public class ArcherBattleState : EnemyState
 
             if (enemy.IsPlayerDetected().distance < enemy.safeDistance)
             {
-                if (CanJump())
+                if (CanJump() && enemy.canJump)
                     stateMachine.ChangeState(enemy.jumpState);
             }
 

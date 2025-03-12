@@ -8,6 +8,7 @@ public class Enemy_Archer : Enemy_Regular
     [SerializeField] private GameObject arrowPrefab;
     [SerializeField] private float arrowSpeed;
 
+    public bool canJump = true;
     public Vector2 jumpVelocity;
     public float jumpCooldown;
     public float safeDistance; // how close player should be to trigger jump in battle state
