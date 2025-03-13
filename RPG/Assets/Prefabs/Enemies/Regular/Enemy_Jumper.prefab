@@ -504,7 +504,7 @@ MonoBehaviour:
     modifiers: 
   currentHealth: 0
   damage:
-    baseValue: 1
+    baseValue: 10
     modifiers: 
   strength:
     baseValue: 0
@@ -648,6 +648,8 @@ MonoBehaviour:
   evasionTimer: 1.5
   evasionSpeed: 10
   evasionDistance: 0.5
+  minEvasionCooldown: 3
+  maxEvasionCooldown: 5
   isSummon: 0
   enemyData: {fileID: 0}
   stunDuration: 1

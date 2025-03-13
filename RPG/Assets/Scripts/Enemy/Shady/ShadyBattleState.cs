@@ -62,8 +62,6 @@ public class ShadyBattleState : EnemyState
         {
             stateTimer = enemy.battleTime;
 
-            
-
             if (enemy.IsPlayerDetected().distance <= enemy.rangeAttackDistance &&
                 enemy.IsPlayerDetected().distance > enemy.rangeAttackDistance / 2)
                 enemy.RangeAttack(player, enemy.attackState, enemy.evasionState, null);
@@ -71,7 +69,14 @@ public class ShadyBattleState : EnemyState
             if(enemy.IsPlayerDetected().distance <= enemy.meleeAttackDistance)
                 enemy.MeleeAttack(player, enemy.meleeAttack, enemy.evasionState, "ShadyAttack", false, 0);
             else
+            {
+                if (!enemy.IsGroundDetected())
+                {
+                    stateMachine.ChangeState(enemy.idleState);
+                    return;
+                }
                 enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, rb.velocity.y);
+            }
 
 
 
