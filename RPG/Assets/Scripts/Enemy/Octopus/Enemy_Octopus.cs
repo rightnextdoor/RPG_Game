@@ -54,6 +54,9 @@ public class Enemy_Octopus : Enemy_Regular
 
     protected override void CheckIfEnemyisDead()
     {
+        if (enemyData == null)
+            return;
+
         if (enemyData.isDead)
         {
             Destroy(transform.parent.gameObject);
@@ -63,7 +66,8 @@ public class Enemy_Octopus : Enemy_Regular
     {
         GameObject newBubble = Instantiate(bubblePrefab, attackCheck.position, Quaternion.identity);
         Transform player = PlayerManager.instance.player.transform;
-        newBubble.GetComponent<Bubble_Controller>().SetupBubble(bubbleSpeed * facingDir, stats, attackCheckRadius, explosionTimer, player.position);
+        Vector3 direction = player.position - wallCheck.position;
+        newBubble.GetComponent<Bubble_Controller>().SetupBubble(bubbleSpeed * facingDir, stats, attackCheckRadius, explosionTimer, player.position, direction);
     }
 
     public bool IsPlayerInZone() => playerDetectedZone.GetComponent<EnemyZone>().PlayerInZone;

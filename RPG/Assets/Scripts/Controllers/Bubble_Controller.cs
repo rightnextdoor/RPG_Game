@@ -30,7 +30,7 @@ public class Bubble_Controller : MonoBehaviour
             rb.velocity = xVelocity;
     }
 
-    public void SetupBubble(float _speed, CharacterStats _myStats, float _radius, float _explosionTimer, Vector3 _playerPos)
+    public void SetupBubble(float _speed, CharacterStats _myStats, float _radius, float _explosionTimer, Vector3 _playerPos, Vector3 dir)
     {
         anim = GetComponent<Animator>();
 
@@ -40,6 +40,11 @@ public class Bubble_Controller : MonoBehaviour
         explosionRadius = _radius;
         explosionTimer = _explosionTimer;
         canMove = true;
+
+        if (dir.x < 1 && dir.x > -1)
+        {
+            direction.y *= -1;
+        }
 
         if (_playerPos.x < transform.position.x)
         {
