@@ -15,7 +15,9 @@ public class ParallaxBackground : MonoBehaviour
     {
         cam = GameObject.Find("Main Camera");
 
-        length = GetComponent<SpriteRenderer>().bounds.size.x;
+        if(GetComponent<SpriteRenderer>() != null)
+            length = GetComponent<SpriteRenderer>().bounds.size.x;
+        else length = 1;
         xPosition = transform.position.x;
     }
 
