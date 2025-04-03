@@ -237,6 +237,57 @@ public class Enemy : Entity
         }
     }
 
+    public void MultiMeleeAttack(Transform player, System.Collections.Generic.List<EnemyState> attackStates, EnemyState evasionState, string audioName, bool soundDelay, float delayTime)
+    {
+        if (IsPlayerDetected().distance > meleeAttackDistance)
+        {
+            if (IsWallDetected() || !IsGroundDetected())
+                return;
+
+            SetVelocity(moveSpeed * facingDir, rb.velocity.y);
+
+        }
+        if (IsPlayerDetected().distance <= meleeAttackDistance)
+        {
+            if (player != null)
+            {
+                if (Vector2.Distance(player.transform.position, transform.position) < evasionDistance)
+                {
+                    if (evasionState != null)
+                    {
+                        if (CanEvade())
+                            stateMachine.ChangeState(evasionState);
+                    }
+                }
+            }
+
+            if (CanMeleeAttack())
+            {
+                if (attackStates == null)
+                    return;
+
+                EnemyState attackState = null;
+
+                int number = Random.Range(0, attackStates.Count);
+
+                attackState = attackStates[number];
+
+                if (attackState != null)
+                    stateMachine.ChangeState(attackState);
+
+                if (audioName != null)
+                {
+                    if (soundDelay)
+                    {
+                        AudioManager.instance.PlaySFXWithDelay(audioName, null, delayTime);
+                    }
+                    else
+                        AudioManager.instance.PlaySFX(audioName, transform);
+                }
+            }
+        }
+    }
+
     public void MeleeAttack(Transform player, EnemyState attackState, EnemyState evasionState, string audioName, bool soundDelay, float delayTime)
     {
         if (IsPlayerDetected().distance > meleeAttackDistance)
