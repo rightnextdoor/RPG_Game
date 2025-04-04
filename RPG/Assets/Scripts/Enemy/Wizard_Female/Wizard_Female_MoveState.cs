@@ -1,0 +1,35 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Wizard_Female_MoveState : Wizard_Female_GroundedState
+{
+    public Wizard_Female_MoveState(Enemy _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Wizard_Female enemy) : base(_enemyBase, _stateMachine, _animBoolName, enemy)
+    {
+    }
+    public override void Enter()
+    {
+        base.Enter();
+        stateTimer = enemy.moveTime;
+    }
+
+    public override void Exit()
+    {
+        base.Exit();
+    }
+
+    public override void Update()
+    {
+        base.Update();
+
+        enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, rb.velocity.y);
+
+
+        if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
+        {
+
+            stateMachine.ChangeState(enemy.idleState);
+        }
+
+    }
+}
