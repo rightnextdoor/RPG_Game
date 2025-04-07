@@ -37,7 +37,7 @@ public class DeathBringerSpellCastState : EnemyState
         if (CanCast())
         {
             enemy.CastSpell();
-            AudioManager.instance.PlaySFX("DeathBringerSpellAttack", null);
+            AudioManager.instance.PlaySFX("DeathBringerSpellAttack");
         }
        
         if (amountOfSpells <= 0)

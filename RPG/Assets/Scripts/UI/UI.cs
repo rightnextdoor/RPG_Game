@@ -89,7 +89,7 @@ public class UI : MonoBehaviour, ISaveManager
         if (_menu != null)
         {
             if(_menu != inGameUI)
-                AudioManager.instance.PlaySFX("MenuClick", null);
+                AudioManager.instance.PlaySFX("MenuClick");
             
             _menu.SetActive(true);
 

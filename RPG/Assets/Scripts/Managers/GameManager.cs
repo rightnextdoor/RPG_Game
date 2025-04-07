@@ -27,7 +27,7 @@ public class GameManager : MonoBehaviour
 
     public void GameOver()
     {
-        AudioManager.instance.PlaySFX("GameOver", null);
+        AudioManager.instance.PlaySFX("GameOver");
         gameOverUI.SetActive(true);
     }
    

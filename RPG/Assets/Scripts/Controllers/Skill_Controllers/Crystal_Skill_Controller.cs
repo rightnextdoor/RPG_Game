@@ -69,7 +69,7 @@ public class Crystal_Skill_Controller : MonoBehaviour
     private void AnimationExplodeEvent()
     {
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, cd.radius);
-        AudioManager.instance.PlaySFX("CrystalExplode", null);
+        AudioManager.instance.PlaySFX("CrystalExplode");
 
         foreach (var hit in colliders)
         {

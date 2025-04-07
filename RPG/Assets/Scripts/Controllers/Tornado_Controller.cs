@@ -25,7 +25,7 @@ public class Tornado_Controller : Explosion
         myStats = _myStats;
         moveSpeed = _moveSpeed;
         canMove = true;
-        AudioManager.instance.PlaySFX("TornadoAttack", null);
+        AudioManager.instance.PlaySFX("TornadoAttack");
 
     }
 

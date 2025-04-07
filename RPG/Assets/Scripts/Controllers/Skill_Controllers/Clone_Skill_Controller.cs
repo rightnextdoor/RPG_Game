@@ -68,7 +68,7 @@ public class Clone_Skill_Controller : MonoBehaviour
         {
             if (hit.GetComponent<Enemy>() != null)
             {
-                AudioManager.instance.PlaySFX("Attack1", null);
+                AudioManager.instance.PlaySFX("Attack1");
 
                 hit.GetComponent<Entity>().SetupKnockbackDir(transform);
 

@@ -27,7 +27,7 @@ public class PlayerStats : CharacterStats, ISaveManager
         base.Die();
         player.Die();
 
-        AudioManager.instance.PlaySFX("PlayerDeath", null);
+        AudioManager.instance.PlaySFX("PlayerDeath");
     }
 
     protected override void DecreaseHealthBy(int _damage)
@@ -41,7 +41,7 @@ public class PlayerStats : CharacterStats, ISaveManager
 
             string[] sound = { "PlayerHurt1", "PlayerHurt2" };
             int range = Random.Range(0, sound.Length);
-            AudioManager.instance.PlaySFX(sound[range], null);
+            AudioManager.instance.PlaySFX(sound[range]);
         }
 
         ItemData_Equipment currentArmor = Inventory.instance.GetEquipment(EquipmentType.Armor);

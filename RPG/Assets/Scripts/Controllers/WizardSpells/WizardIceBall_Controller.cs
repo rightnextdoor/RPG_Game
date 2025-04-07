@@ -82,7 +82,7 @@ public class WizardIceBall_Controller : Explosion
     {
         isIce = true;
         base.AnimationExplodeEvent();
-        AudioManager.instance.PlaySFX("Wizard_IceAttack", null);
+        AudioManager.instance.PlaySFX("Wizard_IceAttack");
     }
 
     private void FinishExplosion()

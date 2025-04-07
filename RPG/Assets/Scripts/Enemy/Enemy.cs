@@ -279,7 +279,7 @@ public class Enemy : Entity
                 {
                     if (soundDelay)
                     {
-                        AudioManager.instance.PlaySFXWithDelay(audioName, null, delayTime);
+                        AudioManager.instance.PlaySFXWithDelay(audioName, delayTime);
                     }
                     else
                         AudioManager.instance.PlaySFX(audioName, transform);
@@ -321,7 +321,7 @@ public class Enemy : Entity
                 {
                     if (soundDelay)
                     {
-                        AudioManager.instance.PlaySFXWithDelay(audioName, null, delayTime);
+                        AudioManager.instance.PlaySFXWithDelay(audioName, delayTime);
                     } 
                     else
                         AudioManager.instance.PlaySFX(audioName, transform);

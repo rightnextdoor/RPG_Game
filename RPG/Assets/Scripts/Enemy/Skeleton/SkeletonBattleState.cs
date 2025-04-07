@@ -67,10 +67,10 @@ public class SkeletonBattleState : EnemyState
                 {
                     stateMachine.ChangeState(enemy.attack2State);
                     AudioManager.instance.PlaySFX("SkeletonAttack", enemy.transform);
-                    AudioManager.instance.PlaySFXWithDelay("SkeletonAttack", null, .5f);
+                    AudioManager.instance.PlaySFXWithDelay("SkeletonAttack", .5f);
                     if (enemy.IsSpearSkeleton)
                     {
-                        AudioManager.instance.PlaySFXWithDelay("SkeletonAttack", null, .7f);
+                        AudioManager.instance.PlaySFXWithDelay("SkeletonAttack", .7f);
                     }
                 }
                     

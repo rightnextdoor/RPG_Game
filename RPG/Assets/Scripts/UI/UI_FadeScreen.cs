@@ -37,7 +37,6 @@ public class UI_FadeScreen : MonoBehaviour
     public void MainMenuFadTo(string scene)
     {
         StartCoroutine(FadeOut(scene));
-        AudioManager.instance.PlayRandomBGM();
     }
 
     public void FadeTo(string scene)

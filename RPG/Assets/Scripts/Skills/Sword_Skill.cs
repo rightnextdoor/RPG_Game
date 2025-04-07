@@ -108,11 +108,11 @@ public class Sword_Skill : Skill
         
         if (swordType == SwordType.Pierce)
         {
-            AudioManager.instance.PlaySFX("PierceSword", null);
+            AudioManager.instance.PlaySFX("PierceSword");
         }
         else
         {
-            AudioManager.instance.PlaySFX("SwordThrow", null);
+            AudioManager.instance.PlaySFX("SwordThrow");
         }
 
         player.AssignNewSword(newSword);

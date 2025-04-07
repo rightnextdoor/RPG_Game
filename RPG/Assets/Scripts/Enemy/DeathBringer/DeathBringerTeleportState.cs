@@ -14,8 +14,8 @@ public class DeathBringerTeleportState : EnemyState
     {
         base.Enter();
 
-        AudioManager.instance.PlaySFX("DeathBringerLaugh", null);
-        AudioManager.instance.PlaySFX("DeathBringerTeleport", null);                        
+        AudioManager.instance.PlaySFX("DeathBringerLaugh");
+        AudioManager.instance.PlaySFX("DeathBringerTeleport");                        
         enemy.stats.MakeInvincible(true);
     }
 

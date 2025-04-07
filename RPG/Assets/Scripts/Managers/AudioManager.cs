@@ -1,297 +1,301 @@
 using System.Collections;
-using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using Random = UnityEngine.Random;
-using Unity.VisualScripting;
+using UnityEngine.Audio;
+using UnityEngine.SceneManagement;
 
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager instance;
 
-    [SerializeField] private float sfxMinimumDistance;
+    [Header("Mixer")]
+    public AudioMixer masterMixer;
 
-    [SerializeField] private SoundFX[] soundFX;
-    [SerializeField] private BGM[] bgm;
-    [SerializeField] private BGM_Random[] bgmRandom;
-    public bool playRandomBgm;
+    [Header("SFX Groups")]
+    public List<SoundLibrary> soundGroups;
 
-    private BGM_Random[] bgmChange;
+    [Header("Music")]
+    public List<ZoneMusicLibrary> zoneMusicDefinitions;
+    public List<BackgroundMusicLibrary> backgroundMusicGroups;
 
-    private BGM playBGM;
-    private bool canPlaySFX;
-    private bool isPlaying;
+    private List<Sound> currentZoneMusicList = new List<Sound>();
+    private List<Sound> shuffledMusic = new List<Sound>();
+    private int currentMusicIndex = 0;
 
-    private void Awake()
+    [SerializeField] private List<ZoneSceneMapping> zoneSceneMapping = new List<ZoneSceneMapping>();
+
+    private Sound currentBackgroundMusic;
+    private Coroutine crossfadeCoroutine;
+
+    private string currentZone = "";
+    private bool isRandomMusicEnabled = true;
+
+    void Awake()
     {
-        if (instance == null)
-        {
-            instance = this;
-        }
-        else
+        if (instance != null)
         {
             Destroy(gameObject);
             return;
         }
 
+        instance = this;
         DontDestroyOnLoad(gameObject);
 
-        Invoke("AllowSFX", .1f);
-        SetupAudio();
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        InitializeSounds();
     }
 
-    private void SetupAudio()
+    private void InitializeSounds()
     {
-        foreach (SoundFX s in soundFX)
+        foreach (var group in soundGroups)
         {
-            s.source = gameObject.AddComponent<AudioSource>();
-            s.source.clip = s.clip;
-            s.source.volume = s.volume;
-            s.source.pitch = s.pitch;
-            s.source.loop = s.loop;
-            s.source.playOnAwake = s.playOnAwake;
-            s.source.outputAudioMixerGroup = s.output;
-        }
-
-        foreach (BGM_Random s in bgmRandom)
-        {
-            s.source = gameObject.AddComponent<AudioSource>();
-            s.source.clip = s.clip;
-            s.source.volume = s.volume;
-            s.source.pitch = s.pitch;
-            s.source.loop = s.loop;
-            s.source.outputAudioMixerGroup = s.output;
-        }
-
-        foreach (BGM s in bgm)
-        {
-            s.source = gameObject.AddComponent<AudioSource>();
-            s.source.clip = s.clip;
-            s.source.volume = s.volume;
-            s.source.pitch = s.pitch;
-            s.source.loop = s.loop;
-            s.source.outputAudioMixerGroup = s.output;
-        }
-    }
-
-    private void Start()
-    {
-        bgmChange = bgmRandom;
-    }
-
-    private void Update()
-    {
-        if (playBGM != null)
-        {
-            if (!playBGM.source.isPlaying)
-                playRandomBgm = true;
-        }
-
-        if (playRandomBgm)
-        {
-            if(!isPlaying)
-                PlayRandomBGM();
-        }
-    }
-
-    #region SoundFX
-    public void PlaySFX(string _sfxName, Transform _source)
-    {
-        SoundFX s = Array.Find(soundFX, sound => sound.name == _sfxName);
-        if (s == null)
-        {
-            Debug.LogWarning("Sounds: " + _sfxName + " not found");
-            return;
-        }
-
-        if (canPlaySFX == false)
-            return;
-
-        if (_source != null && Vector2.Distance(PlayerManager.instance.player.transform.position, _source.position) > sfxMinimumDistance)
-            return;
-
-        s.source.volume = s.volume;
-        s.source.pitch = Random.Range(.85f, 1.1f);
-        s.source.playOnAwake = s.playOnAwake;
-        s.source.loop = s.loop;
-        s.source.Play();
-    }
-
-    public void PlaySFXWithDelay(string _sfxName, Transform _source, float dealyTime)
-    {
-        SoundFX s = Array.Find(soundFX, sound => sound.name == _sfxName);
-        if (s == null)
-        {
-            Debug.LogWarning("Sounds: " + _sfxName + " not found");
-            return;
-        }
-
-        if (canPlaySFX == false)
-            return;
-
-        if (_source != null && Vector2.Distance(PlayerManager.instance.player.transform.position, _source.position) > sfxMinimumDistance)
-            return;
-
-        s.source.volume = s.volume;
-        s.source.pitch = Random.Range(.85f, 1.1f);
-        s.source.playOnAwake = s.playOnAwake;
-        s.source.loop = s.loop;
-
-        StartCoroutine(DelaySound(s.source, dealyTime));
-    }
-
-    private IEnumerator DelaySound(AudioSource _audio, float delayTime)
-    {
-        yield return new WaitForSeconds(delayTime);
-        if (_audio != null)
-        {
-            _audio.Play();
-        }
-    }
-
-    public void StopSFX(string _sfxName)
-    {
-        foreach (SoundFX s in soundFX)
-        {
-            if (s.name == _sfxName)
-                s.source.Stop();
-        }
-    }
-
-    public void StopSFXWithTime(string _sfxName)
-    {
-        SoundFX s = Array.Find(soundFX, sound => sound.name == _sfxName);
-        if (s == null)
-        {
-            Debug.LogWarning("Sounds: " + _sfxName + " not found");
-            return;
-        }
-
-        StartCoroutine(DecreaseVolume(s.source));
-    }
-
-    private void AllowSFX() => canPlaySFX = true;
-
-    #endregion
-
-
-    #region BGM
-
-    public void PlayBGM(string _name)
-    {
-        playRandomBgm = false;
-        StopAllBGM();
-
-        BGM s = Array.Find(bgm, random => random.name == _name);
-        if (s == null)
-        {
-            Debug.LogWarning("Sounds: " + _name + " not found");
-            return;
-        }
-
-        s.source.volume = s.volume;
-        s.source.pitch = s.pitch;
-        s.source.loop = s.loop;
-
-        s.source.Play();
-        playBGM = s;
-    }
-
-    public void PlayRandomBGM()
-    {
-        playRandomBgm = true;
-        StopAllBGM();
-        
-        int index = Random.Range(0, bgmChange.Length); // added -1 for index out of range.
-        string name = bgmChange[index].name;
-
-        BGM_Random s = Array.Find(bgmChange, random => random.name == name);
-        if (s == null)
-        {
-            Debug.LogWarning("Sounds: " + name + " not found");
-            return;
-        }
-        Debug.Log(s.name);
-        s.source.volume = s.volume;
-        s.source.pitch = s.pitch;
-        s.source.loop = s.loop;
-
-        s.source.Play();
-        isPlaying = true;
-        StartCoroutine(PlayNextSong(s));
-    }
-
-    private IEnumerator PlayNextSong(BGM_Random song)
-    {
-        yield return new WaitForSeconds(song.clip.length);
-        song.source.Stop();
-        RemoveBGMFromList(song.clip);
-        isPlaying = false;
-    }
-
-
-    private void StopAllBGM()
-    {
-        string name = null;
-        foreach (BGM_Random s in bgmChange)
-        {
-            if (s.source.isPlaying)
+            foreach (var sound in group.sounds)
             {
-                name = s.name;
+                GameObject obj = new GameObject("Sound_" + sound.name);
+                obj.transform.SetParent(transform);
+                sound.source = obj.AddComponent<AudioSource>();
+                sound.source.clip = sound.clip;
+                sound.source.volume = sound.volume;
+                sound.source.pitch = sound.pitch;
+                sound.source.loop = sound.loop;
+                sound.source.outputAudioMixerGroup = sound.mixerGroup;
             }
-            s.source.Stop();
         }
-        foreach (BGM s in bgm)
+
+        foreach (var group in zoneMusicDefinitions)
         {
-            s.source.Stop();
+            foreach (var sound in group.musicTracks)
+            {
+                GameObject obj = new GameObject("Sound_" + sound.name);
+                obj.transform.SetParent(transform);
+                sound.source = obj.AddComponent<AudioSource>();
+                sound.source.clip = sound.clip;
+                sound.source.volume = sound.volume;
+                sound.source.pitch = sound.pitch;
+                sound.source.loop = sound.loop;
+                sound.source.outputAudioMixerGroup = sound.mixerGroup;
+            }
         }
-        isPlaying = false;
+
+        foreach (var group in backgroundMusicGroups)
+        {
+            foreach (var sound in group.musicTracks)
+            {
+                GameObject obj = new GameObject("Sound_" + sound.name);
+                obj.transform.SetParent(transform);
+                sound.source = obj.AddComponent<AudioSource>();
+                sound.source.clip = sound.clip;
+                sound.source.volume = sound.volume;
+                sound.source.pitch = sound.pitch;
+                sound.source.loop = sound.loop;
+                sound.source.outputAudioMixerGroup = sound.mixerGroup;
+            }
+        }
     }
 
-    private void RemoveBGMFromList(AudioClip clip)
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (clip != null)
+        string newZone = GetZoneFromScene(scene.name);
+        if (newZone != currentZone)
         {
-            if (bgmChange.Length == 1)
+            currentZone = newZone;
+            PlayZoneMusic(currentZone);
+        }
+    }
+
+    private string GetZoneFromScene(string sceneName)
+    {
+        if (zoneSceneMapping == null)
+        {
+            Debug.LogWarning("ZoneSceneMapping is not assigned in AudioManager.");
+            return null;
+        }
+        foreach (var map in zoneSceneMapping)
+        {
+            foreach (var zone in map.zones)
             {
-                bgmChange = new BGM_Random[bgmRandom.Length];
-                bgmChange = bgmRandom;
+                if (zone.sceneNames.Contains(sceneName))
+                    return zone.zoneName;
+            }
+        }
+        
+
+        Debug.LogWarning($"Scene '{sceneName}' not mapped to any zone.");
+        return null;
+    }
+
+    public void PlayZoneMusic(string zoneName)
+    {
+        ZoneMusicLibrary def = zoneMusicDefinitions.Find(z => z.zoneName == zoneName);
+        if (def == null)
+        {
+            Debug.LogWarning("Zone music not found for: " + zoneName);
+            return;
+        }
+
+        currentZoneMusicList = new List<Sound>(def.musicTracks);
+        ShuffleMusic();
+        PlayNextRandomTrack();
+    }
+
+    private void ShuffleMusic()
+    {
+        shuffledMusic = currentZoneMusicList.OrderBy(x => Random.value).ToList();
+        currentMusicIndex = 0;
+    }
+
+    private void PlayNextRandomTrack()
+    {
+        if (!isRandomMusicEnabled || shuffledMusic.Count == 0) return;
+
+        if (currentMusicIndex >= shuffledMusic.Count)
+        {
+            ShuffleMusic();
+        }
+
+        PlayMusic(shuffledMusic[currentMusicIndex], () => {
+            currentMusicIndex++;
+            PlayNextRandomTrack();
+        });
+    }
+
+    private void PlayMusic(Sound sound, System.Action onComplete = null)
+    {
+        if (crossfadeCoroutine != null) StopCoroutine(crossfadeCoroutine);
+        crossfadeCoroutine = StartCoroutine(CrossfadeMusic(sound, onComplete));
+    }
+
+    private IEnumerator CrossfadeMusic(Sound newSound, System.Action onComplete = null)
+    {
+        if (currentBackgroundMusic != null && currentBackgroundMusic.source != null)
+        {
+            while (currentBackgroundMusic.source.volume > 0.01f)
+            {
+                currentBackgroundMusic.source.volume -= Time.deltaTime;
+                yield return null;
+            }
+            currentBackgroundMusic.source.Stop();
+        }
+        Debug.Log("new sound " + newSound.name);
+        newSound.source.volume = 0f;
+        newSound.source.Play();
+        currentBackgroundMusic = newSound;
+
+        while (newSound.source.volume < newSound.volume)
+        {
+            newSound.source.volume += Time.deltaTime;
+            yield return null;
+        }
+
+        if (!newSound.loop && onComplete != null)
+        {
+            yield return new WaitForSeconds(newSound.clip.length);
+            onComplete.Invoke();
+        }
+    }
+
+    public void PlayEventMusic(string groupName)
+    {
+        var group = backgroundMusicGroups.Find(g => g.backgroundName == groupName);
+        if (group == null)
+        {
+            Debug.LogWarning("Background music group not found: " + groupName);
+            return;
+        }
+
+        if (group.musicTracks.Count == 0) return;
+
+        isRandomMusicEnabled = false;
+        PlayMusic(group.musicTracks[0]);
+    }
+
+    public void StopEventMusicAndResumeRandom()
+    {
+        if (currentBackgroundMusic != null && currentBackgroundMusic.source != null)
+        {
+            currentBackgroundMusic.source.Stop();
+        }
+
+        isRandomMusicEnabled = true;
+        PlayNextRandomTrack();
+    }
+
+    public void PlaySFX(string name, Transform sourceTransform = null, float maxDistance = 15f)
+    {
+        foreach (var group in soundGroups)
+        {
+            var sound = group.sounds.FirstOrDefault(s => s.name == name);
+            if (sound != null)
+            {
+                if (sourceTransform != null && Vector2.Distance(PlayerManager.instance.player.transform.position, sourceTransform.position) > maxDistance)
+                    return;
+
+                sound.source.PlayOneShot(sound.clip);
                 return;
             }
-            
-            BGM_Random[] _bgmList = new BGM_Random[bgmChange.Length - 1];
-            int count = 0;
-            for (int i = 0; i < bgmChange.Length; i++)
-            {
-                if (bgmChange[i].clip != clip)
-                {
-                    _bgmList[count] = bgmChange[i];
-                    count++;
-                }
-            }
-
-            bgmChange = new BGM_Random[_bgmList.Length];
-            bgmChange = _bgmList;
         }
+
+        Debug.LogWarning("SFX not found: " + name);
     }
 
-    #endregion
-
-    private IEnumerator DecreaseVolume(AudioSource _audio)
+    public void PlaySFXWithDelay(string name, float delay, Transform sourceTransform = null, float maxDistance = 15f)
     {
-        float defaultVolume = _audio.volume;
-
-        while (_audio.volume > .1f)
-        {
-            _audio.volume -= _audio.volume * .2f;
-            yield return new WaitForSeconds(.25f);
-
-            if (_audio.volume <= .1f)
-            {
-                _audio.Stop();
-                _audio.volume = defaultVolume;
-                break;
-            }
-        }
+        StartCoroutine(PlaySFXDelayedCoroutine(name, delay, sourceTransform, maxDistance));
     }
 
+    private IEnumerator PlaySFXDelayedCoroutine(string name, float delay, Transform sourceTransform, float maxDistance)
+    {
+        yield return new WaitForSeconds(delay);
+        PlaySFX(name, sourceTransform, maxDistance);
+    }
+
+    public void StopSFX(string name)
+    {
+        foreach (var group in soundGroups)
+        {
+            var sound = group.sounds.FirstOrDefault(s => s.name == name);
+            if (sound != null && sound.source.isPlaying)
+            {
+                sound.source.Stop();
+                return;
+            }
+        }
+
+        Debug.LogWarning("SFX not found to stop: " + name);
+    }
+
+    public void StopSFXWithFade(string name, float fadeDuration)
+    {
+        StartCoroutine(FadeOutSFX(name, fadeDuration));
+    }
+
+    private IEnumerator FadeOutSFX(string name, float duration)
+    {
+        foreach (var group in soundGroups)
+        {
+            var sound = group.sounds.FirstOrDefault(s => s.name == name);
+            if (sound != null)
+            {
+                float startVolume = sound.source.volume;
+                float t = 0f;
+
+                while (t < duration)
+                {
+                    sound.source.volume = Mathf.Lerp(startVolume, 0f, t / duration);
+                    t += Time.deltaTime;
+                    yield return null;
+                }
+
+                sound.source.Stop();
+                sound.source.volume = sound.volume;
+                yield break;
+            }
+        }
+
+        Debug.LogWarning("SFX not found for fade out: " + name);
+    }
 }
+
+
+

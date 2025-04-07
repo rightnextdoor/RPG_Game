@@ -62,7 +62,7 @@ public class PlayerCounterAttackState : PlayerState
 
     private void SuccesfulCounterAttack()
     {
-        AudioManager.instance.PlaySFX("Parry", null);
+        AudioManager.instance.PlaySFX("Parry");
         stateTimer = 10; // any value bigger than 1
         player.anim.SetBool("SuccessfulCounterAttack", true);
     }

@@ -16,7 +16,7 @@ public class WizardAirWalkAttack_Controller : Explosion
     {
         anim = GetComponentInChildren<Animator>();
         myStats = _myStats;
-        AudioManager.instance.PlaySFX("Wizard_AirWalkAttack", null);
+        AudioManager.instance.PlaySFX("Wizard_AirWalkAttack");
         spriteLibrary.spriteLibraryAsset = sprites[_spriteSelected];
     }
 

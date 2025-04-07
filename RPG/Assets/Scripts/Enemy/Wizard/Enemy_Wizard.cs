@@ -122,8 +122,8 @@ public class Enemy_Wizard : Enemy_Boss
     public override void FindPosition()
     {
         base.FindPosition();
-        AudioManager.instance.PlaySFX("Wizard_TeleportOut", null);
-        AudioManager.instance.PlaySFXWithDelay("Phoenix", null, 1f);
+        AudioManager.instance.PlaySFX("Wizard_TeleportOut");
+        AudioManager.instance.PlaySFXWithDelay("Phoenix",1f);
     }
 
     protected override void OnDrawGizmos()
@@ -169,7 +169,7 @@ public class Enemy_Wizard : Enemy_Boss
     {
         GameObject castFireBall = Instantiate(fireBallPrefab, attackCheck.position, Quaternion.identity);
         castFireBall.GetComponent<WizardFireBall_Controller>().SetupFireBall(fireBallSpeed * facingDir, stats, attackCheckRadius, fireBallExplosionTimer);
-        AudioManager.instance.PlaySFX("Wizard_FireBallAttack", null);
+        AudioManager.instance.PlaySFX("Wizard_FireBallAttack");
         isFireBall = false;
     }
 
@@ -197,7 +197,7 @@ public class Enemy_Wizard : Enemy_Boss
         {
             lighting.GetComponent<WizardLightingStrike_Controller>().SetupLightingStrike(stats);
         }
-        AudioManager.instance.PlaySFX("Wizard_LightingAttack", null);
+        AudioManager.instance.PlaySFX("Wizard_LightingAttack");
         isLightingStrike = false;
     }
 

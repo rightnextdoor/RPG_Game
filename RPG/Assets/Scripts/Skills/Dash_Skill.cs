@@ -12,7 +12,7 @@ public class Dash_Skill : Skill
     public override void UseSkill()
     {     
         base.UseSkill();
-        AudioManager.instance.PlaySFX("Dash", null);
+        AudioManager.instance.PlaySFX("Dash");
 
         cooldown = PlayerManager.instance.player.dashDuration + 0.3f;
     }

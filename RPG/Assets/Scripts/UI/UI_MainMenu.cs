@@ -11,7 +11,7 @@ public class UI_MainMenu : MonoBehaviour
 
     private void Start()
     {
-        AudioManager.instance.PlayBGM("MenuTheme");
+        AudioManager.instance.PlayEventMusic("MenuTheme");
 
         StartCoroutine(LoadWithDelay());
     }

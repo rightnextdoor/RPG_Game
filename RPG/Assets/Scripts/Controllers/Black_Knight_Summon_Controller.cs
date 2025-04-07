@@ -52,7 +52,7 @@ public class Black_Knight_Summon_Controller : MonoBehaviour
 
     void SpawnSkeleton(GameObject enemy)
     {
-        AudioManager.instance.PlaySFX("BlackKnightSummon", null);
+        AudioManager.instance.PlaySFX("BlackKnightSummon");
         enemy.GetComponent<Enemy_Regular>().SummonEnemy(true);
         Instantiate(enemy, summonPosition.transform.position, Quaternion.identity);
     }

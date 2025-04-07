@@ -14,9 +14,9 @@ public class Wizard_DeadState : EnemyState
     {
         base.Enter();
 
-        AudioManager.instance.PlaySFX("Wizard_Die", null);
-        AudioManager.instance.PlaySFXWithDelay("Wizard_TeleportOut", null, .6f);
-        AudioManager.instance.PlaySFXWithDelay("Phoenix", null, 1.7f);
+        AudioManager.instance.PlaySFX("Wizard_Die");
+        AudioManager.instance.PlaySFXWithDelay("Wizard_TeleportOut", .6f);
+        AudioManager.instance.PlaySFXWithDelay("Phoenix", 1.7f);
         enemy.stats.MakeInvincible(true);
         enemy.SelfDestroy();
     }

@@ -11,7 +11,7 @@ public class AreaSound : MonoBehaviour
         if (collision.GetComponent<Player>() != null)
         {
             if(AudioManager.instance != null)
-                AudioManager.instance.PlaySFX(areaSoundName, null);
+                AudioManager.instance.PlaySFX(areaSoundName);
         }
     }
 
@@ -20,7 +20,7 @@ public class AreaSound : MonoBehaviour
         if (collision.GetComponent<Player>() != null)
         {
             if(AudioManager.instance != null)
-                AudioManager.instance.StopSFXWithTime(areaSoundName);
+                AudioManager.instance.StopSFXWithFade(areaSoundName, .5f);
         }
     }
 }

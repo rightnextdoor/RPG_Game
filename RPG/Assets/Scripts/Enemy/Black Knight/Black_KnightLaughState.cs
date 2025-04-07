@@ -15,7 +15,7 @@ public class Black_KnightLaughState : EnemyState
     {
         base.Enter();
         laughTimer = 1f;
-        AudioManager.instance.PlaySFX("BlackKnightLaugh", null);
+        AudioManager.instance.PlaySFX("BlackKnightLaugh");
     }
 
     public override void Exit()

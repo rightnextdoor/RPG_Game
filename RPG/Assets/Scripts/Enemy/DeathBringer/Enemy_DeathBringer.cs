@@ -94,7 +94,7 @@ public class Enemy_DeathBringer : Enemy_Boss
     public override void FindPosition()
     {
         base.FindPosition();
-        AudioManager.instance.PlaySFX("DeathBringerTeleport2", null);
+        AudioManager.instance.PlaySFX("DeathBringerTeleport2");
     }
   
 

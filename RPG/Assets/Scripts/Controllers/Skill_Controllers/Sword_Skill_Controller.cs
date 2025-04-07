@@ -139,7 +139,7 @@ public class Sword_Skill_Controller : MonoBehaviour
         player.stats.DoDamage(enemyStats);
 
         if(player.skill.sword.bounce)
-            AudioManager.instance.PlaySFX("SwordBounce", null);
+            AudioManager.instance.PlaySFX("SwordBounce");
 
         if (player.skill.sword.timeStopUnlocked)
             enemy.FreezeTimeFor(freezeTimeDuration);
@@ -237,7 +237,7 @@ public class Sword_Skill_Controller : MonoBehaviour
         {        
             if (playSound)
             {
-                AudioManager.instance.PlaySFX("SwordSpin", null);
+                AudioManager.instance.PlaySFX("SwordSpin");
                 playSound = false;
             }
             if (Vector2.Distance(player.transform.position, transform.position) > maxTravelDistance && !wasStopped)

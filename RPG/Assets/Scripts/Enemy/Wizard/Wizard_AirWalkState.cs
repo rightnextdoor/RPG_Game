@@ -20,7 +20,7 @@ public class Wizard_AirWalkState : EnemyState
         moveTimer = 4.3f;
         enemy.rb.gravityScale = 0f;
         enemy.stats.MakeInvincible(true);
-        AudioManager.instance.PlaySFX("Wizard_TeleportIn", null);
+        AudioManager.instance.PlaySFX("Wizard_TeleportIn");
 
         int position = Random.Range(0, 10);
 

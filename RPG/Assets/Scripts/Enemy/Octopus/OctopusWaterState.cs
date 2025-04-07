@@ -91,7 +91,7 @@ public class OctopusWaterState : EnemyState
         stateTimer = .9f;
         jumpInWater = true;
         once = false;
-        AudioManager.instance.PlaySFXWithDelay("OctopusJumpIn", null, stateTimer - .1f);
+        AudioManager.instance.PlaySFXWithDelay("OctopusJumpIn", stateTimer - .1f);
     }
 
     private void JumpOutWater()
@@ -102,6 +102,6 @@ public class OctopusWaterState : EnemyState
         stateTimer = .4f;
         jumpOutWater = true;
         once = false;
-        AudioManager.instance.PlaySFX("OctopusJumpOut", null);
+        AudioManager.instance.PlaySFX("OctopusJumpOut");
     }
 }
