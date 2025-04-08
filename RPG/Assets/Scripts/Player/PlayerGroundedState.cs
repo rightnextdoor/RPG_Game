@@ -28,7 +28,7 @@ public class PlayerGroundedState : PlayerState
         {
             if (player.skill.blackhole.cooldownTimer > 0)
             {
-                NotificationManager.instance.SetNewNotification("Cooldown");
+                NotificationManager.instance.ShowNotification("Cooldown");
                 return;
             }
 

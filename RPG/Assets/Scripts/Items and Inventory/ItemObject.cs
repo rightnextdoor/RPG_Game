@@ -35,28 +35,28 @@ public class ItemObject : MonoBehaviour
         if (!Inventory.instance.CanAddItem() && itemData.itemType == ItemType.Equipment)
         {
             rb.velocity = new Vector2(0, 7);
-            NotificationManager.instance.SetNewNotification("Inventory is full");
+            NotificationManager.instance.ShowNotification("Inventory is full");
             return;
         }
 
         AudioManager.instance.PlaySFX("Item", transform);
         Inventory.instance.AddItem(itemData);
         Destroy(gameObject);
-        NotificationManager.instance.SetNewNotification(itemData.name + " Added");
+        NotificationManager.instance.ShowNotification(itemData.name + " Added");
     }
 
     public void AddItemToInventory(ItemData _itemData)
     {
         if (!Inventory.instance.CanAddItem() && _itemData.itemType == ItemType.Equipment)
         {
-            NotificationManager.instance.SetNewNotification("Inventory is full");
+            NotificationManager.instance.ShowNotification("Inventory is full");
             return;
         }
 
         AudioManager.instance.PlaySFX("Item", transform);
         Inventory.instance.AddItem(_itemData);
 
-        NotificationManager.instance.SetNewNotification(_itemData.name + " Added");
+        NotificationManager.instance.ShowNotification(_itemData.name + " Added");
         Destroy(gameObject);
     }
 }

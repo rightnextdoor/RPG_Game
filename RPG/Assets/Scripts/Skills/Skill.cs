@@ -31,7 +31,7 @@ public class Skill : MonoBehaviour
             cooldownTimer = cooldown;
             return true;
         }
-        NotificationManager.instance.SetNewNotification("Cooldown");
+        NotificationManager.instance.ShowNotification("Cooldown");
         return false;
     }
 

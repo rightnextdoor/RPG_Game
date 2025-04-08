@@ -71,7 +71,7 @@ public class UI_ShopWindow : MonoBehaviour
             
         } else
         {
-            NotificationManager.instance.SetNewNotification("Not enough money to buy!");
+            NotificationManager.instance.ShowNotification("Not enough money to buy!");
             Debug.Log("Not enough money to buy");
         }
     }
