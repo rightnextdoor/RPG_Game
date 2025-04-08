@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using UnityEngine.Audio; 
+using UnityEngine.Audio;
 using System.Collections.Generic;
-
+using System.IO;
 
 public class AudioDataWizard : EditorWindow
 {
@@ -19,6 +19,8 @@ public class AudioDataWizard : EditorWindow
 
     private AudioMixerGroup defaultSFXMixer;
     private AudioMixerGroup defaultBGMMixer;
+
+    private const string AUDIO_MANAGER_PATH = "Assets/Prefabs/Managers/AudioManager.prefab";
 
     [MenuItem("Tools/Audio/Audio Data Wizard")]
     public static void ShowWindow()
@@ -54,14 +56,13 @@ public class AudioDataWizard : EditorWindow
         DrawSoundList(soundFXList, defaultSFXMixer);
 
         GUILayout.Space(10);
-        if (GUILayout.Button("+ Add Sound FX"))
-            soundFXList.Add(CreateDefaultSound(defaultSFXMixer));
-
+        if (GUILayout.Button("+ Add Sound FX")) soundFXList.Add(CreateDefaultSound(defaultSFXMixer));
         if (GUILayout.Button("Create Sound FX"))
         {
-            CreateAsset<SoundLibrary>(soundName, "SoundFX", soundFXList);
-            soundName = "NewSoundFX";
-            soundFXList.Clear(); 
+            var asset = CreateAsset<SoundLibrary>(soundName, "SoundFX", soundFXList);
+            asset.soundName = soundName;
+            AddToAudioManagerList(asset, typeof(SoundLibrary));
+            ClearAllFields();
         }
     }
 
@@ -73,14 +74,13 @@ public class AudioDataWizard : EditorWindow
         DrawSoundList(backgroundMusicList, defaultBGMMixer);
 
         GUILayout.Space(10);
-        if (GUILayout.Button("+ Add Background Track"))
-            backgroundMusicList.Add(CreateDefaultSound(defaultBGMMixer));
-
+        if (GUILayout.Button("+ Add Background Track")) backgroundMusicList.Add(CreateDefaultSound(defaultBGMMixer));
         if (GUILayout.Button("Create Background Music"))
         {
-            CreateAsset<BackgroundMusicLibrary>(backgroundName, "BackgroundMusic", backgroundMusicList);
-            backgroundName = "NewBackgroundMusic";
-            backgroundMusicList.Clear(); 
+            var asset = CreateAsset<BackgroundMusicLibrary>(backgroundName, "BackgroundMusic", backgroundMusicList);
+            asset.backgroundName = backgroundName;
+            AddToAudioManagerList(asset, typeof(BackgroundMusicLibrary));
+            ClearAllFields();
         }
     }
 
@@ -92,17 +92,15 @@ public class AudioDataWizard : EditorWindow
         DrawSoundList(zoneMusicList, defaultBGMMixer);
 
         GUILayout.Space(10);
-        if (GUILayout.Button("+ Add Zone Track"))
-            zoneMusicList.Add(CreateDefaultSound(defaultBGMMixer));
-
+        if (GUILayout.Button("+ Add Zone Track")) zoneMusicList.Add(CreateDefaultSound(defaultBGMMixer));
         if (GUILayout.Button("Create Zone Music"))
         {
-            CreateAsset<ZoneMusicLibrary>(zoneName, "ZoneMusic", zoneMusicList);
-            zoneName = "NewZoneMusic";
-            zoneMusicList.Clear(); 
+            var asset = CreateAsset<ZoneMusicLibrary>(zoneName, "ZoneMusic", zoneMusicList);
+            asset.zoneName = zoneName;
+            AddToAudioManagerList(asset, typeof(ZoneMusicLibrary));
+            ClearAllFields();
         }
     }
-
 
     private void DrawSoundList(List<Sound> list, AudioMixerGroup defaultGroup)
     {
@@ -137,7 +135,7 @@ public class AudioDataWizard : EditorWindow
         };
     }
 
-    private void CreateAsset<T>(string name, string subfolder, List<Sound> dataList) where T : ScriptableObject
+    private T CreateAsset<T>(string name, string subfolder, List<Sound> dataList) where T : ScriptableObject
     {
         string basePath = "Assets/Audio/SoundData";
         string folderPath = $"{basePath}/{subfolder}";
@@ -155,15 +153,52 @@ public class AudioDataWizard : EditorWindow
         else if (asset is BackgroundMusicLibrary bgmLib) bgmLib.musicTracks = new List<Sound>(dataList);
         else if (asset is ZoneMusicLibrary zoneLib) zoneLib.musicTracks = new List<Sound>(dataList);
 
-        if (asset is SoundLibrary) ((SoundLibrary)(object)asset).soundName = name;
-        if (asset is BackgroundMusicLibrary) ((BackgroundMusicLibrary)(object)asset).backgroundName = name;
-        if (asset is ZoneMusicLibrary) ((ZoneMusicLibrary)(object)asset).zoneName = name;
-
         AssetDatabase.CreateAsset(asset, assetPath);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         EditorUtility.FocusProjectWindow();
         Selection.activeObject = asset;
+        return asset;
+    }
+
+    private void AddToAudioManagerList(ScriptableObject newAsset, System.Type type)
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AUDIO_MANAGER_PATH);
+        if (prefab == null)
+        {
+            Debug.LogWarning("AudioManager prefab not found.");
+            return;
+        }
+
+        AudioManager manager = prefab.GetComponent<AudioManager>();
+        if (manager == null)
+        {
+            Debug.LogWarning("AudioManager script not found on prefab.");
+            return;
+        }
+
+        Undo.RecordObject(manager, "Add Audio Data");
+
+        if (type == typeof(SoundLibrary))
+        {
+            if (!manager.soundGroups.Contains((SoundLibrary)newAsset))
+                manager.soundGroups.Add((SoundLibrary)newAsset);
+        }
+        else if (type == typeof(BackgroundMusicLibrary))
+        {
+            if (!manager.backgroundMusicGroups.Contains((BackgroundMusicLibrary)newAsset))
+                manager.backgroundMusicGroups.Add((BackgroundMusicLibrary)newAsset);
+        }
+        else if (type == typeof(ZoneMusicLibrary))
+        {
+            if (!manager.zoneMusicDefinitions.Contains((ZoneMusicLibrary)newAsset))
+                manager.zoneMusicDefinitions.Add((ZoneMusicLibrary)newAsset);
+        }
+
+        EditorUtility.SetDirty(manager);
+        PrefabUtility.SavePrefabAsset(prefab);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
     }
 
     private AudioMixerGroup FindMixerGroup(string groupName)
@@ -178,4 +213,13 @@ public class AudioDataWizard : EditorWindow
         return null;
     }
 
+    private void ClearAllFields()
+    {
+        soundName = "NewSoundFX";
+        backgroundName = "NewBackgroundMusic";
+        zoneName = "NewZoneMusic";
+        soundFXList.Clear();
+        backgroundMusicList.Clear();
+        zoneMusicList.Clear();
+    }
 }
