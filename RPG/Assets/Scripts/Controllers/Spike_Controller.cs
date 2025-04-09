@@ -20,7 +20,7 @@ public class Spike_Controller : MonoBehaviour
                 player = PlayerManager.instance.player;
                 player.stats.TakeDamage(20);
                 player.StopPlayer();
-                player.PlayerCanMove(false);
+                player.DisableControl();
                 StartCoroutine(DelayFade());
             }
         }
@@ -31,7 +31,7 @@ public class Spike_Controller : MonoBehaviour
         UI_FadeScreen.instance.RespawnFade();
         StartCoroutine(RespawnPlayer());
         UI_FadeScreen.instance.ReSpawnFadeIn();
-        player.PlayerCanMove(true);
+        player.EnableControl();
 
     }
 

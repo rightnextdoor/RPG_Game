@@ -13,7 +13,7 @@ public class PlayerLevelTransitionState : PlayerState
     public override void Enter()
     {
         base.Enter();
-        player.PlayerCanMove(false);
+        player.DisableControl();
         gravityScale = player.rb.gravityScale;
         player.rb.gravityScale = 0;
         player.SetZeroVelocity();
@@ -23,7 +23,7 @@ public class PlayerLevelTransitionState : PlayerState
     {
         base.Exit();
         player.rb.gravityScale = gravityScale;
-        player.PlayerCanMove(true);
+        player.EnableControl();
     }
 
     public override void Update()

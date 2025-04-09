@@ -38,6 +38,8 @@ public class Player : Entity
     [HideInInspector] public bool transtionUp;
     [HideInInspector] public bool transtionDown;
 
+    private bool canControl = true;
+
     #region States
     public PlayerStateMachine stateMachine { get; private set; }
 
@@ -105,6 +107,8 @@ public class Player : Entity
     {
         if (Time.timeScale == 0) 
             return;
+
+        if (!canControl) return;
 
         base.Update();
 
@@ -235,4 +239,6 @@ public class Player : Entity
         knockbackPower = new Vector2(0,0);
     }
 
+    public void DisableControl() => canControl = false;
+    public void EnableControl() => canControl = true;
 }

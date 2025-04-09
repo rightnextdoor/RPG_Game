@@ -33,14 +33,11 @@ public class PlayerState
     public virtual void Update()
     {
         stateTimer -= Time.deltaTime;
-        
-        if (player.CanMove())
-        {
-            xInput = Input.GetAxisRaw("Horizontal");
-            yInput = Input.GetAxisRaw("Vertical");
-            player.anim.SetFloat("yVelocity", rb.velocity.y);
-        }
-        
+
+        xInput = Input.GetAxisRaw("Horizontal");
+        yInput = Input.GetAxisRaw("Vertical");
+        player.anim.SetFloat("yVelocity", rb.velocity.y);
+
     }
 
     public virtual void Exit()

@@ -304,16 +304,27 @@ public class AudioManager : MonoBehaviour
             var sound = group.sounds.FirstOrDefault(s => s.name == name);
             if (sound != null)
             {
-                if (sourceTransform != null && Vector2.Distance(PlayerManager.instance.player.transform.position, sourceTransform.position) > maxDistance)
+                if (sourceTransform != null &&
+                    Vector2.Distance(PlayerManager.instance.player.transform.position, sourceTransform.position) > maxDistance)
                     return;
 
-                sound.source.PlayOneShot(sound.clip);
+                if (sound.loop)
+                {
+                    if (!sound.source.isPlaying)
+                        sound.source.Play();
+                }
+                else
+                {
+                    sound.source.PlayOneShot(sound.clip);
+                }
+
                 return;
             }
         }
 
         Debug.LogWarning("SFX not found: " + name);
     }
+
 
     public void PlaySFXWithDelay(string name, float delay, Transform sourceTransform = null, float maxDistance = 15f)
     {
