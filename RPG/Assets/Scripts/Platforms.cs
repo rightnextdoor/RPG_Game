@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Platforms : MonoBehaviour
 {
-    private Collider2D collider;
+    private new Collider2D collider;
     private bool playerOnPlatform;
 
     private void Start()

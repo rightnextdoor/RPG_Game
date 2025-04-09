@@ -8,26 +8,34 @@ public class NotificationManager : MonoBehaviour
 {
     public static NotificationManager instance { get; private set; }
 
-    [Header("References")]
-    public GameObject notificationPrefab; // Drag your prefab here
-    public Transform notificationParent;  // Drag your NotificationPanel here
+    [Header("Main Notifications")]
+    public GameObject notificationPrefab;
+    public Transform notificationParent;
 
-    [Header("Settings")]
+    [Header("Special Notifications")]
+    public GameObject specialNotificationPrefab;
+    public Transform specialNotificationParent;
+    public float specialDisplayDuration = 2f;
+
+    [Header("Notification Settings")]
     public float displayDuration = 3f;
 
-    // Stack max size (should match backgroundColors.Length)
-    private const int maxStackSize = 3;
-
-    // Background colors for stack positions 0 (top), 1, 2 (bottom)
-    private readonly Color[] backgroundColors = new Color[]
+    [Header("Color Pool")]
+    public List<Color> defaultColors = new List<Color>()
     {
-        new Color(0.8f, 0.2f, 0.2f, 0.5f), // Red with alpha
+        new Color(0.8f, 0.2f, 0.2f, 0.5f), // Red
         new Color(0.2f, 0.2f, 0.8f, 0.5f), // Blue
         new Color(0.2f, 0.8f, 0.2f, 0.5f)  // Green
     };
 
+    private const int maxStackSize = 3;
+    private List<Color> usedColors = new List<Color>();
+    private Dictionary<GameObject, Color> notificationColorMap = new Dictionary<GameObject, Color>();
     private Queue<NotificationData> notificationQueue = new Queue<NotificationData>();
     private List<GameObject> activeNotifications = new List<GameObject>();
+
+    private GameObject activeSpecialNotification;
+
     private void Awake()
     {
         if (instance != null && instance != this)
@@ -40,18 +48,104 @@ public class NotificationManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    // Main stackable notifications
     public void ShowNotification(string message, Sprite icon = null)
     {
         if (activeNotifications.Count >= maxStackSize)
         {
-            notificationQueue.Enqueue(new NotificationData(message, icon, Color.clear));
+            notificationQueue.Enqueue(new NotificationData(message, icon));
             return;
         }
 
-        Color assignedColor = backgroundColors[activeNotifications.Count];
-        NotificationData data = new NotificationData(message, icon, assignedColor);
-
+        Color colorToUse = GetNextAvailableColor();
+        NotificationData data = new NotificationData(message, icon, colorToUse);
         CreateNotification(data);
+    }
+
+    // Special single notification
+    public void ShowSpecialNotification(string message, Sprite icon = null, Color? color = null)
+    {
+        specialNotificationQueue.Enqueue(new SpecialNotificationData(message, icon, color));
+        if (!isDisplayingSpecialNotification)
+            StartCoroutine(ProcessSpecialNotificationQueue());
+    }
+
+    private IEnumerator ProcessSpecialNotificationQueue()
+    {
+        isDisplayingSpecialNotification = true;
+
+        while (specialNotificationQueue.Count > 0)
+        {
+            var data = specialNotificationQueue.Dequeue();
+
+            GameObject notifObj = Instantiate(specialNotificationPrefab, specialNotificationParent);
+            CanvasGroup canvasGroup = notifObj.GetComponent<CanvasGroup>();
+            Image background = notifObj.GetComponent<Image>();
+            Image icon = notifObj.transform.Find("Icon").GetComponent<Image>();
+            TextMeshProUGUI messageText = notifObj.transform.Find("MessageText").GetComponent<TextMeshProUGUI>();
+
+            //FIXED background stays the same, no need to assign color
+            background.color = new Color(0f, 0f, 0f, 0.75f); // dark semi-transparent background
+
+            //Set the message and its TEXT color
+            messageText.text = data.message;
+            messageText.color = data.textColor;
+
+            if (data.icon != null)
+            {
+                icon.sprite = data.icon;
+                icon.gameObject.SetActive(true);
+            }
+            else
+            {
+                icon.gameObject.SetActive(false);
+            }
+
+
+            // Fade In
+            canvasGroup.alpha = 0;
+            float t = 0;
+            while (t < 0.25f)
+            {
+                t += Time.deltaTime;
+                canvasGroup.alpha = Mathf.Lerp(0, 1, t / 0.25f);
+                yield return null;
+            }
+
+            yield return new WaitForSeconds(2f); // visible duration
+
+            // Fade Out
+            t = 0;
+            while (t < 0.5f)
+            {
+                t += Time.deltaTime;
+                canvasGroup.alpha = Mathf.Lerp(1, 0, t / 0.5f);
+                yield return null;
+            }
+
+            Destroy(notifObj);
+            yield return new WaitForEndOfFrame(); // brief delay between messages
+        }
+
+        isDisplayingSpecialNotification = false;
+    }
+
+    private Color GetNextAvailableColor()
+    {
+        foreach (Color c in defaultColors)
+        {
+            if (!usedColors.Contains(c))
+            {
+                usedColors.Add(c);
+                return c;
+            }
+        }
+        return defaultColors[defaultColors.Count - 1]; // Fallback
+    }
+
+    private void ReleaseColor(Color color)
+    {
+        usedColors.Remove(color);
     }
 
     private void CreateNotification(NotificationData data)
@@ -78,6 +172,7 @@ public class NotificationManager : MonoBehaviour
             iconImage.gameObject.SetActive(false);
         }
 
+        notificationColorMap[notifGO] = data.backgroundColor;
         activeNotifications.Add(notifGO);
         StartCoroutine(DisplayNotification(notifGO, displayDuration));
     }
@@ -86,38 +181,71 @@ public class NotificationManager : MonoBehaviour
     {
         yield return new WaitForSeconds(duration);
 
-        // Fade out
         CanvasGroup group = notificationGO.GetComponent<CanvasGroup>();
+        if (group == null) yield break;
+
         float fadeTime = 1f;
         float t = 0f;
 
         while (t < fadeTime)
         {
+            if (group == null) yield break;
+
             t += Time.deltaTime;
             group.alpha = Mathf.Lerp(1f, 0f, t / fadeTime);
             yield return null;
         }
 
         activeNotifications.Remove(notificationGO);
+
+        if (notificationColorMap.TryGetValue(notificationGO, out Color releasedColor))
+        {
+            ReleaseColor(releasedColor);
+            notificationColorMap.Remove(notificationGO);
+        }
+
         Destroy(notificationGO);
 
-        // Reorder remaining notifications (but retain color)
+        // Reorder siblings
         for (int i = 0; i < activeNotifications.Count; i++)
         {
             activeNotifications[i].transform.SetSiblingIndex(i);
         }
 
-        // Handle queued messages
+        // Add next in queue
         if (notificationQueue.Count > 0)
         {
-            Color nextColor = backgroundColors[activeNotifications.Count];
             NotificationData next = notificationQueue.Dequeue();
-            next.backgroundColor = nextColor;
+            next.backgroundColor = GetNextAvailableColor();
             CreateNotification(next);
         }
     }
 
-    // Internal data holder
+    private IEnumerator FadeOutAndDestroy(GameObject go, float duration)
+    {
+        yield return new WaitForSeconds(duration);
+
+        CanvasGroup group = go.GetComponent<CanvasGroup>();
+        if (group == null) yield break;
+
+        float t = 0f;
+        float fadeTime = 1f;
+
+        while (t < fadeTime)
+        {
+            if (group == null) yield break;
+
+            t += Time.deltaTime;
+            group.alpha = Mathf.Lerp(1f, 0f, t / fadeTime);
+            yield return null;
+        }
+
+        if (go == activeSpecialNotification)
+            activeSpecialNotification = null;
+
+        Destroy(go);
+    }
+
     private class NotificationData
     {
         public string message;
@@ -130,5 +258,31 @@ public class NotificationManager : MonoBehaviour
             this.icon = icon;
             this.backgroundColor = color;
         }
+
+        public NotificationData(string message, Sprite icon)
+        {
+            this.message = message;
+            this.icon = icon;
+        }
     }
+
+    private Queue<SpecialNotificationData> specialNotificationQueue = new Queue<SpecialNotificationData>();
+    private bool isDisplayingSpecialNotification = false;
+
+    [System.Serializable]
+    public class SpecialNotificationData
+    {
+        public string message;
+        public Sprite icon;
+        public Color textColor;
+
+        public SpecialNotificationData(string message, Sprite icon = null, Color? textColor = null)
+        {
+            this.message = message;
+            this.icon = icon;
+            this.textColor = textColor ?? Color.yellow; // default text color
+        }
+    }
+
+
 }

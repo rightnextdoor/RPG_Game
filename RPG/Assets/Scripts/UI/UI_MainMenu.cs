@@ -37,13 +37,14 @@ public class UI_MainMenu : MonoBehaviour
         else
             fadeScreen.MainMenuFadTo(sceneToLoad);
 
-
+        AudioManager.instance.StopEventMusicAndResumeRandom();
     }
 
     public void NewGame()
     {
         SaveManager.instance.DeleteSavedData();
         fadeScreen.MainMenuFadTo(sceneToLoad);
+        AudioManager.instance.StopEventMusicAndResumeRandom();
     }
 
     public void ExitGame()

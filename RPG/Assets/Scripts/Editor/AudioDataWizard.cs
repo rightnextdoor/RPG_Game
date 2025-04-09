@@ -22,6 +22,10 @@ public class AudioDataWizard : EditorWindow
 
     private const string AUDIO_MANAGER_PATH = "Assets/Prefabs/Managers/AudioManager.prefab";
 
+    private Vector2 soundFXScrollPos;
+    private Vector2 backgroundMusicScrollPos;
+    private Vector2 zoneMusicScrollPos;
+
     [MenuItem("Tools/Audio/Audio Data Wizard")]
     public static void ShowWindow()
     {
@@ -36,16 +40,77 @@ public class AudioDataWizard : EditorWindow
 
     private void OnGUI()
     {
+        // Set a minimum space at the top for the tabs and some initial padding
         GUILayout.Space(10);
+
+        // Display tabs at the top
         tabIndex = GUILayout.Toolbar(tabIndex, tabs);
         GUILayout.Space(15);
 
+        // Start a vertical layout to contain both the content and the buttons at the bottom
+        GUILayout.BeginVertical();
+
+        // Scrollable area for the content (Sound FX, Background Music, Zone Music)
+        GUILayout.BeginScrollView(Vector2.zero, GUILayout.ExpandHeight(true)); // Scrollable area will take up the available space
         switch (tabIndex)
         {
             case 0: DrawSoundFXTab(); break;
             case 1: DrawBackgroundMusicTab(); break;
             case 2: DrawZoneMusicTab(); break;
         }
+        GUILayout.EndScrollView(); // End scroll view
+
+        // Space to separate content and buttons
+        GUILayout.Space(10);
+
+        // Add buttons at the bottom
+        if (tabIndex == 0)
+        {
+            // Add new Sound FX and create Sound FX
+            if (GUILayout.Button("+ Add Sound FX"))
+                soundFXList.Add(CreateDefaultSound(defaultSFXMixer));
+
+            if (GUILayout.Button("Create Sound FX"))
+            {
+                // Create the asset and save it using the CreateAsset method
+                var asset = CreateAsset<SoundLibrary>(soundName, "SoundFX", soundFXList);
+                asset.soundName = soundName;
+                AddToAudioManagerList(asset, typeof(SoundLibrary));
+                ClearAllFields();
+            }
+        }
+        else if (tabIndex == 1)
+        {
+            // Add new Background Track and create Background Music
+            if (GUILayout.Button("+ Add Background Track"))
+                backgroundMusicList.Add(CreateDefaultSound(defaultBGMMixer));
+
+            if (GUILayout.Button("Create Background Music"))
+            {
+                // Create the asset and save it using the CreateAsset method
+                var asset = CreateAsset<BackgroundMusicLibrary>(backgroundName, "BackgroundMusic", backgroundMusicList);
+                asset.backgroundName = backgroundName;
+                AddToAudioManagerList(asset, typeof(BackgroundMusicLibrary));
+                ClearAllFields();
+            }
+        }
+        else if (tabIndex == 2)
+        {
+            // Add new Zone Track and create Zone Music
+            if (GUILayout.Button("+ Add Zone Track"))
+                zoneMusicList.Add(CreateDefaultSound(defaultBGMMixer));
+
+            if (GUILayout.Button("Create Zone Music"))
+            {
+                // Create the asset and save it using the CreateAsset method
+                var asset = CreateAsset<ZoneMusicLibrary>(zoneName, "ZoneMusic", zoneMusicList);
+                asset.zoneName = zoneName;
+                AddToAudioManagerList(asset, typeof(ZoneMusicLibrary));
+                ClearAllFields();
+            }
+        }
+
+        GUILayout.EndVertical(); // End vertical layout
     }
 
     private void DrawSoundFXTab()
@@ -53,17 +118,20 @@ public class AudioDataWizard : EditorWindow
         soundName = EditorGUILayout.TextField("Sound FX Group Name", soundName);
         GUILayout.Space(10);
 
+        // Scrollable area for Sound FX list
+        soundFXScrollPos = GUILayout.BeginScrollView(soundFXScrollPos, GUILayout.Height(500));  // Adjust height as needed
         DrawSoundList(soundFXList, defaultSFXMixer);
+        GUILayout.EndScrollView();
 
         GUILayout.Space(10);
-        if (GUILayout.Button("+ Add Sound FX")) soundFXList.Add(CreateDefaultSound(defaultSFXMixer));
-        if (GUILayout.Button("Create Sound FX"))
-        {
-            var asset = CreateAsset<SoundLibrary>(soundName, "SoundFX", soundFXList);
-            asset.soundName = soundName;
-            AddToAudioManagerList(asset, typeof(SoundLibrary));
-            ClearAllFields();
-        }
+        //if (GUILayout.Button("+ Add Sound FX")) soundFXList.Add(CreateDefaultSound(defaultSFXMixer));
+        //if (GUILayout.Button("Create Sound FX"))
+        //{
+        //    var asset = CreateAsset<SoundLibrary>(soundName, "SoundFX", soundFXList);
+        //    asset.soundName = soundName;
+        //    AddToAudioManagerList(asset, typeof(SoundLibrary));
+        //    ClearAllFields();
+        //}
     }
 
     private void DrawBackgroundMusicTab()
@@ -71,17 +139,20 @@ public class AudioDataWizard : EditorWindow
         backgroundName = EditorGUILayout.TextField("Background Music Name", backgroundName);
         GUILayout.Space(10);
 
+        // Scrollable area for Background Music list
+        backgroundMusicScrollPos = GUILayout.BeginScrollView(backgroundMusicScrollPos, GUILayout.Height(500));  // Adjust height as needed
         DrawSoundList(backgroundMusicList, defaultBGMMixer);
+        GUILayout.EndScrollView();
 
         GUILayout.Space(10);
-        if (GUILayout.Button("+ Add Background Track")) backgroundMusicList.Add(CreateDefaultSound(defaultBGMMixer));
-        if (GUILayout.Button("Create Background Music"))
-        {
-            var asset = CreateAsset<BackgroundMusicLibrary>(backgroundName, "BackgroundMusic", backgroundMusicList);
-            asset.backgroundName = backgroundName;
-            AddToAudioManagerList(asset, typeof(BackgroundMusicLibrary));
-            ClearAllFields();
-        }
+        //if (GUILayout.Button("+ Add Background Track")) backgroundMusicList.Add(CreateDefaultSound(defaultBGMMixer));
+        //if (GUILayout.Button("Create Background Music"))
+        //{
+        //    var asset = CreateAsset<BackgroundMusicLibrary>(backgroundName, "BackgroundMusic", backgroundMusicList);
+        //    asset.backgroundName = backgroundName;
+        //    AddToAudioManagerList(asset, typeof(BackgroundMusicLibrary));
+        //    ClearAllFields();
+        //}
     }
 
     private void DrawZoneMusicTab()
@@ -89,17 +160,20 @@ public class AudioDataWizard : EditorWindow
         zoneName = EditorGUILayout.TextField("Zone Name", zoneName);
         GUILayout.Space(10);
 
+        // Scrollable area for Zone Music list
+        zoneMusicScrollPos = GUILayout.BeginScrollView(zoneMusicScrollPos, GUILayout.Height(500));  // Adjust height as needed
         DrawSoundList(zoneMusicList, defaultBGMMixer);
+        GUILayout.EndScrollView();
 
         GUILayout.Space(10);
-        if (GUILayout.Button("+ Add Zone Track")) zoneMusicList.Add(CreateDefaultSound(defaultBGMMixer));
-        if (GUILayout.Button("Create Zone Music"))
-        {
-            var asset = CreateAsset<ZoneMusicLibrary>(zoneName, "ZoneMusic", zoneMusicList);
-            asset.zoneName = zoneName;
-            AddToAudioManagerList(asset, typeof(ZoneMusicLibrary));
-            ClearAllFields();
-        }
+        //if (GUILayout.Button("+ Add Zone Track")) zoneMusicList.Add(CreateDefaultSound(defaultBGMMixer));
+        //if (GUILayout.Button("Create Zone Music"))
+        //{
+        //    var asset = CreateAsset<ZoneMusicLibrary>(zoneName, "ZoneMusic", zoneMusicList);
+        //    asset.zoneName = zoneName;
+        //    AddToAudioManagerList(asset, typeof(ZoneMusicLibrary));
+        //    ClearAllFields();
+        //}
     }
 
     private void DrawSoundList(List<Sound> list, AudioMixerGroup defaultGroup)

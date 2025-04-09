@@ -12,6 +12,10 @@ public class AudioManager : MonoBehaviour
     [Header("Mixer")]
     public AudioMixer masterMixer;
 
+    [Header("Fade Durations")]
+    [SerializeField] private float fadeOutDuration = 1f;
+    [SerializeField] private float fadeInDuration = 1f;
+
     [Header("SFX Groups")]
     public List<SoundLibrary> soundGroups;
 
@@ -177,7 +181,7 @@ public class AudioManager : MonoBehaviour
             }
             currentBackgroundMusic.source.Stop();
         }
-        Debug.Log("new sound " + newSound.name);
+
         newSound.source.volume = 0f;
         newSound.source.Play();
         currentBackgroundMusic = newSound;
@@ -214,11 +218,83 @@ public class AudioManager : MonoBehaviour
     {
         if (currentBackgroundMusic != null && currentBackgroundMusic.source != null)
         {
-            currentBackgroundMusic.source.Stop();
+            StartCoroutine(CrossfadeMusicToRandom());
+        }
+        else
+        {
+            isRandomMusicEnabled = true;
+            PlayNextRandomTrack();
+        }
+    }
+
+    private IEnumerator CrossfadeMusicToRandom()
+    {
+        // Check if zone music is available and ready
+        if (currentBackgroundMusic == null || currentBackgroundMusic.source == null)
+        {
+            Debug.LogWarning("Zone music not available. Skipping music transition.");
+            yield break;  // Exit early if no music is available.
         }
 
+        // Fade out current event music
+        float startVolume = currentBackgroundMusic.source.volume;
+        float t = 0f;
+
+        while (t < fadeOutDuration)
+        {
+            currentBackgroundMusic.source.volume = Mathf.Lerp(startVolume, 0f, t / fadeOutDuration);
+            t += Time.deltaTime;
+            yield return null;
+        }
+
+        currentBackgroundMusic.source.Stop();
+
         isRandomMusicEnabled = true;
-        PlayNextRandomTrack();
+
+        if (shuffledMusic.Count == 0 || !IsZoneMusicLoaded())
+        {
+            yield return new WaitUntil(() => IsZoneMusicLoaded());  // Wait until zone music is ready if necessary
+        }
+
+        if (shuffledMusic.Count == 0)
+        {
+            ShuffleMusic();
+        }
+
+        if (currentMusicIndex >= shuffledMusic.Count)
+        {
+            ShuffleMusic();
+        }
+
+        Sound nextMusic = shuffledMusic[currentMusicIndex];
+        currentMusicIndex++;
+
+        nextMusic.source.volume = 0f;
+        nextMusic.source.Play();
+        currentBackgroundMusic = nextMusic;
+
+        float fadeInTime = 0f;
+        while (fadeInTime < fadeInDuration)
+        {
+            nextMusic.source.volume = Mathf.Lerp(0f, nextMusic.volume, fadeInTime / fadeInDuration);
+            fadeInTime += Time.deltaTime;
+            yield return null;
+        }
+
+        nextMusic.source.volume = nextMusic.volume;
+
+        if (!nextMusic.loop)
+        {
+            yield return new WaitForSeconds(nextMusic.clip.length);
+            PlayNextRandomTrack();
+        }
+    }
+
+    // Helper function to check if the zone music is loaded
+    private bool IsZoneMusicLoaded()
+    {
+        // Check if zone music has been loaded (this depends on your specific loading mechanism)
+        return currentBackgroundMusic != null && currentBackgroundMusic.source != null && currentBackgroundMusic.source.isPlaying;
     }
 
     public void PlaySFX(string name, Transform sourceTransform = null, float maxDistance = 15f)
