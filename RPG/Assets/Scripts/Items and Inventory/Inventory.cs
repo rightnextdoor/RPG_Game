@@ -9,14 +9,14 @@ public class Inventory : MonoBehaviour, ISaveManager
 
     public List<ItemData> startingItems;
 
-    public List<InventoryItem> equipment;
-    public Dictionary<ItemData_Equipment, InventoryItem> equipmentDictionary;
+    public List<InventoryItem> equipment = new List<InventoryItem>();
+    public Dictionary<ItemData_Equipment, InventoryItem> equipmentDictionary = new Dictionary<ItemData_Equipment, InventoryItem>();
 
-    public List<InventoryItem> inventory;
-    public Dictionary<ItemData, InventoryItem> inventoryDictionary;
+    public List<InventoryItem> inventory = new List<InventoryItem>();
+    public Dictionary<ItemData, InventoryItem> inventoryDictionary = new Dictionary<ItemData, InventoryItem>();
 
-    public List<InventoryItem> stash;
-    public Dictionary <ItemData, InventoryItem> stashDictionary;
+    public List<InventoryItem> stash = new List<InventoryItem>();
+    public Dictionary <ItemData, InventoryItem> stashDictionary = new Dictionary<ItemData, InventoryItem>();
 
     [Header("Inventory UI")]
     [SerializeField] private Transform inventorySlotParent;
@@ -53,15 +53,6 @@ public class Inventory : MonoBehaviour, ISaveManager
 
     private void Start()
     {
-        inventory = new List<InventoryItem>();
-        inventoryDictionary = new Dictionary<ItemData, InventoryItem>();
-
-        stash = new List<InventoryItem>();
-        stashDictionary = new Dictionary<ItemData, InventoryItem>();
-
-        equipment = new List<InventoryItem>();
-        equipmentDictionary = new Dictionary<ItemData_Equipment, InventoryItem>();
-
         inventoryItemSlots = inventorySlotParent.GetComponentsInChildren<UI_ItemSlot>();
         stashItemSlots = stashSlotParent.GetComponentsInChildren<UI_ItemSlot>();
         checkpointStashItemSlots = checkpointStashSlotParent.GetComponentsInChildren<UI_ItemSlot>();

@@ -1,8 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.Progress;
-
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -11,12 +7,19 @@ using UnityEditor;
 [CreateAssetMenu(fileName = "New Checkpoint Data", menuName = "Data/Checkpoint")]
 public class CheckpointData : ScriptableObject
 {
+    [Header("ID")]
     public string checkpointId;
     public string checkpointName;
-    public bool activatedCheckpoint;
-    public bool lastSavedCheckpoint;
+
+    [Header("Status")]
+    public bool isActivated;
+    public bool isLastCheckpoint;
+
+    [Header("Scene Info")]
     public SceneField sceneName;
-    public Vector3 position;
+
+    [HideInInspector]
+    public Vector3 checkpointPosition; // Hidden in default inspector
 
     private void OnValidate()
     {

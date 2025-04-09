@@ -42,18 +42,16 @@ public class UI_FadeScreen : MonoBehaviour
     public void FadeTo(string scene)
     {
         PlayerManager.instance.player.GetComponent<PlayerStats>().keepPlayerHealthSceneChange = true; //to keep current health when changing scenes
-        CheckpointManager.instance.checkpointChangeScenes = true; //when scence load not to spawn player to checkpoint pos
         SaveManager.instance.SaveGame();
         StartCoroutine(FadeOut(scene));
     }
 
-    public void TravelTo(string scene)
-    {
-        PlayerManager.instance.player.GetComponent<PlayerStats>().keepPlayerHealthSceneChange = true;
-        //CheckpointManager.instance.isTraveling = true;
-        SaveManager.instance.SaveGame();
-        StartCoroutine(FadeOutFast(scene));
-    }
+    //public void TravelTo(string scene)
+    //{
+    //    PlayerManager.instance.player.GetComponent<PlayerStats>().keepPlayerHealthSceneChange = true;
+    //    SaveManager.instance.SaveGame();
+    //    StartCoroutine(FadeOutFast(scene));
+    //}
 
     private IEnumerator FadeIn()
     {

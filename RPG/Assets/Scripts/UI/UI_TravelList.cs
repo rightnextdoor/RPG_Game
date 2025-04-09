@@ -11,7 +11,7 @@ public class UI_TravelList : MonoBehaviour
 
     public void SetupTravelList()
     {
-        checkpointList = CheckpointManager.instance.UI_TravelCheckpoints();
+        checkpointList = CheckpointManager.instance.GetActivatedCheckpoints();
         CreateTravelSlot();
     }
 

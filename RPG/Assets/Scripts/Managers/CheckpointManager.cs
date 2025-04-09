@@ -1,237 +1,136 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class CheckpointManager : MonoBehaviour, ISaveManager
 {
-    public static CheckpointManager instance;
+    public static CheckpointManager instance { get; private set; }
 
-    [SerializeField] private List<CheckpointData> checkpoints;
-    private List<CheckpointData> travelCheckpoints = new List<CheckpointData>();
-    private string savedCheckpointId;
-
-    public bool checkpointChangeScenes;
-    public bool isTraveling;
-    private bool continueGame;
-
-    private Transform player;
+    [SerializeField] private List<CheckpointData> checkpointList = new List<CheckpointData>();
+    [SerializeField] private SceneField DefaultStartScene;
 
     private void Awake()
     {
         if (instance != null)
-            Destroy(instance.gameObject);
-        else
-            instance = this;
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
-    private void Start()
+    public void SaveCheckpoint(CheckpointData _checkpoint)
     {
-        if(PlayerManager.instance != null)
-            player = PlayerManager.instance.player.transform;
+        foreach (var check in checkpointList)
+        {
+            if (check == null) continue;
+
+            if (check.isLastCheckpoint && check.checkpointId != _checkpoint.checkpointId)
+                check.isLastCheckpoint = false;
+        }
+
+        _checkpoint.isActivated = true;
+        _checkpoint.isLastCheckpoint = true;
+
+        SaveManager.instance.SaveGame();
     }
 
     public void ContinueGame()
     {
-        continueGame = true;
+        if (checkpointList != null)
+        {
+            var lastCheckpoint = checkpointList
+                .Where(c => c != null && c.isLastCheckpoint && c.isActivated)
+                .FirstOrDefault();
+
+            if (lastCheckpoint != null)
+            {
+                SceneManager.LoadScene(lastCheckpoint.sceneName);
+                StartCoroutine(SetPlayerPositionAfterSceneLoad(lastCheckpoint.checkpointPosition));
+                return;
+            }
+        }
+
+        // No valid checkpoint: load default scene and spawn at start
+        SceneManager.LoadScene(DefaultStartScene);
+        StartCoroutine(SetPlayerPositionAfterSceneLoad(Vector3.zero));
+    }
+
+    public void TeleportToCheckpoint(CheckpointData checkpoint)
+    {
+        if (!checkpoint.isActivated)
+        {
+            Debug.LogWarning("Checkpoint not activated!");
+            return;
+        }
+
+        SaveCheckpoint(checkpoint);
+        SceneManager.LoadScene(checkpoint.sceneName);
+        StartCoroutine(SetPlayerPositionAfterSceneLoad(checkpoint.checkpointPosition));
+    }
+
+    public void ResetCheckpoints()
+    {
+        foreach (var checkpoint in checkpointList)
+        {
+            if(checkpoint == null) continue;
+
+            checkpoint.isActivated = false;
+            checkpoint.isLastCheckpoint = false;
+        }
+
         SaveManager.instance.SaveGame();
     }
 
-    public List<CheckpointData> UI_TravelCheckpoints()
+    public List<CheckpointData> GetActivatedCheckpoints()
     {
-        travelCheckpoints.Clear();
-        foreach (CheckpointData item in checkpoints)
-        {
-            if (item != null)
-            {
-                if (item.activatedCheckpoint)
-                {
-                    if (!item.lastSavedCheckpoint)
-                    {
-                        travelCheckpoints.Add(item);
-                    }
-                }
-            }       
-        }
-        travelCheckpoints.Reverse();
-        return travelCheckpoints;
+        return checkpointList.Where(c => c !=null && c.isActivated 
+            && c.sceneName != SceneManager.GetActiveScene().name).ToList();
     }
 
-    public void DefaultCheckpoint()
+    private IEnumerator SetPlayerPositionAfterSceneLoad(Vector3 position)
     {
-        foreach (CheckpointData item in checkpoints)
-        {
-            if (item != null)
-            {
-                item.activatedCheckpoint = false;
-                item.lastSavedCheckpoint = false;
-            }           
-        }
-    }
-
-    public void ActivatedCheckpoint(CheckpointData checkpointData)
-    {
-        checkpointData.activatedCheckpoint = true;
-
-        AnimateCheckpoint(checkpointData);
-    }
-
-    private static void AnimateCheckpoint(CheckpointData checkpointData)
-    {
-        Checkpoint[] check = FindObjectsOfType<Checkpoint>();
-        for (int i = 0; i < check.Length; i++)
-        {
-            if (check[i].checkpointData.checkpointId == checkpointData.checkpointId)
-                check[i].ActivateAnim();
-        }
-    }
-
-    public void UpdateLastSaveCheckpoint(CheckpointData checkpointData)
-    {
-        ClearAllSaveCheckpoint();
-        checkpointData.lastSavedCheckpoint = true;
-    }
-
-    public void TravelTo(CheckpointData _checkpoint)
-    {
-        isTraveling = true;
-        UI_FadeScreen.instance.TravelTo(_checkpoint.sceneName);
-    }
-
-    public void ClearAllSaveCheckpoint()
-    {
-        foreach (CheckpointData checkpoint in checkpoints)
-        {
-            if(checkpoint!=null)
-                checkpoint.lastSavedCheckpoint = false;
-        }
-    }
-
-    public string GetLastSaveScene()
-    {
-        string scene = null;
-
-        foreach (CheckpointData checkpoint in checkpoints)
-        {
-            if (checkpoint != null)
-            {
-                if (checkpoint.lastSavedCheckpoint)
-                    scene = checkpoint.sceneName;
-            }
-            
-        }
-
-        return scene;
-    }
-
-    public void LoadData(GameData _data)
-    {
-        continueGame = _data.continueGame;
-        StartCoroutine(LoadWithDelay(_data));
-    }
-
-    private IEnumerator LoadWithDelay(GameData _data)
-    {
-        yield return new WaitForSeconds(.1f);
-
-        LoadCheckpoints(_data);
-        LoadCheckpoint(_data);
-    }
-
-    private void LoadCheckpoints(GameData _data)
-    {
-        foreach (KeyValuePair<string, bool> pair in _data.checkpoints)
-        {
-            foreach (CheckpointData checkpoint in checkpoints)
-            {
-                if (checkpoint != null)
-                {
-                    if (checkpoint.checkpointId == pair.Key && pair.Value == true)
-                        ActivatedCheckpoint(checkpoint);
-                }           
-            }
-        }
-        travelCheckpoints = _data.travelCheckpoints;
-    }   
-
-    private void LoadCheckpoint(GameData _data)
-    {
-        if (_data.savedCheckpointId == null)
-            return;
-
-        savedCheckpointId = _data.savedCheckpointId;
-
-        foreach (CheckpointData checkpoint in checkpoints)
-        {
-            if (checkpoint != null)
-            {
-                if (savedCheckpointId == checkpoint.checkpointId)
-                {
-                    if (!_data.checkpointChangeScenes)
-                    {
-                        if (SceneManager.GetActiveScene().buildIndex == 0)
-                            return;
-
-                        if (continueGame)
-                        {
-                            continueGame = false;
-                            if (SceneManager.GetActiveScene().name == checkpoint.sceneName)
-                            {
-                                player.position = checkpoint.position;
-                            }
-                            else
-                            {
-                                TravelTo(checkpoint);
-                            }
-                        }
-                        
-                    }
-                }
-            }           
-        }
-    }
-
-    private CheckpointData GetLastSavedCheckpoint()
-    {
-        CheckpointData savedCheckpoint = null;
-
-        foreach (var checkpoint in checkpoints)
-        {
-            if (checkpoint != null)
-            {
-                if (checkpoint.lastSavedCheckpoint == true)
-                {
-                    savedCheckpoint = checkpoint;
-                }
-            }          
-        }
-
-        return savedCheckpoint;
+        yield return new WaitUntil(() => PlayerManager.instance != null && PlayerManager.instance.player != null);
+        PlayerManager.instance.player.transform.position = position;
     }
 
     public void SaveData(ref GameData _data)
     {
-        _data.continueGame = continueGame;
-        if (GetLastSavedCheckpoint() != null)
-            _data.savedCheckpointId = GetLastSavedCheckpoint().checkpointId;
-
         _data.checkpoints.Clear();
 
-        foreach (CheckpointData checkpoint in checkpoints)
+        foreach (CheckpointData checkpoint in checkpointList)
         {
-            if(checkpoint != null)
-                _data.checkpoints.Add(checkpoint.checkpointId, checkpoint.activatedCheckpoint);
+            if (checkpoint != null)
+                _data.checkpoints.Add(checkpoint.checkpointId, checkpoint);
         }
-
-        _data.checkpointChangeScenes = checkpointChangeScenes;
-        _data.travelCheckpoints = travelCheckpoints;
-        _data.isTraveling = isTraveling;
     }
+
+    public void LoadData(GameData _data)
+    {
+        if (_data.checkpoints == null || _data.checkpoints.Count == 0)
+            return;
+
+        foreach (var checkpoint in checkpointList)
+        {
+            if (checkpoint == null) continue;
+
+            if (_data.checkpoints.TryGetValue(checkpoint.checkpointId, out var savedCheckpoint))
+            {
+                checkpoint.isActivated = savedCheckpoint.isActivated;
+                checkpoint.isLastCheckpoint = savedCheckpoint.isLastCheckpoint;
+            }
+        }
+    }
+
 
 #if UNITY_EDITOR
     [ContextMenu("Fill up checkpoint data base")]
-    private void FillUpItemDataBase() => checkpoints = new List<CheckpointData>(GetItemDataBase());
+    private void FillUpItemDataBase() => checkpointList = new List<CheckpointData>(GetItemDataBase());
 
     private List<CheckpointData> GetItemDataBase()
     {
@@ -244,7 +143,7 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
             var itemData = AssetDatabase.LoadAssetAtPath<CheckpointData>(SOpath);
             checkDataBase.Add(itemData);
         }
-
+        checkDataBase = checkDataBase.Where(c => c != null).ToList();
         return checkDataBase;
     }
 #endif

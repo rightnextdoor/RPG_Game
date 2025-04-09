@@ -28,14 +28,7 @@ public class UI_MainMenu : MonoBehaviour
     {
         EnemyManager.instance.ResetEnemyDeath();
 
-        string scene = CheckpointManager.instance.GetLastSaveScene();
-
         CheckpointManager.instance.ContinueGame();
-
-        if(scene != null)
-            fadeScreen.MainMenuFadTo(scene);
-        else
-            fadeScreen.MainMenuFadTo(sceneToLoad);
 
         AudioManager.instance.StopEventMusicAndResumeRandom();
     }

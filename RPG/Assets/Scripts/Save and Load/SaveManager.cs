@@ -46,9 +46,10 @@ public class SaveManager : MonoBehaviour
 
     private static void DefaultStat()
     {
-        CheckpointManager.instance.DefaultCheckpoint();
+        CheckpointManager.instance.ResetCheckpoints();
         EnemyManager.instance.DefaultStat();
         GateManager.instance.DefaultGates();
+        SkillManager.instance.LockSkills(); 
     }
 
     public void LoadGame()

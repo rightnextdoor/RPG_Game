@@ -42,11 +42,7 @@ public class GameData
     public SerializableDictionary<string, int> inventory;
     public List<string> equipmentId;
 
-    public SerializableDictionary<string, bool> checkpoints;
-    public List<CheckpointData> travelCheckpoints;
-    public string savedCheckpointId;
-    public bool checkpointChangeScenes;
-    public bool isTraveling;
+    public SerializableDictionary<string, CheckpointData> checkpoints;
 
     public SerializableDictionary<string, bool> bosses;
     public SerializableDictionary<string, bool> enemies;
@@ -56,8 +52,6 @@ public class GameData
     public List<ItemData> lockItemData;
     public List<ItemData> shopItemData;
     public List<ItemData_Equipment> craftItemData;
-
-    public bool continueGame;
 
     public SerializableDictionary<string, bool> gates;
 
@@ -69,14 +63,12 @@ public class GameData
         maxHealth = 100;
         damage = 50;
         keepPlayerHealthSceneChange = false;
-        checkpointChangeScenes = false;
 
         skillTree = new SerializableDictionary<string, bool>();
         inventory = new SerializableDictionary<string, int>();
         equipmentId = new List<string>();
 
-        savedCheckpointId = string.Empty;
-        checkpoints = new SerializableDictionary<string, bool>();
+        checkpoints = new SerializableDictionary<string, CheckpointData>();
         bosses = new SerializableDictionary<string, bool>();
         enemies = new SerializableDictionary<string, bool>();
 
@@ -85,10 +77,6 @@ public class GameData
         lockItemData = new List<ItemData>();
         shopItemData = new List<ItemData>();
         craftItemData = new List<ItemData_Equipment>();
-
-        travelCheckpoints = new List<CheckpointData>();
-
-        continueGame = false;
 
         gates = new SerializableDictionary<string, bool>();
     }

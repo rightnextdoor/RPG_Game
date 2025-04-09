@@ -41,7 +41,7 @@ public class UI_Checkpoint : MonoBehaviour
                 GameManager.instance.PauseGame(true);
             }
         }
-        if (CheckpointManager.instance.UI_TravelCheckpoints().Count == 0)
+        if (CheckpointManager.instance.GetActivatedCheckpoints().Count == 0)
         {
             travelButton.SetActive(false);
         }
