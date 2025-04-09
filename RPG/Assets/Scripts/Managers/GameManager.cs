@@ -21,8 +21,8 @@ public class GameManager : MonoBehaviour
     {
         EnemyManager.instance.ResetEnemyDeath();
         CheckpointManager.instance.ContinueGame();
-        Scene scene = SceneManager.GetActiveScene();
-        SceneManager.LoadScene(scene.name);
+        //Scene scene = SceneManager.GetActiveScene();
+        //SceneManager.LoadScene(scene.name);
     }
 
     public void GameOver()
