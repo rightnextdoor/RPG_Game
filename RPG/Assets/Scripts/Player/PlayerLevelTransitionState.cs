@@ -30,19 +30,20 @@ public class PlayerLevelTransitionState : PlayerState
     {
         base.Update();
 
+        // Apply movement direction once at entry
         if (player.transtionUp)
-        {
-            player.SetVelocity(rb.velocity.x, player.jumpForce);
-        } else if (player.transtionDown)
-        {
-            player.SetVelocity(rb.velocity.x, -player.jumpForce);
-        } else
-        {
-            player.SetVelocity(player.moveSpeed * player.facingDir, rb.velocity.y);
-        }
+            player.SetVelocity(0, player.jumpForce);
+        else if (player.transtionDown)
+            player.SetVelocity(0, -player.jumpForce);
+        else
+            player.SetVelocity(player.moveSpeed * player.facingDir, 0);
 
-        if(!PlayerManager.instance.IsLevelTranstion())
+        // Wait a short time before checking to exit state (optional)
+        if (!PlayerManager.instance.IsLevelTranstion())
+        {
+            player.SetZeroVelocity(); // stop motion after cutscene
             stateMachine.ChangeState(player.idleState);
-
+        }
     }
+
 }

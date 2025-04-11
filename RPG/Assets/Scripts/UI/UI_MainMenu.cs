@@ -36,7 +36,8 @@ public class UI_MainMenu : MonoBehaviour
     public void NewGame()
     {
         SaveManager.instance.DeleteSavedData();
-        fadeScreen.MainMenuFadTo(sceneToLoad);
+        fadeScreen.FadeOut(sceneToLoad);
+        Debug.Log("new game fadeout");
         AudioManager.instance.StopEventMusicAndResumeRandom();
     }
 

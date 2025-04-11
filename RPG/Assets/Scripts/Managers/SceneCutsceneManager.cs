@@ -1,0 +1,136 @@
+// SceneCutsceneManager.cs (Updated: Flip real player if cutscene type faces left)
+using UnityEngine;
+using UnityEngine.Playables;
+using UnityEngine.SceneManagement;
+using UnityEngine.Timeline;
+
+public class SceneCutsceneManager : MonoBehaviour
+{
+    [SerializeField] private GameObject cutscenePlayerPrefab;
+    [SerializeField] private CutsceneLibrary cutsceneLibrary;
+
+    private LevelChanger activeChanger;
+    private GameObject cutscenePlayer;
+    private PlayableDirector director;
+    private CutsceneType currentEntryType;
+
+    private void Start()
+    {
+        Player player = PlayerManager.instance.player;
+        player.gameObject.SetActive(false);
+
+        FindActiveLevelChanger();
+
+        if (activeChanger == null)
+        {
+            player.gameObject.SetActive(true);
+            player.EnableControl();
+            return;
+        }
+
+        Transform spawnPoint = activeChanger.GetSpawnPoint();
+        string sceneName = SceneManager.GetActiveScene().name;
+        currentEntryType = LevelConnection.ActiveConnection.GetEntryCutsceneType(sceneName);
+
+        cutscenePlayer = Instantiate(cutscenePlayerPrefab, spawnPoint.position, Quaternion.identity);
+        SetCutsceneIdle(cutscenePlayer);
+
+        UI_FadeScreen.instance.FadeIn(() =>
+        {
+            TimelineAsset cutscene = cutsceneLibrary.GetCutscene(currentEntryType);
+            if (cutscene != null)
+                PlayCutsceneTimeline(cutscene);
+            else
+                ActivateRealPlayerAtSpawn();
+        });
+    }
+
+    private void FindActiveLevelChanger()
+    {
+        foreach (var changer in FindObjectsOfType<LevelChanger>())
+        {
+            if (changer.GetLevelConnection() == LevelConnection.ActiveConnection)
+            {
+                activeChanger = changer;
+                break;
+            }
+        }
+    }
+
+    private void SetCutsceneIdle(GameObject player)
+    {
+        var anim = player.GetComponent<Animator>();
+        if (anim != null && anim.runtimeAnimatorController != null)
+        {
+            anim.SetBool("Idle", true);
+        }
+    }
+
+    private void PlayCutsceneTimeline(TimelineAsset timeline)
+    {
+        director = gameObject.AddComponent<PlayableDirector>();
+        director.playableAsset = timeline;
+
+        foreach (var output in timeline.outputs)
+        {
+            if (output.streamName.Contains("Animation") || output.streamName.Contains("Animator"))
+            {
+                director.SetGenericBinding(output.sourceObject, cutscenePlayer.GetComponent<Animator>());
+                ApplyFacingForType(cutscenePlayer, currentEntryType);
+            }
+        }
+
+        director.stopped += OnCutsceneFinished;
+        director.Play();
+    }
+
+    private void OnCutsceneFinished(PlayableDirector d)
+    {
+        Vector3 finalPosition = cutscenePlayer.transform.position;
+        Destroy(cutscenePlayer);
+
+        Player player = PlayerManager.instance.player;
+        player.transform.position = finalPosition;
+
+        if (currentEntryType == CutsceneType.RunInFromRight || currentEntryType == CutsceneType.JumpInFromRight)
+        {
+            player.Flip();
+        }
+
+        player.gameObject.SetActive(true);
+        player.EnableControl();
+
+        d.stopped -= OnCutsceneFinished;
+        d.playableAsset = null;
+    }
+
+    private void ActivateRealPlayerAtSpawn()
+    {
+        Player player = PlayerManager.instance.player;
+        player.transform.position = activeChanger.GetSpawnPoint().position;
+        player.gameObject.SetActive(true);
+        player.EnableControl();
+    }
+
+    public TimelineAsset GetExitCutscene(CutsceneType type)
+    {
+        return cutsceneLibrary.GetCutscene(type);
+    }
+
+    public GameObject GetCutscenePlayerPrefab()
+    {
+        return cutscenePlayerPrefab;
+    }
+
+    private void ApplyFacingForType(GameObject clone, CutsceneType type)
+    {
+        if (type == CutsceneType.RunInFromRight || type == CutsceneType.JumpInFromRight)
+        {
+            clone.transform.rotation = Quaternion.Euler(0, 180f, 0);
+        }
+        else
+        {
+            clone.transform.rotation = Quaternion.identity;
+        }
+    }
+}

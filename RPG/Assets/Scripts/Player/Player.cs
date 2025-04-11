@@ -170,7 +170,7 @@ public class Player : Entity
         yield return new WaitForSeconds(_seconds);
         isBusy = false;
     }
-
+    //TODO remove this method and level transition state when cutscene it done
     public void LevelTransition(bool _transitionDown, bool _transitionUP)
     {
         if (_transitionDown || _transitionUP)

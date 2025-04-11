@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -10,105 +9,96 @@ public class UI_FadeScreen : MonoBehaviour
 
     [SerializeField] private Image img;
     [SerializeField] private AnimationCurve curve;
+    private bool isFading = false;
+
 
     private void Awake()
     {
-        if (instance != null)
-            Destroy(instance.gameObject);
-        else
-            instance = this;
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
+        DontDestroyOnLoad(gameObject);
     }
+
 
     private void Start()
     {
-        StartCoroutine(FadeIn());
+        FadeIn();
     }
 
-    public void RespawnFade()
+    public void FadeIn(System.Action onCutsceneStart = null)
     {
-        StartCoroutine(RespawnFadeOut());       
+        StartCoroutine(FadeInCoroutine(onCutsceneStart));
     }
 
-    public void ReSpawnFadeIn()
+    public void FadeOut(string sceneName = null, System.Action onFadeComplete = null)
     {
-        StartCoroutine(FadeIn());
-    }
+        if (isFading) return; //protect against double call
+        isFading = true;
 
-    public void MainMenuFadTo(string scene)
-    {
-        StartCoroutine(FadeOut(scene));
-    }
-
-    public void FadeTo(string scene)
-    {
-        PlayerManager.instance.player.GetComponent<PlayerStats>().keepPlayerHealthSceneChange = true; //to keep current health when changing scenes
+        PlayerManager.instance.player.GetComponent<PlayerStats>().keepPlayerHealthSceneChange = true;
         SaveManager.instance.SaveGame();
-        StartCoroutine(FadeOut(scene));
+        StartCoroutine(FadeOutCoroutine(sceneName, onFadeComplete));
     }
 
-    //public void TravelTo(string scene)
-    //{
-    //    PlayerManager.instance.player.GetComponent<PlayerStats>().keepPlayerHealthSceneChange = true;
-    //    SaveManager.instance.SaveGame();
-    //    StartCoroutine(FadeOutFast(scene));
-    //}
-
-    private IEnumerator FadeIn()
+    public bool IsFullyBlack()
     {
+        return img.color.a >= 0.99f;
+    }
+
+
+    public void FadeToBlack(System.Action onComplete = null)
+    {
+        StartCoroutine(FadeOutCoroutine(null, onComplete));
+    }
+
+    private IEnumerator FadeInCoroutine(System.Action onCutsceneStart)
+    {     
         float t = 1.2f;
+        bool cutsceneStarted = false;
 
         while (t > 0f)
         {
-
             t -= Time.deltaTime;
             float a = curve.Evaluate(t);
             img.color = new Color(0f, 0f, 0f, a);
-            yield return 0;
+
+            // Begin cutscene near the start of the fade-in
+            if (!cutsceneStarted && t < 1.0f)
+            {
+                cutsceneStarted = true;
+                onCutsceneStart?.Invoke();
+            }
+
+            yield return null;
         }
     }
 
-    private IEnumerator RespawnFadeOut()
+    private IEnumerator FadeOutCoroutine(string scene, System.Action onComplete)
     {
-        float t = .9f;
-
-        while (t < 1f)
-        {
-
-            t += Time.deltaTime;
-            float a = curve.Evaluate(t);
-            img.color = new Color(0f, 0f, 0f, a);
-            yield return 0;
-        }
-    }
-
-    private IEnumerator FadeOutFast(string scene)
-    {
-        float t = .9f;
-
-        while (t < 1f)
-        {
-
-            t += Time.deltaTime;
-            float a = curve.Evaluate(t);
-            img.color = new Color(0f, 0f, 0f, a);
-            yield return 0;
-        }
-
-        SceneManager.LoadScene(scene);
-    }
-    private IEnumerator FadeOut(string scene)
-    {
+        Debug.Log("FadeOut started");
         float t = 0f;
 
         while (t < 1f)
         {
-
             t += Time.deltaTime;
             float a = curve.Evaluate(t);
             img.color = new Color(0f, 0f, 0f, a);
-            yield return 0;
+            yield return null;
         }
 
-        SceneManager.LoadScene(scene);
+        onComplete?.Invoke();
+
+        if (!string.IsNullOrEmpty(scene))
+        {
+            yield return new WaitForEndOfFrame();
+            SceneManager.LoadScene(scene);
+        }
+
+        isFading = false;
     }
 }

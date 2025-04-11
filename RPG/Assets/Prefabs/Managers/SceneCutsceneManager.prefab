@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1841193497472236311
+--- !u!1 &4359520968319358451
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,49 +8,41 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3536097860448192480}
-  - component: {fileID: 8568979483409623000}
+  - component: {fileID: 2985035477441295475}
+  - component: {fileID: 4028406066865220539}
   m_Layer: 0
-  m_Name: NotificationManager
+  m_Name: SceneCutsceneManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3536097860448192480
+--- !u!4 &2985035477441295475
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1841193497472236311}
+  m_GameObject: {fileID: 4359520968319358451}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -34.243305, y: 4.7706437, z: -0.08565949}
+  m_LocalPosition: {x: 5.5509615, y: 0.8912213, z: -0.048232075}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8568979483409623000
+--- !u!114 &4028406066865220539
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1841193497472236311}
+  m_GameObject: {fileID: 4359520968319358451}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1684b10504cf09343b22d3e5aa2c986c, type: 3}
+  m_Script: {fileID: 11500000, guid: c2d7bd5d41e816540a3b68a00da9402f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  notificationPrefab: {fileID: 1642179135817058862, guid: fa98975e8a719414c92728e929081bde, type: 3}
-  notificationParent: {fileID: 0}
-  specialNotificationPrefab: {fileID: 6752151991228287247, guid: c65195fbe1e74c84cbafd07eafbc8bfe, type: 3}
-  specialNotificationParent: {fileID: 0}
-  specialDisplayDuration: 2
-  displayDuration: 3
-  defaultColors:
-  - {r: 0.8, g: 0.2, b: 0.2, a: 0.5}
-  - {r: 0.2, g: 0.2, b: 0.8, a: 0.5}
-  - {r: 0.2, g: 0.8, b: 0.2, a: 0.5}
+  cutscenePlayerPrefab: {fileID: 8219634929722209998, guid: fac3ca3c2a14af14c860bc0eae17c07f, type: 3}
+  cutsceneLibrary: {fileID: 11400000, guid: 39ef70aee1c4f8a44944dd5a7e8381f7, type: 2}

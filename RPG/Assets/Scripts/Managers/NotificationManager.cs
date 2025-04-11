@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class NotificationManager : MonoBehaviour
 {
@@ -35,6 +36,8 @@ public class NotificationManager : MonoBehaviour
     private List<GameObject> activeNotifications = new List<GameObject>();
 
     private GameObject activeSpecialNotification;
+    private Queue<SpecialNotificationData> specialNotificationQueue = new Queue<SpecialNotificationData>();
+    private bool isDisplayingSpecialNotification = false;
 
     private void Awake()
     {
@@ -48,7 +51,66 @@ public class NotificationManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    // Main stackable notifications
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        StopAllCoroutines();
+        isDisplayingSpecialNotification = false;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        StopAllCoroutines();
+        isDisplayingSpecialNotification = false;
+
+        AssignSceneObjects();
+
+        CleanupActiveNotifications();
+
+        if (!isDisplayingSpecialNotification && specialNotificationQueue.Count > 0)
+            StartCoroutine(ProcessSpecialNotificationQueue());
+
+        if (notificationQueue.Count > 0 && activeNotifications.Count < maxStackSize)
+        {
+            NotificationData next = notificationQueue.Dequeue();
+            next.backgroundColor = GetNextAvailableColor();
+            CreateNotification(next);
+        }
+    }
+
+    private void AssignSceneObjects()
+    {
+        if (notificationParent == null)
+        {
+            GameObject obj = GameObject.Find("NotificationParent");
+            if (obj != null) notificationParent = obj.transform;
+        }
+
+        if (specialNotificationParent == null)
+        {
+            GameObject obj = GameObject.Find("SpecialNotificationParent");
+            if (obj != null) specialNotificationParent = obj.transform;
+        }
+    }
+
+    private void CleanupActiveNotifications()
+    {
+        foreach (var notif in activeNotifications)
+        {
+            if (notif != null)
+                Destroy(notif);
+        }
+
+        activeNotifications.Clear();
+        notificationColorMap.Clear();
+        usedColors.Clear();
+    }
+
     public void ShowNotification(string message, Sprite icon = null)
     {
         if (activeNotifications.Count >= maxStackSize)
@@ -62,10 +124,10 @@ public class NotificationManager : MonoBehaviour
         CreateNotification(data);
     }
 
-    // Special single notification
     public void ShowSpecialNotification(string message, Sprite icon = null, Color? color = null)
     {
         specialNotificationQueue.Enqueue(new SpecialNotificationData(message, icon, color));
+
         if (!isDisplayingSpecialNotification)
             StartCoroutine(ProcessSpecialNotificationQueue());
     }
@@ -84,10 +146,7 @@ public class NotificationManager : MonoBehaviour
             Image icon = notifObj.transform.Find("Icon").GetComponent<Image>();
             TextMeshProUGUI messageText = notifObj.transform.Find("MessageText").GetComponent<TextMeshProUGUI>();
 
-            //FIXED background stays the same, no need to assign color
-            background.color = new Color(0f, 0f, 0f, 0.75f); // dark semi-transparent background
-
-            //Set the message and its TEXT color
+            background.color = new Color(0f, 0f, 0f, 0.75f);
             messageText.text = data.message;
             messageText.color = data.textColor;
 
@@ -101,8 +160,6 @@ public class NotificationManager : MonoBehaviour
                 icon.gameObject.SetActive(false);
             }
 
-
-            // Fade In
             canvasGroup.alpha = 0;
             float t = 0;
             while (t < 0.25f)
@@ -112,9 +169,8 @@ public class NotificationManager : MonoBehaviour
                 yield return null;
             }
 
-            yield return new WaitForSeconds(2f); // visible duration
+            yield return new WaitForSeconds(specialDisplayDuration);
 
-            // Fade Out
             t = 0;
             while (t < 0.5f)
             {
@@ -124,7 +180,7 @@ public class NotificationManager : MonoBehaviour
             }
 
             Destroy(notifObj);
-            yield return new WaitForEndOfFrame(); // brief delay between messages
+            yield return new WaitForEndOfFrame();
         }
 
         isDisplayingSpecialNotification = false;
@@ -140,7 +196,7 @@ public class NotificationManager : MonoBehaviour
                 return c;
             }
         }
-        return defaultColors[defaultColors.Count - 1]; // Fallback
+        return defaultColors[defaultColors.Count - 1];
     }
 
     private void ReleaseColor(Color color)
@@ -179,6 +235,8 @@ public class NotificationManager : MonoBehaviour
 
     private IEnumerator DisplayNotification(GameObject notificationGO, float duration)
     {
+        if (notificationGO == null) yield break;
+
         yield return new WaitForSeconds(duration);
 
         CanvasGroup group = notificationGO.GetComponent<CanvasGroup>();
@@ -189,7 +247,7 @@ public class NotificationManager : MonoBehaviour
 
         while (t < fadeTime)
         {
-            if (group == null) yield break;
+            if (notificationGO == null || group == null) yield break;
 
             t += Time.deltaTime;
             group.alpha = Mathf.Lerp(1f, 0f, t / fadeTime);
@@ -206,44 +264,17 @@ public class NotificationManager : MonoBehaviour
 
         Destroy(notificationGO);
 
-        // Reorder siblings
         for (int i = 0; i < activeNotifications.Count; i++)
         {
             activeNotifications[i].transform.SetSiblingIndex(i);
         }
 
-        // Add next in queue
         if (notificationQueue.Count > 0)
         {
             NotificationData next = notificationQueue.Dequeue();
             next.backgroundColor = GetNextAvailableColor();
             CreateNotification(next);
         }
-    }
-
-    private IEnumerator FadeOutAndDestroy(GameObject go, float duration)
-    {
-        yield return new WaitForSeconds(duration);
-
-        CanvasGroup group = go.GetComponent<CanvasGroup>();
-        if (group == null) yield break;
-
-        float t = 0f;
-        float fadeTime = 1f;
-
-        while (t < fadeTime)
-        {
-            if (group == null) yield break;
-
-            t += Time.deltaTime;
-            group.alpha = Mathf.Lerp(1f, 0f, t / fadeTime);
-            yield return null;
-        }
-
-        if (go == activeSpecialNotification)
-            activeSpecialNotification = null;
-
-        Destroy(go);
     }
 
     private class NotificationData
@@ -266,9 +297,6 @@ public class NotificationManager : MonoBehaviour
         }
     }
 
-    private Queue<SpecialNotificationData> specialNotificationQueue = new Queue<SpecialNotificationData>();
-    private bool isDisplayingSpecialNotification = false;
-
     [System.Serializable]
     public class SpecialNotificationData
     {
@@ -280,9 +308,7 @@ public class NotificationManager : MonoBehaviour
         {
             this.message = message;
             this.icon = icon;
-            this.textColor = textColor ?? Color.yellow; // default text color
+            this.textColor = textColor ?? Color.yellow;
         }
     }
-
-
 }

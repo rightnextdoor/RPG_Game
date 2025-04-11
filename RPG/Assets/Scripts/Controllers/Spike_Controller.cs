@@ -28,9 +28,9 @@ public class Spike_Controller : MonoBehaviour
 
     private void FadeScreen()
     {
-        UI_FadeScreen.instance.RespawnFade();
+        UI_FadeScreen.instance.FadeToBlack();
         StartCoroutine(RespawnPlayer());
-        UI_FadeScreen.instance.ReSpawnFadeIn();
+        UI_FadeScreen.instance.FadeIn();
         player.EnableControl();
 
     }

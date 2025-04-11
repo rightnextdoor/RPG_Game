@@ -35,7 +35,7 @@ public class PlayerManager : MonoBehaviour, ISaveManager
     {
         currencyText.text = currency.ToString();
     }
-
+    //TODO remove the level transtion when cutscene is done
     public bool IsLevelTranstion() => levelTransition;
     public void LevelTranstion(bool isTranstion)
     {
