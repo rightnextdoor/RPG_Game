@@ -53,6 +53,8 @@ public class UI_FadeScreen : MonoBehaviour
 
     public void FadeToBlack(System.Action onComplete = null)
     {
+        PlayerManager.instance.player.GetComponent<PlayerStats>().keepPlayerHealthSceneChange = true;
+        SaveManager.instance.SaveGame();
         StartCoroutine(FadeOutCoroutine(null, onComplete));
     }
 

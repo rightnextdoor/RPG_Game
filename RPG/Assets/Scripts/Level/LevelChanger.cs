@@ -16,7 +16,7 @@ public class LevelChanger : MonoBehaviour
 
     private void Start()
     {
-        if (levelConnection == LevelConnection.ActiveConnection)
+        if (levelConnection == LevelConnection.ActiveConnection && !SceneLoadTracker.lastLoadedByCheckpoint)
         {
             Player player = PlayerManager.instance.player;
             if (player != null)
@@ -113,3 +113,9 @@ public class LevelChanger : MonoBehaviour
         }
     }
 }
+
+public static class SceneLoadTracker
+{
+    public static bool lastLoadedByCheckpoint = false;
+}
+

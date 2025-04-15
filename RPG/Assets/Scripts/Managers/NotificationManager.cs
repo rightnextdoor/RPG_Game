@@ -10,19 +10,20 @@ public class NotificationManager : MonoBehaviour
     public static NotificationManager instance { get; private set; }
 
     [Header("Main Notifications")]
-    public GameObject notificationPrefab;
-    public Transform notificationParent;
+    [SerializeField] private GameObject notificationPrefab;
+    private Transform notificationParent;
 
     [Header("Special Notifications")]
-    public GameObject specialNotificationPrefab;
-    public Transform specialNotificationParent;
-    public float specialDisplayDuration = 2f;
+    [SerializeField] private GameObject specialNotificationPrefab;
+    private Transform specialNotificationParent;
+    [SerializeField] private float specialDisplayDuration = 2f;
 
     [Header("Notification Settings")]
-    public float displayDuration = 3f;
+    [SerializeField] private float displayDuration = 3f;
 
     [Header("Color Pool")]
-    public List<Color> defaultColors = new List<Color>()
+    [SerializeField]
+    private List<Color> defaultColors = new List<Color>()
     {
         new Color(0.8f, 0.2f, 0.2f, 0.5f), // Red
         new Color(0.2f, 0.2f, 0.8f, 0.5f), // Blue

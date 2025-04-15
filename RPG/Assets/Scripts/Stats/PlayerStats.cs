@@ -14,7 +14,7 @@ public class PlayerStats : CharacterStats, ISaveManager
 
         player = GetComponent<Player>();
 
-        currentHealth = GetMaxHealthValue();
+        //currentHealth = GetMaxHealthValue();
     }
 
     public override void TakeDamage(int _damage)

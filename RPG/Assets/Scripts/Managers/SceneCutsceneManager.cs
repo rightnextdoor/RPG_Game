@@ -17,8 +17,18 @@ public class SceneCutsceneManager : MonoBehaviour
     private void Start()
     {
         Player player = PlayerManager.instance.player;
-        player.gameObject.SetActive(false);
 
+        //If skipping cutscene, just activate the real player
+        if (GameManager.instance != null && GameManager.instance.skipEntryCutscene)
+        {
+            Debug.Log("game manager is called " + GameManager.instance.skipEntryCutscene);
+            GameManager.instance.skipEntryCutscene = false;
+            player.gameObject.SetActive(true);
+            player.EnableControl();
+            return;
+        }
+
+        player.gameObject.SetActive(false);
         FindActiveLevelChanger();
 
         if (activeChanger == null)
@@ -41,9 +51,14 @@ public class SceneCutsceneManager : MonoBehaviour
             if (cutscene != null)
                 PlayCutsceneTimeline(cutscene);
             else
-                ActivateRealPlayerAtSpawn();
+            {
+                player.transform.position = spawnPoint.position;
+                player.gameObject.SetActive(true);
+                player.EnableControl();
+            }
         });
     }
+
 
     private void FindActiveLevelChanger()
     {

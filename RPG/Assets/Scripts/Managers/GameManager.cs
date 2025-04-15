@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -9,17 +6,28 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] GameObject gameOverUI;
 
+    public bool skipEntryCutscene = false; //Add this flag
+
     private void Awake()
     {
-        if (instance != null)
-            Destroy(instance.gameObject);
-        else
-            instance = this;
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
+        DontDestroyOnLoad(gameObject);
     }
-   
+
+
     public void RestartScene()
     {
         EnemyManager.instance.ResetEnemyDeath();
+
+        //Set the flag before continuing
+        skipEntryCutscene = true;
+
         CheckpointManager.instance.ContinueGame();
     }
 
@@ -28,12 +36,9 @@ public class GameManager : MonoBehaviour
         AudioManager.instance.PlaySFX("GameOver");
         gameOverUI.SetActive(true);
     }
-   
+
     public void PauseGame(bool _pause)
     {
-        if (_pause)
-            Time.timeScale = 0;
-        else
-            Time.timeScale = 1;
+        Time.timeScale = _pause ? 0 : 1;
     }
 }

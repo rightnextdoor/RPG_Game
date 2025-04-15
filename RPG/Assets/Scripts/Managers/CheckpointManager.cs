@@ -58,6 +58,7 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
 
         // No valid checkpoint: load default scene and spawn at start
         SceneManager.LoadScene(DefaultStartScene);
+        GameManager.instance.skipEntryCutscene = true;
         StartCoroutine(SetPlayerPositionAfterSceneLoad(Vector3.zero));
     }
 
@@ -71,6 +72,7 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
 
         SaveCheckpoint(checkpoint);
         SceneManager.LoadScene(checkpoint.sceneName);
+        GameManager.instance.skipEntryCutscene = true;
         StartCoroutine(SetPlayerPositionAfterSceneLoad(checkpoint.checkpointPosition));
     }
 

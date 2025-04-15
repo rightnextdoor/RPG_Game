@@ -19,7 +19,7 @@ public class CameraControlTrigger : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Player"))
-        {        
+        {
             if (customInspectorObjects.panCameraOnContact)
             {
                 CameraManager.instance.PanCameraOnContact(customInspectorObjects.panDistance, customInspectorObjects.panTime,

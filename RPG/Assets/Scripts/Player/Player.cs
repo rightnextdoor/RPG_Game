@@ -24,9 +24,6 @@ public class Player : Entity
 
     [HideInInspector] public bool canDoubleJump;
 
-    [Header("Camer Stuff")]
-    private float fallSpeedYDampingChangeThreshold;
-
     [HideInInspector] public bool canWallSlide;
 
     public float dashDir {  get; private set; }
@@ -98,8 +95,6 @@ public class Player : Entity
         defaultJumpForce = jumpForce;
         defaultDashSpeed = dashSpeed;
 
-        fallSpeedYDampingChangeThreshold = CameraManager.instance.fallSpeedYDampingChangeThreshold;
-
         canWallSlide = true;
     }
 
@@ -120,18 +115,7 @@ public class Player : Entity
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
             Inventory.instance.UseFlask();
-
-        if (rb.velocity.y < fallSpeedYDampingChangeThreshold && !CameraManager.instance.IsLerpingYDamping &&
-            !CameraManager.instance.LerpedFromPlayerFalling)
-        {
-            CameraManager.instance.LerpYDamping(true);
-        }
-
-        if (rb.velocity.y >= 0f && !CameraManager.instance.IsLerpingYDamping && CameraManager.instance.LerpedFromPlayerFalling)
-        {
-            CameraManager.instance.LerpedFromPlayerFalling = false;
-            CameraManager.instance.LerpYDamping(false);
-        }
+     
     }
 
     public override void SlowEntityBy(float _slowPercentage, float _slowDuration)
