@@ -1,63 +1,65 @@
 using UnityEngine;
+using System.Collections;
 
 [RequireComponent(typeof(BoxCollider2D))]
 public class CameraPanZone : MonoBehaviour
 {
-    public PanDirection panDirection = PanDirection.Right;
+    public PanDirection direction = PanDirection.Right;
     public float panDistance = 3f;
     public float panTime = 0.5f;
+    public float delayBeforePan = 0.2f;
 
-    private bool hasTriggered = false;
+    private Coroutine delayCoroutine;
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (!collision.CompareTag("Player")) return;
 
-        if (hasTriggered) return;
-        hasTriggered = true;
+        if (delayCoroutine != null)
+            StopCoroutine(delayCoroutine);
 
-        if (CameraZoneManager.instance != null)
-        {
-            //CameraZoneManager.instance.ApplyPan(panDirection, panDistance, panTime);
-        }
+        delayCoroutine = StartCoroutine(DelayedPan());
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
         if (!collision.CompareTag("Player")) return;
 
-        hasTriggered = false;
+        if (delayCoroutine != null)
+            StopCoroutine(delayCoroutine);
+
+        if (CameraZoneManager.instance != null)
+            CameraZoneManager.instance.StopPan();
     }
 
-#if UNITY_EDITOR
+    private IEnumerator DelayedPan()
+    {
+        yield return new WaitForSeconds(delayBeforePan);
+
+        Vector2 center = GetComponent<Collider2D>().bounds.center;
+
+        if (CameraZoneManager.instance != null)
+            CameraZoneManager.instance.StartPan(direction, panDistance, panTime, center);
+    }
+
     private void OnDrawGizmos()
     {
-        // Draw zone area in yellow
-        Gizmos.color = new Color(1f, 1f, 0f, 0.25f); // semi-transparent yellow
+        Gizmos.color = new Color(1f, 1f, 0f, 0.25f); // Yellow translucent
         BoxCollider2D box = GetComponent<BoxCollider2D>();
-        if (box)
+        if (box != null)
+            Gizmos.DrawCube(box.bounds.center, box.bounds.size);
+
+        // Draw direction line
+        Gizmos.color = Color.yellow;
+        Vector2 dir = Vector2.zero;
+        switch (direction)
         {
-            Vector3 center = transform.position + (Vector3)box.offset;
-            Vector3 size = (Vector3)box.size;
-            Gizmos.DrawCube(center, size);
+            case PanDirection.Up: dir = Vector2.up; break;
+            case PanDirection.Down: dir = Vector2.down; break;
+            case PanDirection.Left: dir = Vector2.left; break;
+            case PanDirection.Right: dir = Vector2.right; break;
         }
 
-        // Draw directional pan line in cyan
-        Gizmos.color = Color.cyan;
-        Vector3 direction = Vector3.zero;
-
-        switch (panDirection)
-        {
-            case PanDirection.Up: direction = Vector3.up; break;
-            case PanDirection.Down: direction = Vector3.down; break;
-            case PanDirection.Left: direction = Vector3.left; break;
-            case PanDirection.Right: direction = Vector3.right; break;
-        }
-
-        Vector3 start = transform.position;
-        Vector3 end = start + (direction * panDistance);
-        Gizmos.DrawLine(start, end);
-        Gizmos.DrawSphere(end, 0.15f);
+        Gizmos.DrawLine(box.bounds.center, box.bounds.center + (Vector3)(dir * panDistance));
     }
-#endif
 }
