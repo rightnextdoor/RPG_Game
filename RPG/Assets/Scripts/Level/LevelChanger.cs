@@ -61,7 +61,7 @@ public class LevelChanger : MonoBehaviour
 
         GameObject clone = Instantiate(prefab, startPos, Quaternion.identity);
         ApplyFacingForType(clone, type);
-
+        
         var anim = clone.GetComponent<Animator>();
         if (anim != null)
         {
@@ -96,6 +96,8 @@ public class LevelChanger : MonoBehaviour
     {
         // Wait until the fade is fully opaque
         yield return new WaitUntil(() => UI_FadeScreen.instance.IsFullyBlack());
+
+        AudioManager.instance?.StopAllLoopingSFX();
 
         SceneManager.LoadScene(sceneName);
     }

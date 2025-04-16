@@ -1,4 +1,5 @@
-// SceneCutsceneManager.cs (Updated: Flip real player if cutscene type faces left)
+using Cinemachine;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.SceneManagement;
@@ -7,7 +8,7 @@ using UnityEngine.Timeline;
 public class SceneCutsceneManager : MonoBehaviour
 {
     [SerializeField] private GameObject cutscenePlayerPrefab;
-    [SerializeField] private CutsceneLibrary cutsceneLibrary;
+    [SerializeField] private CutsceneLibrary cutsceneLibrary; 
 
     private LevelChanger activeChanger;
     private GameObject cutscenePlayer;
@@ -42,6 +43,11 @@ public class SceneCutsceneManager : MonoBehaviour
         string sceneName = SceneManager.GetActiveScene().name;
         currentEntryType = LevelConnection.ActiveConnection.GetEntryCutsceneType(sceneName);
 
+        if (CameraZoneManager.instance != null)
+        {
+            CameraZoneManager.instance.PrepareForCutscene(spawnPoint.position);
+        }
+
         cutscenePlayer = Instantiate(cutscenePlayerPrefab, spawnPoint.position, Quaternion.identity);
         SetCutsceneIdle(cutscenePlayer);
 
@@ -49,7 +55,9 @@ public class SceneCutsceneManager : MonoBehaviour
         {
             TimelineAsset cutscene = cutsceneLibrary.GetCutscene(currentEntryType);
             if (cutscene != null)
+            {
                 PlayCutsceneTimeline(cutscene);
+            }
             else
             {
                 player.transform.position = spawnPoint.position;
@@ -58,7 +66,6 @@ public class SceneCutsceneManager : MonoBehaviour
             }
         });
     }
-
 
     private void FindActiveLevelChanger()
     {

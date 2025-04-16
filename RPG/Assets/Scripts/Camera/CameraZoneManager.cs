@@ -18,6 +18,7 @@ public class CameraZoneManager : MonoBehaviour
     public Transform verticalTarget;
     public Transform fixedTarget;
     public Transform panTarget;
+    public Transform cutsceneCamTarget;
 
     [Header("Zone Follow Smoothing")]
     public float zoneTargetSmoothSpeed = 10f;
@@ -65,15 +66,13 @@ public class CameraZoneManager : MonoBehaviour
     {
         yield return null;
 
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj == null)
+        while (PlayerManager.instance == null || PlayerManager.instance.player == null || !PlayerManager.instance.player.gameObject.activeInHierarchy)
         {
-            Debug.LogError("[CameraZoneManager] Player not found.");
-            yield break;
+            yield return null;
         }
 
-        player = playerObj.transform;
-        playerRB = player.GetComponent<Rigidbody2D>();
+        player = PlayerManager.instance.player.transform;
+        playerRB = PlayerManager.instance.player.GetComponent<Rigidbody2D>();
 
         SetupPlayerCam();
         SetupHorizontalCam();
@@ -87,8 +86,46 @@ public class CameraZoneManager : MonoBehaviour
         RestorePlayerCamDamping();
     }
 
+    // Call this at scene start if using a cutscene to force camera to snap to the spawn position
+    public void PrepareForCutscene(Vector3 spawnPosition)
+    {
+        Debug.Log("prepare cutscene is called");
+        if (cutsceneCamTarget == null || playerCam == null) return;
+
+        cutsceneCamTarget.position = new Vector3(spawnPosition.x, spawnPosition.y, -10f);
+        playerCam.Follow = cutsceneCamTarget;
+
+        // Ensure Transposer is initialized
+        var transposer = playerCam.GetCinemachineComponent<CinemachineFramingTransposer>();
+        if (transposer != null)
+        {
+            // Set default transposer values just like SetupPlayerCam
+            transposer.m_XDamping = 2f;
+            transposer.m_YDamping = 2f;
+            transposer.m_DeadZoneWidth = 0.1f;
+            transposer.m_DeadZoneHeight = 0.1f;
+            transposer.m_SoftZoneWidth = 0.8f;
+            transposer.m_SoftZoneHeight = 0.8f;
+            transposer.m_ScreenY = 0.65f;
+        }
+
+        playerCam.PreviousStateIsValid = false;
+        playerCam.OnTargetObjectWarped(cutsceneCamTarget, Vector3.zero);
+        playerCam.Priority = 20;
+    }
+
+    public void ForceSnap()
+    {
+        if (playerCam != null && playerCam.Follow != null)
+        {
+            playerCam.OnTargetObjectWarped(playerCam.Follow, Vector3.zero);
+            playerCam.PreviousStateIsValid = false;
+        }
+    }
+
     private void SetupPlayerCam()
     {
+        Debug.Log("Setup player cam is called");
         if (playerCam == null || player == null) return;
 
         playerCam.Follow = player;

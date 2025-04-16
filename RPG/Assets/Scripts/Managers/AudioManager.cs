@@ -352,6 +352,21 @@ public class AudioManager : MonoBehaviour
         Debug.LogWarning("SFX not found to stop: " + name);
     }
 
+    public void StopAllLoopingSFX()
+    {
+        foreach (var group in soundGroups)
+        {
+            foreach (var sound in group.sounds)
+            {
+                if (sound.loop && sound.source.isPlaying)
+                {
+                    sound.source.Stop();
+                }
+            }
+        }
+    }
+
+
     public void StopSFXWithFade(string name, float fadeDuration)
     {
         StartCoroutine(FadeOutSFX(name, fadeDuration));
