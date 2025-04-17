@@ -146,7 +146,7 @@ public class SceneCutsceneManager : MonoBehaviour
 
     private void ApplyFacingForType(GameObject clone, CutsceneType type)
     {
-        if (type == CutsceneType.RunInFromRight || type == CutsceneType.JumpInFromRight)
+        if (type == CutsceneType.RunInFromRight || type == CutsceneType.JumpInFromRight || type == CutsceneType.FallInFromRight)
         {
             clone.transform.rotation = Quaternion.Euler(0, 180f, 0);
         }

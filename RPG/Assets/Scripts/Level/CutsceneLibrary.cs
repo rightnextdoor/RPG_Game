@@ -9,7 +9,8 @@ public class CutsceneLibrary : ScriptableObject
     public TimelineAsset runInFromRight;
     public TimelineAsset jumpInFromLeft;
     public TimelineAsset jumpInFromRight;
-    public TimelineAsset fallIn;
+    public TimelineAsset fallInFromLeft;
+    public TimelineAsset fallInFromRight;
 
     public TimelineAsset GetCutscene(CutsceneType type)
     {
@@ -19,7 +20,8 @@ public class CutsceneLibrary : ScriptableObject
             CutsceneType.RunInFromRight => runInFromRight,
             CutsceneType.JumpInFromLeft => jumpInFromLeft,
             CutsceneType.JumpInFromRight => jumpInFromRight,
-            CutsceneType.FallIn => fallIn,
+            CutsceneType.FallInFromLeft => fallInFromLeft,
+            CutsceneType.FallInFromRight => fallInFromRight,
             _ => null,
         };
     }

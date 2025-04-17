@@ -60,6 +60,7 @@ public class CameraZoneManager : MonoBehaviour
         }
 
         instance = this;
+        
     }
 
     private IEnumerator Start()
@@ -73,7 +74,8 @@ public class CameraZoneManager : MonoBehaviour
 
         player = PlayerManager.instance.player.transform;
         playerRB = PlayerManager.instance.player.GetComponent<Rigidbody2D>();
-
+        
+        EnableCameras();
         SetupPlayerCam();
         SetupHorizontalCam();
         SetupVerticalCam();
@@ -86,10 +88,20 @@ public class CameraZoneManager : MonoBehaviour
         RestorePlayerCamDamping();
     }
 
+    private void EnableCameras()
+    {
+        if (playerCam != null) playerCam.enabled = true;
+        if (fixedCam != null) fixedCam.enabled = true;
+        if (horizontalCam != null) horizontalCam.enabled = true;
+        if (verticalCam != null) verticalCam.enabled = true;
+        if (panCam != null) panCam.enabled = true;
+    }
+
+
     // Call this at scene start if using a cutscene to force camera to snap to the spawn position
     public void PrepareForCutscene(Vector3 spawnPosition)
     {
-        Debug.Log("prepare cutscene is called");
+        EnableCameras();
         if (cutsceneCamTarget == null || playerCam == null) return;
 
         cutsceneCamTarget.position = new Vector3(spawnPosition.x, spawnPosition.y, -10f);
@@ -125,7 +137,6 @@ public class CameraZoneManager : MonoBehaviour
 
     private void SetupPlayerCam()
     {
-        Debug.Log("Setup player cam is called");
         if (playerCam == null || player == null) return;
 
         playerCam.Follow = player;
@@ -133,8 +144,8 @@ public class CameraZoneManager : MonoBehaviour
         var transposer = playerCam.GetCinemachineComponent<CinemachineFramingTransposer>();
         transposer.m_XDamping = 2f;
         transposer.m_YDamping = 2f;
-        transposer.m_DeadZoneWidth = 0.1f;
-        transposer.m_DeadZoneHeight = 0.1f;
+        transposer.m_DeadZoneWidth = 0.4f;
+        transposer.m_DeadZoneHeight = 0.45f;
         transposer.m_SoftZoneWidth = 0.8f;
         transposer.m_SoftZoneHeight = 0.8f;
         transposer.m_ScreenY = 0.65f;

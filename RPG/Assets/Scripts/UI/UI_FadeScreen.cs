@@ -82,7 +82,6 @@ public class UI_FadeScreen : MonoBehaviour
 
     private IEnumerator FadeOutCoroutine(string scene, System.Action onComplete)
     {
-        Debug.Log("FadeOut started");
         float t = 0f;
 
         while (t < 1f)
