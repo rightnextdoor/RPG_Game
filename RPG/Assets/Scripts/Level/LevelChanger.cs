@@ -1,4 +1,3 @@
-// LevelChanger.cs (Updated: Fade to black immediately when cutscene starts)
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Playables;
@@ -44,12 +43,44 @@ public class LevelChanger : MonoBehaviour
             {
                 PlayExitCutsceneWithClone(exitCutscene, cutscenePlayerPrefab, exitType);
             }
+            else if (exitType == CutsceneType.FallIn || exitType == CutsceneType.JumpIn) 
+            {
+                PlayScriptedExitCutscene(exitType);
+            }
             else
             {
                 UI_FadeScreen.instance.FadeOut(targetScene.SceneName);
             }
         }
     }
+
+    private void PlayScriptedExitCutscene(CutsceneType type)
+    {
+        Player player = PlayerManager.instance.player;
+        player.DisableControl();
+
+        if (type == CutsceneType.FallIn)
+        {
+            player.rb.velocity = new Vector2(0, -20f);
+        }
+        else if (type == CutsceneType.JumpIn)
+        {
+            player.rb.velocity = new Vector2(0, 20f);
+            player.rb.gravityScale = 0;
+        }
+
+        StartCoroutine(FadeAndLoadScene());
+    }
+
+    private IEnumerator FadeAndLoadScene()
+    {
+        UI_FadeScreen.instance.FadeToBlack();
+        yield return new WaitUntil(() => UI_FadeScreen.instance.IsFullyBlack());
+
+        AudioManager.instance?.StopAllLoopingSFX();
+        SceneManager.LoadScene(targetScene.SceneName);
+    }
+
 
     private void PlayExitCutsceneWithClone(TimelineAsset cutscene, GameObject prefab, CutsceneType type)
     {

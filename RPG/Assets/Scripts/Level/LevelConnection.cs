@@ -17,7 +17,9 @@ public enum CutsceneType
     JumpInFromLeft,
     JumpInFromRight,
     FallInFromLeft,
-    FallInFromRight
+    FallInFromRight,
+    FallIn,
+    JumpIn
 }
 
 

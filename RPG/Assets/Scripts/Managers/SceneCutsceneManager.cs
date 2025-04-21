@@ -102,9 +102,28 @@ public class SceneCutsceneManager : MonoBehaviour
             }
         }
 
+        //Force snap camera again to ensure it starts correctly
+        if (CameraZoneManager.instance != null)
+        {
+            CameraZoneManager.instance.PrepareForCutscene(cutscenePlayer.transform.position);
+        }
+
         director.stopped += OnCutsceneFinished;
         director.Play();
+
+        //Failsafe timeout if cutscene doesn't end normally
+        StartCoroutine(FallbackCutsceneEnd());
     }
+
+    private IEnumerator FallbackCutsceneEnd()
+    {
+        yield return new WaitForSeconds(5f); // timeline should always be < 5 seconds
+        if (cutscenePlayer != null)
+        {
+            OnCutsceneFinished(director);
+        }
+    }
+
 
     private void OnCutsceneFinished(PlayableDirector d)
     {

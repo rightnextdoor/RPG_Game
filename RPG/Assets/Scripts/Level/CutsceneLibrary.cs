@@ -11,6 +11,8 @@ public class CutsceneLibrary : ScriptableObject
     public TimelineAsset jumpInFromRight;
     public TimelineAsset fallInFromLeft;
     public TimelineAsset fallInFromRight;
+    public TimelineAsset fallIn;
+    public TimelineAsset jumpIn;
 
     public TimelineAsset GetCutscene(CutsceneType type)
     {
@@ -22,6 +24,8 @@ public class CutsceneLibrary : ScriptableObject
             CutsceneType.JumpInFromRight => jumpInFromRight,
             CutsceneType.FallInFromLeft => fallInFromLeft,
             CutsceneType.FallInFromRight => fallInFromRight,
+            CutsceneType.FallIn => fallIn,
+            CutsceneType.JumpIn => jumpIn,
             _ => null,
         };
     }
