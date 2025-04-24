@@ -51,7 +51,7 @@ public class Checkpoint : MonoBehaviour
 
         if (Application.isPlaying)
         {
-            menuOpen = UIManager.instance.GetUICheckpoint().isMenuOpen;
+            menuOpen = UIManager.instance.GetUICheckpoint().IsMenuOpen();
             if (playerInRange && Input.GetKeyDown(KeyCode.W) && !menuOpen)
             {
                 if (!checkpointData.isActivated)

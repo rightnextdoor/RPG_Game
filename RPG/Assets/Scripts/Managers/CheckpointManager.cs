@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class CheckpointManager : MonoBehaviour, ISaveManager
 {
@@ -14,7 +17,7 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
 
     private void Awake()
     {
-        if (instance != null)
+        if (instance != null && instance != this)
         {
             Destroy(gameObject);
             return;
@@ -22,20 +25,24 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
 
         instance = this;
         DontDestroyOnLoad(gameObject);
+
+        // Auto-parent to GameManager if it exists
+        GameObject gm = GameObject.Find("GameManager");
+        if (gm != null) transform.SetParent(gm.transform);
     }
 
-    public void SaveCheckpoint(CheckpointData _checkpoint)
+    public void SaveCheckpoint(CheckpointData checkpoint)
     {
         foreach (var check in checkpointList)
         {
             if (check == null) continue;
 
-            if (check.isLastCheckpoint && check.checkpointId != _checkpoint.checkpointId)
+            if (check.isLastCheckpoint && check.checkpointId != checkpoint.checkpointId)
                 check.isLastCheckpoint = false;
         }
 
-        _checkpoint.isActivated = true;
-        _checkpoint.isLastCheckpoint = true;
+        checkpoint.isActivated = true;
+        checkpoint.isLastCheckpoint = true;
 
         SaveManager.instance.SaveGame();
     }
@@ -57,7 +64,7 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
         }
 
         // No valid checkpoint: load default scene and spawn at start
-        SceneManager.LoadScene(DefaultStartScene);
+        SceneManager.LoadScene(DefaultStartScene);       
         GameManager.instance.skipEntryCutscene = true;
         StartCoroutine(SetPlayerPositionAfterSceneLoad(Vector3.zero));
     }
@@ -80,7 +87,7 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
     {
         foreach (var checkpoint in checkpointList)
         {
-            if(checkpoint == null) continue;
+            if (checkpoint == null) continue;
 
             checkpoint.isActivated = false;
             checkpoint.isLastCheckpoint = false;
@@ -91,8 +98,9 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
 
     public List<CheckpointData> GetActivatedCheckpoints()
     {
-        return checkpointList.Where(c => c !=null && c.isActivated 
-            && c.sceneName != SceneManager.GetActiveScene().name).ToList();
+        return checkpointList
+            .Where(c => c != null && c.isActivated && c.sceneName != SceneManager.GetActiveScene().name)
+            .ToList();
     }
 
     private IEnumerator SetPlayerPositionAfterSceneLoad(Vector3 position)
@@ -101,27 +109,26 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
         PlayerManager.instance.player.transform.position = position;
     }
 
-    public void SaveData(ref GameData _data)
+    public void SaveData(ref GameData data)
     {
-        _data.checkpoints.Clear();
+        data.checkpoints.Clear();
 
-        foreach (CheckpointData checkpoint in checkpointList)
+        foreach (var checkpoint in checkpointList)
         {
             if (checkpoint != null)
-                _data.checkpoints.Add(checkpoint.checkpointId, checkpoint);
+                data.checkpoints.Add(checkpoint.checkpointId, checkpoint);
         }
     }
 
-    public void LoadData(GameData _data)
+    public void LoadData(GameData data)
     {
-        if (_data.checkpoints == null || _data.checkpoints.Count == 0)
-            return;
+        if (data.checkpoints == null || data.checkpoints.Count == 0) return;
 
         foreach (var checkpoint in checkpointList)
         {
             if (checkpoint == null) continue;
 
-            if (_data.checkpoints.TryGetValue(checkpoint.checkpointId, out var savedCheckpoint))
+            if (data.checkpoints.TryGetValue(checkpoint.checkpointId, out var savedCheckpoint))
             {
                 checkpoint.isActivated = savedCheckpoint.isActivated;
                 checkpoint.isLastCheckpoint = savedCheckpoint.isLastCheckpoint;
@@ -129,25 +136,40 @@ public class CheckpointManager : MonoBehaviour, ISaveManager
         }
     }
 
-
 #if UNITY_EDITOR
-    [ContextMenu("Fill up checkpoint data base")]
-    private void FillUpItemDataBase() => checkpointList = new List<CheckpointData>(GetItemDataBase());
+[ContextMenu("Fill up checkpoint database")]
+private void FillUpCheckpointDatabase()
+{
+    var newCheckpoints = GetAllCheckpointAssets();
 
-    private List<CheckpointData> GetItemDataBase()
+    foreach (var checkpoint in newCheckpoints)
     {
-        List<CheckpointData> checkDataBase = new List<CheckpointData>();
-        string[] assetName = AssetDatabase.FindAssets("", new[] { "Assets/Data/Checkpoints" });
-
-        foreach (string SOName in assetName)
+        if (checkpoint != null && !checkpointList.Contains(checkpoint))
         {
-            var SOpath = AssetDatabase.GUIDToAssetPath(SOName);
-            var itemData = AssetDatabase.LoadAssetAtPath<CheckpointData>(SOpath);
-            checkDataBase.Add(itemData);
+            checkpointList.Add(checkpoint);
         }
-        checkDataBase = checkDataBase.Where(c => c != null).ToList();
-        return checkDataBase;
     }
+
+    Debug.Log($"CheckpointManager: Added {newCheckpoints.Count} checkpoint(s) (filtered for null and duplicates).");
+}
+
+private List<CheckpointData> GetAllCheckpointAssets()
+{
+    List<CheckpointData> result = new List<CheckpointData>();
+    string[] assetGUIDs = AssetDatabase.FindAssets("", new[] { "Assets/Data/Checkpoints" });
+
+    foreach (string guid in assetGUIDs)
+    {
+        string path = AssetDatabase.GUIDToAssetPath(guid);
+        var asset = AssetDatabase.LoadAssetAtPath<CheckpointData>(path);
+        if (asset != null)
+        {
+            result.Add(asset);
+        }
+    }
+
+    return result;
+}
 #endif
 
 }

@@ -67,13 +67,13 @@ public class CameraZoneManager : MonoBehaviour
     {
         yield return null;
 
-        while (PlayerManager.instance == null || PlayerManager.instance.player == null || !PlayerManager.instance.player.gameObject.activeInHierarchy)
+        while (PlayerManager.instance == null || PlayerUtils.GetPlayerSafe() == null || !PlayerManager.instance.player.gameObject.activeInHierarchy)
         {
             yield return null;
         }
 
-        player = PlayerManager.instance.player.transform;
-        playerRB = PlayerManager.instance.player.GetComponent<Rigidbody2D>();
+        player = PlayerUtils.GetPlayerSafe().transform;
+        playerRB = PlayerUtils.GetPlayerSafe().GetComponent<Rigidbody2D>();
         
         EnableCameras();
         SetupPlayerCam();

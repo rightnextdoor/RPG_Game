@@ -1,18 +1,38 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 
 public class PlayerManager : MonoBehaviour, ISaveManager
 {
     public static PlayerManager instance;
-    public Player player;
 
+    [Header("Player Reference")]
+    private Player _player;
+    public Player player
+    {
+        get
+        {
+            if (_player == null)
+            {
+                TryRebindPlayer();
+                if (_player == null)
+                {
+                    Debug.LogWarning("[PlayerManager] Player reference is null.");
+                }
+            }
+
+            return _player;
+        }
+        set => _player = value;
+    }
+
+    [Header("Currency")]
     [SerializeField] private int currency = 0;
     private int maxCurrency = 10000000;
-    [SerializeField] private TextMeshProUGUI currencyText;
+    private TextMeshProUGUI currencyText;
 
+    [Header("Stats")]
     private int skillsPoint = 0;
     private int statsPoints = 0;
     private int totalStatsPoints = 0;
@@ -24,28 +44,59 @@ public class PlayerManager : MonoBehaviour, ISaveManager
 
     private void Awake()
     {
-        if (instance != null)
-            Destroy(instance.gameObject);
-        else
-            instance = this;
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
 
+        instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
+
+    private void TryRebindPlayer()
+    {
+        Player found = GameObject.FindObjectOfType<Player>();
+        if (found != null)
+        {
+            AssignPlayer(found);
+        }
+    }
+
+
+    private void OnEnable()
+    {
+        Player.OnPlayerSpawned += AssignPlayer;
+        StartCoroutine(WaitForUIAndAssignText());
+    }
+
+    private void OnDisable()
+    {
+        Player.OnPlayerSpawned -= AssignPlayer;
+    }
+
+    private IEnumerator WaitForUIAndAssignText()
+    {
+        yield return new WaitUntil(() =>
+            UIManager.instance != null && UIManager.instance.GetUIPlayer() != null);
+
+        currencyText = UIManager.instance.GetUIPlayer().currencyText;
+    }
+
+    private void AssignPlayer(Player spawnedPlayer)
+    {
+        player = spawnedPlayer;
     }
 
     private void Update()
     {
-        currencyText.text = currency.ToString();
-    }
-    //TODO remove the level transtion when cutscene is done
-    public bool IsLevelTranstion() => levelTransition;
-    public void LevelTranstion(bool isTranstion)
-    {
-        levelTransition = isTranstion;
+        if (currencyText != null)
+            currencyText.text = currency.ToString();
     }
 
-    public void GainXP(float _xpGained, int _passedLevel)
-    {
-        GetComponent<LevelSystem>().GainExperienceScalable(_xpGained, _passedLevel);
-    }
+    #region Currency
+
+    public int GetCurrecncy() => currency;
 
     public void GainCurrency(int _currency)
     {
@@ -53,52 +104,29 @@ public class PlayerManager : MonoBehaviour, ISaveManager
             return;
 
         currency += _currency;
-
-        if(currency > maxCurrency)
+        if (currency > maxCurrency)
             currency = maxCurrency;
     }
-
-    public int GetCurrecncy() { return currency; }
 
     public bool HaveEnoughGold(int _price)
     {
         if (_price > currency)
         {
-            Debug.Log("Not enough skills gold");
+            Debug.Log("Not enough gold");
             return false;
         }
 
-        currency = currency - _price;
+        currency -= _price;
         return true;
     }
 
-    public void ResetSkillsPoints(int _points)
+    #endregion
+
+    #region Points & XP
+
+    public void GainXP(float _xpGained, int _passedLevel)
     {
-        skillsPoint += _points;
-    }
-
-    public bool HaveEnoughSkillsPoints(int _price)
-    {
-        if (_price > skillsPoint)
-        {
-            Debug.Log("Not enough skills points");
-            return false;
-        }
-
-        skillsPoint = skillsPoint - _price;
-        return true;
-    }
-
-    public bool HaveEnoughStatsPoints(int _price)
-    {
-        if (_price > statsPoints)
-        {
-            Debug.Log("Not enough stats points");
-            return false;
-        }
-
-        statsPoints = statsPoints - _price;
-        return true;
+        GetComponent<LevelSystem>().GainExperienceScalable(_xpGained, _passedLevel);
     }
 
     public void GainLevel()
@@ -106,51 +134,79 @@ public class PlayerManager : MonoBehaviour, ISaveManager
         level++;
         UnlockManager.instance.LevelUnlockData(level);
     }
-    public int GetLevel() => level;
 
-    public void GainSkillsPoints(int _points)
-    {
-        skillsPoint += _points;
-    }
+    public int GetLevel() => level;
+    public int GetSkillsPoints() => skillsPoint;
+    public int GetStatsPoints() => statsPoints;
+    public int GetTotalStatsPoints() => totalStatsPoints;
+
+    public void GainSkillsPoints(int _points) => skillsPoint += _points;
     public void GainStatsPoints(int _points)
     {
         statsPoints += _points;
         totalStatsPoints += _points;
     }
 
-    public void ResetStatsPoints()
+    public void ResetSkillsPoints(int _points) => skillsPoint += _points;
+    public void ResetStatsPoints() => statsPoints = totalStatsPoints;
+
+    public bool HaveEnoughSkillsPoints(int _price)
     {
-        statsPoints = totalStatsPoints;
+        if (_price > skillsPoint)
+        {
+            Debug.Log("Not enough skill points");
+            return false;
+        }
+
+        skillsPoint -= _price;
+        return true;
     }
 
-    public int GetTotalStatsPoints() => totalStatsPoints;
-    public int GetSkillsPoints() => skillsPoint;
-    public int GetStatsPoints() => statsPoints;
+    public bool HaveEnoughStatsPoints(int _price)
+    {
+        if (_price > statsPoints)
+        {
+            Debug.Log("Not enough stat points");
+            return false;
+        }
+
+        statsPoints -= _price;
+        return true;
+    }
+
+    #endregion
+
+    #region Transition
+
+    public bool IsLevelTranstion() => levelTransition;
+    public void LevelTranstion(bool isTranstion) => levelTransition = isTranstion;
+
+    #endregion
+
+    #region Save/Load
 
     public void LoadData(GameData _data)
     {
-        this.skillsPoint = _data.skillsPoints;
-        this.totalStatsPoints = _data.totalStatsPoints;
-
-        this.statsPoints = _data.statsPoints;
-        this.level = _data.level;
-        this.currentXp = _data.currentXp;
-        this.requiredXp = _data.requiredXp;
-
-        this.currency = _data.currency;
-
+        skillsPoint = _data.skillsPoints;
+        statsPoints = _data.statsPoints;
+        totalStatsPoints = _data.totalStatsPoints;
+        level = _data.level;
+        currentXp = _data.currentXp;
+        requiredXp = _data.requiredXp;
+        currency = _data.currency;
     }
 
     public void SaveData(ref GameData _data)
     {
-        _data.skillsPoints = this.skillsPoint;
-        _data.totalStatsPoints = this.totalStatsPoints;
-
-        _data.statsPoints = this.statsPoints;
-        _data.level = this.level;
-        _data.currentXp = this.currentXp;
-        _data.requiredXp = this.requiredXp;
-
-        _data.currency = this.currency;
+        _data.skillsPoints = skillsPoint;
+        _data.statsPoints = statsPoints;
+        _data.totalStatsPoints = totalStatsPoints;
+        _data.level = level;
+        _data.currentXp = currentXp;
+        _data.requiredXp = requiredXp;
+        _data.currency = currency;
     }
+
+
+    #endregion
 }

@@ -36,7 +36,7 @@ public class EntityFX : MonoBehaviour
     protected virtual void Start()
     {
         sr = GetComponentInChildren<SpriteRenderer>();
-        player = PlayerManager.instance.player;        
+        player = PlayerUtils.GetPlayerSafe();
         originalMat = sr.material;
         myHealthBar = GetComponentInChildren<UI_HealthBar>(true).gameObject;
     }

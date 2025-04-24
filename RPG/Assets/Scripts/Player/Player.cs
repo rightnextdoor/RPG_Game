@@ -36,7 +36,7 @@ public class Player : Entity
     [HideInInspector] public bool transtionDown;
 
     private bool canControl = true;
-
+    public static event System.Action<Player> OnPlayerSpawned;
     #region States
     public PlayerStateMachine stateMachine { get; private set; }
 
@@ -116,6 +116,11 @@ public class Player : Entity
         if (Input.GetKeyDown(KeyCode.Alpha1))
             Inventory.instance.UseFlask();
      
+    }
+
+    private void OnEnable()
+    {
+        OnPlayerSpawned?.Invoke(this);
     }
 
     public override void SlowEntityBy(float _slowPercentage, float _slowDuration)

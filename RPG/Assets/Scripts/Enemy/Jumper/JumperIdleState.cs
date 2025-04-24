@@ -16,7 +16,7 @@ public class JumperIdleState : EnemyState
         base.Enter();
 
         stateTimer = enemy.idleTime;
-        player = PlayerManager.instance.player.transform;
+        player = PlayerUtils.GetPlayerSafe().transform;
         enemy.SetZeroVelocity();
     }
 

@@ -14,7 +14,7 @@ public class Wizard_Male_GroundedState : EnemyState
     public override void Enter()
     {
         base.Enter();
-        player = PlayerManager.instance.player.transform;
+        player = PlayerUtils.GetPlayerSafe().transform;
     }
 
     public override void Exit()

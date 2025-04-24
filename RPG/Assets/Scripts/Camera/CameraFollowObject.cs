@@ -16,7 +16,7 @@ public class CameraFollowObject : MonoBehaviour
 
     private void Start()
     {
-        player = PlayerManager.instance.player;
+        player = PlayerUtils.GetPlayerSafe();
 
         isFacingRight = player.IsFacingRight();
     }

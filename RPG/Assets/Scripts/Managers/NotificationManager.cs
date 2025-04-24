@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 
 public class NotificationManager : MonoBehaviour
 {
-    public static NotificationManager instance { get; private set; }
+    public static NotificationManager instance;
 
     [Header("Main Notifications")]
     [SerializeField] private GameObject notificationPrefab;
@@ -25,9 +25,9 @@ public class NotificationManager : MonoBehaviour
     [SerializeField]
     private List<Color> defaultColors = new List<Color>()
     {
-        new Color(0.8f, 0.2f, 0.2f, 0.5f), // Red
-        new Color(0.2f, 0.2f, 0.8f, 0.5f), // Blue
-        new Color(0.2f, 0.8f, 0.2f, 0.5f)  // Green
+        new Color(0.8f, 0.2f, 0.2f, 0.5f),
+        new Color(0.2f, 0.2f, 0.8f, 0.5f),
+        new Color(0.2f, 0.8f, 0.2f, 0.5f)
     };
 
     private const int maxStackSize = 3;
@@ -50,6 +50,19 @@ public class NotificationManager : MonoBehaviour
 
         instance = this;
         DontDestroyOnLoad(gameObject);
+        MoveToGameManagerRoot();
+    }
+
+    private void MoveToGameManagerRoot()
+    {
+        GameObject root = GameObject.Find("GameManager");
+        if (root == null)
+        {
+            root = new GameObject("GameManager");
+            DontDestroyOnLoad(root);
+        }
+
+        transform.SetParent(root.transform);
     }
 
     private void OnEnable()
@@ -70,7 +83,6 @@ public class NotificationManager : MonoBehaviour
         isDisplayingSpecialNotification = false;
 
         AssignSceneObjects();
-
         CleanupActiveNotifications();
 
         if (!isDisplayingSpecialNotification && specialNotificationQueue.Count > 0)
@@ -86,18 +98,18 @@ public class NotificationManager : MonoBehaviour
 
     private void AssignSceneObjects()
     {
-        if (notificationParent == null)
+        var ui = UIManager.instance?.GetUINotification();
+        if (ui == null || ui.notificationParent == null || ui.specialNotificationParent == null)
         {
-            GameObject obj = GameObject.Find("NotificationParent");
-            if (obj != null) notificationParent = obj.transform;
+            Debug.LogWarning("Notification UI references not assigned in UIManager.");
+            return;
         }
 
-        if (specialNotificationParent == null)
-        {
-            GameObject obj = GameObject.Find("SpecialNotificationParent");
-            if (obj != null) specialNotificationParent = obj.transform;
-        }
+        notificationParent = ui.notificationParent;
+        specialNotificationParent = ui.specialNotificationParent;
+        
     }
+
 
     private void CleanupActiveNotifications()
     {
@@ -151,15 +163,9 @@ public class NotificationManager : MonoBehaviour
             messageText.text = data.message;
             messageText.color = data.textColor;
 
+            icon.gameObject.SetActive(data.icon != null);
             if (data.icon != null)
-            {
                 icon.sprite = data.icon;
-                icon.gameObject.SetActive(true);
-            }
-            else
-            {
-                icon.gameObject.SetActive(false);
-            }
 
             canvasGroup.alpha = 0;
             float t = 0;
@@ -200,10 +206,7 @@ public class NotificationManager : MonoBehaviour
         return defaultColors[defaultColors.Count - 1];
     }
 
-    private void ReleaseColor(Color color)
-    {
-        usedColors.Remove(color);
-    }
+    private void ReleaseColor(Color color) => usedColors.Remove(color);
 
     private void CreateNotification(NotificationData data)
     {
@@ -219,15 +222,8 @@ public class NotificationManager : MonoBehaviour
         text.text = data.message;
         canvasGroup.alpha = 1f;
 
-        if (data.icon != null)
-        {
-            iconImage.sprite = data.icon;
-            iconImage.gameObject.SetActive(true);
-        }
-        else
-        {
-            iconImage.gameObject.SetActive(false);
-        }
+        iconImage.gameObject.SetActive(data.icon != null);
+        if (data.icon != null) iconImage.sprite = data.icon;
 
         notificationColorMap[notifGO] = data.backgroundColor;
         activeNotifications.Add(notifGO);
@@ -266,9 +262,7 @@ public class NotificationManager : MonoBehaviour
         Destroy(notificationGO);
 
         for (int i = 0; i < activeNotifications.Count; i++)
-        {
             activeNotifications[i].transform.SetSiblingIndex(i);
-        }
 
         if (notificationQueue.Count > 0)
         {

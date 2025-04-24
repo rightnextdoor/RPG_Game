@@ -21,7 +21,8 @@ public class Spike_Controller : MonoBehaviour
                 player.stats.TakeDamage(20);
                 player.StopPlayer();
                 player.DisableControl();
-                StartCoroutine(DelayFade());
+                if(!player.stats.isDead)
+                    StartCoroutine(DelayFade());
             }
         }
     }

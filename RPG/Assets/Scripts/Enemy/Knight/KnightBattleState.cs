@@ -15,7 +15,7 @@ public class KnightBattleState : EnemyState
     public override void Enter()
     {
         base.Enter();
-        player = PlayerManager.instance.player.transform;
+        player = PlayerUtils.GetPlayerSafe().transform;
 
         defaultSpeed = enemy.moveSpeed;
 

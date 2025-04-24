@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public enum SwordType
@@ -62,9 +64,14 @@ public class Sword_Skill : Skill
     {
         base.Start();
 
-        GenereateDots();
-        SetupGravty();
-    }   
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        StartCoroutine(WaitForPlayerAndAssignDotParent());
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
 
     protected override void Update()
     {
@@ -78,6 +85,42 @@ public class Sword_Skill : Skill
                 dots[i].transform.position = DotsPosition(i * spaceBetweenDots);
             }
         }
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        StartCoroutine(WaitForPlayerAndAssignDotParent());
+    }
+
+
+    private IEnumerator WaitForPlayerAndAssignDotParent()
+    {
+        // Wait until PlayerManager and the player object are available
+        yield return new WaitUntil(() => PlayerManager.instance != null && PlayerManager.instance.player != null);
+
+        player = PlayerManager.instance.player;
+
+        Transform found = player.transform.Find("AimDotParent");
+        if (found != null)
+        {
+            dotsParent = found;
+
+            if (dots != null)
+            {
+                foreach (var dot in dots)
+                {
+                    if (dot != null) Destroy(dot);
+                }
+            }
+
+            GenereateDots();
+        }
+        else
+        {
+            Debug.LogWarning("AimDotParent not found on Player.");
+        }
+
+        SetupGravty();
     }
 
     private void SetupGravty()
@@ -230,6 +273,12 @@ public class Sword_Skill : Skill
 
     private void GenereateDots()
     {
+        if (dotsParent == null)
+        {
+            Debug.LogWarning("Cannot generate dots: dotsParent is null.");
+            return;
+        }
+
         dots = new GameObject[numberOfDots];
         for (int i = 0; i < numberOfDots; i++)
         {
@@ -237,6 +286,7 @@ public class Sword_Skill : Skill
             dots[i].SetActive(false);
         }
     }
+
 
     private Vector2 DotsPosition(float t)
     {

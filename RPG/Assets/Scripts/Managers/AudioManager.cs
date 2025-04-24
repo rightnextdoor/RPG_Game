@@ -23,11 +23,11 @@ public class AudioManager : MonoBehaviour
     public List<ZoneMusicLibrary> zoneMusicDefinitions;
     public List<BackgroundMusicLibrary> backgroundMusicGroups;
 
+    [SerializeField] private List<ZoneSceneMapping> zoneSceneMapping = new List<ZoneSceneMapping>();
+
     private List<Sound> currentZoneMusicList = new List<Sound>();
     private List<Sound> shuffledMusic = new List<Sound>();
     private int currentMusicIndex = 0;
-
-    [SerializeField] private List<ZoneSceneMapping> zoneSceneMapping = new List<ZoneSceneMapping>();
 
     private Sound currentBackgroundMusic;
     private Coroutine crossfadeCoroutine;
@@ -35,66 +35,50 @@ public class AudioManager : MonoBehaviour
     private string currentZone = "";
     private bool isRandomMusicEnabled = true;
 
-    void Awake()
+    private void Awake()
     {
-        if (instance != null)
+        if (instance != null && instance != this)
         {
             Destroy(gameObject);
             return;
         }
 
         instance = this;
+        TryParentToGameManager();
         DontDestroyOnLoad(gameObject);
-
         SceneManager.sceneLoaded += OnSceneLoaded;
+
         InitializeSounds();
+    }
+
+    private void TryParentToGameManager()
+    {
+        GameObject gm = GameObject.Find("GameManager");
+        if (gm != null)
+        {
+            transform.SetParent(gm.transform);
+        }
     }
 
     private void InitializeSounds()
     {
-        foreach (var group in soundGroups)
-        {
-            foreach (var sound in group.sounds)
-            {
-                GameObject obj = new GameObject("Sound_" + sound.name);
-                obj.transform.SetParent(transform);
-                sound.source = obj.AddComponent<AudioSource>();
-                sound.source.clip = sound.clip;
-                sound.source.volume = sound.volume;
-                sound.source.pitch = sound.pitch;
-                sound.source.loop = sound.loop;
-                sound.source.outputAudioMixerGroup = sound.mixerGroup;
-            }
-        }
+        SetupSounds(soundGroups.SelectMany(g => g.sounds));
+        SetupSounds(zoneMusicDefinitions.SelectMany(z => z.musicTracks));
+        SetupSounds(backgroundMusicGroups.SelectMany(b => b.musicTracks));
+    }
 
-        foreach (var group in zoneMusicDefinitions)
+    private void SetupSounds(IEnumerable<Sound> sounds)
+    {
+        foreach (var sound in sounds)
         {
-            foreach (var sound in group.musicTracks)
-            {
-                GameObject obj = new GameObject("Sound_" + sound.name);
-                obj.transform.SetParent(transform);
-                sound.source = obj.AddComponent<AudioSource>();
-                sound.source.clip = sound.clip;
-                sound.source.volume = sound.volume;
-                sound.source.pitch = sound.pitch;
-                sound.source.loop = sound.loop;
-                sound.source.outputAudioMixerGroup = sound.mixerGroup;
-            }
-        }
-
-        foreach (var group in backgroundMusicGroups)
-        {
-            foreach (var sound in group.musicTracks)
-            {
-                GameObject obj = new GameObject("Sound_" + sound.name);
-                obj.transform.SetParent(transform);
-                sound.source = obj.AddComponent<AudioSource>();
-                sound.source.clip = sound.clip;
-                sound.source.volume = sound.volume;
-                sound.source.pitch = sound.pitch;
-                sound.source.loop = sound.loop;
-                sound.source.outputAudioMixerGroup = sound.mixerGroup;
-            }
+            GameObject obj = new GameObject("Sound_" + sound.name);
+            obj.transform.SetParent(transform);
+            sound.source = obj.AddComponent<AudioSource>();
+            sound.source.clip = sound.clip;
+            sound.source.volume = sound.volume;
+            sound.source.pitch = sound.pitch;
+            sound.source.loop = sound.loop;
+            sound.source.outputAudioMixerGroup = sound.mixerGroup;
         }
     }
 
@@ -110,11 +94,6 @@ public class AudioManager : MonoBehaviour
 
     private string GetZoneFromScene(string sceneName)
     {
-        if (zoneSceneMapping == null)
-        {
-            Debug.LogWarning("ZoneSceneMapping is not assigned in AudioManager.");
-            return null;
-        }
         foreach (var map in zoneSceneMapping)
         {
             foreach (var zone in map.zones)
@@ -123,7 +102,6 @@ public class AudioManager : MonoBehaviour
                     return zone.zoneName;
             }
         }
-        
 
         Debug.LogWarning($"Scene '{sceneName}' not mapped to any zone.");
         return null;
@@ -131,7 +109,7 @@ public class AudioManager : MonoBehaviour
 
     public void PlayZoneMusic(string zoneName)
     {
-        ZoneMusicLibrary def = zoneMusicDefinitions.Find(z => z.zoneName == zoneName);
+        var def = zoneMusicDefinitions.Find(z => z.zoneName == zoneName);
         if (def == null)
         {
             Debug.LogWarning("Zone music not found for: " + zoneName);
@@ -154,11 +132,10 @@ public class AudioManager : MonoBehaviour
         if (!isRandomMusicEnabled || shuffledMusic.Count == 0) return;
 
         if (currentMusicIndex >= shuffledMusic.Count)
-        {
             ShuffleMusic();
-        }
 
-        PlayMusic(shuffledMusic[currentMusicIndex], () => {
+        PlayMusic(shuffledMusic[currentMusicIndex], () =>
+        {
             currentMusicIndex++;
             PlayNextRandomTrack();
         });
@@ -166,19 +143,22 @@ public class AudioManager : MonoBehaviour
 
     private void PlayMusic(Sound sound, System.Action onComplete = null)
     {
-        if (crossfadeCoroutine != null) StopCoroutine(crossfadeCoroutine);
+        if (crossfadeCoroutine != null)
+            StopCoroutine(crossfadeCoroutine);
+
         crossfadeCoroutine = StartCoroutine(CrossfadeMusic(sound, onComplete));
     }
 
-    private IEnumerator CrossfadeMusic(Sound newSound, System.Action onComplete = null)
+    private IEnumerator CrossfadeMusic(Sound newSound, System.Action onComplete)
     {
-        if (currentBackgroundMusic != null && currentBackgroundMusic.source != null)
+        if (currentBackgroundMusic?.source != null)
         {
             while (currentBackgroundMusic.source.volume > 0.01f)
             {
                 currentBackgroundMusic.source.volume -= Time.deltaTime;
                 yield return null;
             }
+
             currentBackgroundMusic.source.Stop();
         }
 
@@ -202,13 +182,7 @@ public class AudioManager : MonoBehaviour
     public void PlayEventMusic(string groupName)
     {
         var group = backgroundMusicGroups.Find(g => g.backgroundName == groupName);
-        if (group == null)
-        {
-            Debug.LogWarning("Background music group not found: " + groupName);
-            return;
-        }
-
-        if (group.musicTracks.Count == 0) return;
+        if (group == null || group.musicTracks.Count == 0) return;
 
         isRandomMusicEnabled = false;
         PlayMusic(group.musicTracks[0]);
@@ -216,7 +190,7 @@ public class AudioManager : MonoBehaviour
 
     public void StopEventMusicAndResumeRandom()
     {
-        if (currentBackgroundMusic != null && currentBackgroundMusic.source != null)
+        if (currentBackgroundMusic?.source != null)
         {
             StartCoroutine(CrossfadeMusicToRandom());
         }
@@ -302,39 +276,25 @@ public class AudioManager : MonoBehaviour
         foreach (var group in soundGroups)
         {
             var sound = group.sounds.FirstOrDefault(s => s.name == name);
-            if (sound != null)
-            {
-                if (sourceTransform != null &&
-                    Vector2.Distance(PlayerManager.instance.player.transform.position, sourceTransform.position) > maxDistance)
-                    return;
+            if (sound == null) continue;
 
-                if (sound.loop)
-                {
-                    if (!sound.source.isPlaying)
-                        sound.source.Play();
-                }
-                else
-                {
-                    sound.source.PlayOneShot(sound.clip);
-                }
-
+            if (sourceTransform != null && Vector2.Distance(PlayerManager.instance.player.transform.position, sourceTransform.position) > maxDistance)
                 return;
+
+            if (sound.loop)
+            {
+                if (!sound.source.isPlaying)
+                    sound.source.Play();
             }
+            else
+            {
+                sound.source.PlayOneShot(sound.clip);
+            }
+
+            return;
         }
 
         Debug.LogWarning("SFX not found: " + name);
-    }
-
-
-    public void PlaySFXWithDelay(string name, float delay, Transform sourceTransform = null, float maxDistance = 15f)
-    {
-        StartCoroutine(PlaySFXDelayedCoroutine(name, delay, sourceTransform, maxDistance));
-    }
-
-    private IEnumerator PlaySFXDelayedCoroutine(string name, float delay, Transform sourceTransform, float maxDistance)
-    {
-        yield return new WaitForSeconds(delay);
-        PlaySFX(name, sourceTransform, maxDistance);
     }
 
     public void StopSFX(string name)
@@ -342,7 +302,7 @@ public class AudioManager : MonoBehaviour
         foreach (var group in soundGroups)
         {
             var sound = group.sounds.FirstOrDefault(s => s.name == name);
-            if (sound != null && sound.source.isPlaying)
+            if (sound?.source.isPlaying == true)
             {
                 sound.source.Stop();
                 return;
@@ -352,6 +312,11 @@ public class AudioManager : MonoBehaviour
         Debug.LogWarning("SFX not found to stop: " + name);
     }
 
+    public void StopSFXWithFade(string name, float duration)
+    {
+        StartCoroutine(FadeOutSFX(name, duration));
+    }
+
     public void StopAllLoopingSFX()
     {
         foreach (var group in soundGroups)
@@ -359,17 +324,9 @@ public class AudioManager : MonoBehaviour
             foreach (var sound in group.sounds)
             {
                 if (sound.loop && sound.source.isPlaying)
-                {
                     sound.source.Stop();
-                }
             }
         }
-    }
-
-
-    public void StopSFXWithFade(string name, float fadeDuration)
-    {
-        StartCoroutine(FadeOutSFX(name, fadeDuration));
     }
 
     private IEnumerator FadeOutSFX(string name, float duration)
@@ -396,6 +353,17 @@ public class AudioManager : MonoBehaviour
         }
 
         Debug.LogWarning("SFX not found for fade out: " + name);
+    }
+
+    public void PlaySFXWithDelay(string name, float delay, Transform sourceTransform = null, float maxDistance = 15f)
+    {
+        StartCoroutine(PlaySFXDelayedCoroutine(name, delay, sourceTransform, maxDistance));
+    }
+
+    private IEnumerator PlaySFXDelayedCoroutine(string name, float delay, Transform sourceTransform, float maxDistance)
+    {
+        yield return new WaitForSeconds(delay);
+        PlaySFX(name, sourceTransform, maxDistance);
     }
 }
 

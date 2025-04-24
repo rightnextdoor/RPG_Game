@@ -13,8 +13,11 @@ public class PlayerStats : CharacterStats, ISaveManager
         base.Start();
 
         player = GetComponent<Player>();
-
-        //currentHealth = GetMaxHealthValue();
+        if (!keepPlayerHealthSceneChange)
+        {
+            currentHealth = GetMaxHealthValue();
+            keepPlayerHealthSceneChange = false;
+        }
     }
 
     public override void TakeDamage(int _damage)
@@ -85,15 +88,15 @@ public class PlayerStats : CharacterStats, ISaveManager
     public void LoadData(GameData _data)
     {
         maxHealth.SetDefaultValue(_data.maxHealth);
-        if (_data.keepPlayerHealthSceneChange)
-        {
-            currentHealth = _data.currentHealth;
-            keepPlayerHealthSceneChange = false;
-        }else
-        {
-            currentHealth = _data.maxHealth + _data.vitality * 5;
-        }
-        
+        //if (_data.keepPlayerHealthSceneChange)
+        //{
+        //    currentHealth = _data.currentHealth;
+        //    //keepPlayerHealthSceneChange = false;
+        //}else
+        //{
+        //    currentHealth = _data.maxHealth + _data.vitality * 5;
+        //}
+        currentHealth = _data.maxHealth + _data.vitality * 5;
         damage.SetDefaultValue(_data.damage);
         strength.SetDefaultValue(_data.strength);
         agility.SetDefaultValue(_data.agility);
@@ -107,6 +110,7 @@ public class PlayerStats : CharacterStats, ISaveManager
         fireDamage.SetDefaultValue(_data.fireDamage);
         iceDamage.SetDefaultValue(_data.iceDamage);
         lightingDamage.SetDefaultValue(_data.lightingDamage);
+        keepPlayerHealthSceneChange = _data.keepPlayerHealthSceneChange;
     }
 
     public void SaveData(ref GameData _data)

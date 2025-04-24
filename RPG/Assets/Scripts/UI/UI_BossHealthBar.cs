@@ -44,7 +44,6 @@ public class UI_BossHealthBar : MonoBehaviour
 
     public void BossFightOver()
     {
-        Debug.Log("boss fight over");
         bossHealthBar.gameObject.SetActive(false);
     }
 

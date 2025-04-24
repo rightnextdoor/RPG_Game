@@ -19,38 +19,41 @@ public class UI_StatSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
             statNameText.text = statData.statName;
     }
 
-    void Start()
+    IEnumerator Start()
     {
+        yield return new WaitUntil(() => PlayerManager.instance != null && PlayerManager.instance.player != null);
         UpdateStatValueUI();
     }
 
     public void UpdateStatValueUI()
     {
-        PlayerStats playerStats = PlayerManager.instance.player.gameObject.GetComponent<PlayerStats>();
+        Player player = PlayerUtils.GetPlayerSafe();
+        if (player == null) return;
 
-        if (playerStats != null)
-        {
-            statValueText.text = playerStats.GetStat(statData.statType).GetValue().ToString();
+        PlayerStats playerStats = player.GetComponent<PlayerStats>();
+        if (playerStats == null) return;
 
-            if(statData.statType == StatType.health)
-                statValueText.text = playerStats.GetMaxHealthValue().ToString();
+        statValueText.text = playerStats.GetStat(statData.statType).GetValue().ToString();
 
-            if (statData.statType == StatType.damage)
-                statValueText.text = (playerStats.damage.GetValue() + playerStats.strength.GetValue()).ToString();
+        if (statData.statType == StatType.health)
+            statValueText.text = playerStats.GetMaxHealthValue().ToString();
 
-            if (statData.statType == StatType.critPower)
-                statValueText.text = (playerStats.critPower.GetValue() + playerStats.strength.GetValue()).ToString();
+        if (statData.statType == StatType.damage)
+            statValueText.text = (playerStats.damage.GetValue() + playerStats.strength.GetValue()).ToString();
 
-            if (statData.statType == StatType.critChance)
-                statValueText.text = (playerStats.critChance.GetValue() + playerStats.agility.GetValue()).ToString();
+        if (statData.statType == StatType.critPower)
+            statValueText.text = (playerStats.critPower.GetValue() + playerStats.strength.GetValue()).ToString();
 
-            if (statData.statType == StatType.evasion)
-                statValueText.text = (playerStats.evasion.GetValue() + playerStats.agility.GetValue()).ToString();
+        if (statData.statType == StatType.critChance)
+            statValueText.text = (playerStats.critChance.GetValue() + playerStats.agility.GetValue()).ToString();
 
-            if (statData.statType == StatType.magicResistance)
-                statValueText.text = (playerStats.magicResistance.GetValue() + playerStats.intelligence.GetValue() * 3).ToString();
-        }
+        if (statData.statType == StatType.evasion)
+            statValueText.text = (playerStats.evasion.GetValue() + playerStats.agility.GetValue()).ToString();
+
+        if (statData.statType == StatType.magicResistance)
+            statValueText.text = (playerStats.magicResistance.GetValue() + playerStats.intelligence.GetValue() * 3).ToString();
     }
+
 
     public void OnPointerEnter(PointerEventData eventData)
     {

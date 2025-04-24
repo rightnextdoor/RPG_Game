@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -7,9 +6,10 @@ public class SkillManager : MonoBehaviour, ISaveManager
 {
     public static SkillManager instance;
 
-    [Header("Data base")]
-    public List<SkillData> skillDataBase;
+    [Header("Skill Database")]
+    [SerializeField] private List<SkillData> skillDataBase = new List<SkillData>();
 
+    [Header("Runtime Flags")]
     public bool inBlackholeState;
 
     public Dash_Skill dash { get; private set; }
@@ -23,11 +23,22 @@ public class SkillManager : MonoBehaviour, ISaveManager
 
     private void Awake()
     {
-        if (instance != null)
-            Destroy(instance.gameObject);
-        else
-            instance = this;
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
+
+        // Automatically reparent under GameManager if not already
+        if (transform.parent == null)
+        {
+            GameObject gm = GameObject.Find("GameManager");
+            if (gm != null) transform.SetParent(gm.transform);
+        }
     }
+
 
     private void Start()
     {
@@ -36,81 +47,57 @@ public class SkillManager : MonoBehaviour, ISaveManager
         sword = GetComponent<Sword_Skill>();
         blackhole = GetComponent<Blackhole_Skill>();
         crystal = GetComponent<Crystal_Skill>();
-        parry = GetComponent<Parry_Skill>(); 
+        parry = GetComponent<Parry_Skill>();
         dodge = GetComponent<Dodge_Skill>();
-        doubleJump = GetComponent<DoubleJump_Skill>(); 
+        doubleJump = GetComponent<DoubleJump_Skill>();
 
-        Invoke("CheckUnlocks", .2f);
+        Invoke(nameof(CheckUnlocks), 0.2f);
     }
 
     public void CheckUnlocks()
     {
-        List<SkillData> swordData = new List<SkillData>();
-        List<SkillData> dashData = new List<SkillData>();
-        List<SkillData> cloneData = new List<SkillData>();
-        List<SkillData> blackholeData = new List<SkillData>();
-        List<SkillData> crystalData = new List<SkillData>();
-        List<SkillData> parryData = new List<SkillData>();
-        List<SkillData> dodgeData = new List<SkillData>();
-        List<SkillData> jumpData = new List<SkillData>();
-        
-        SetupList(swordData, dashData, cloneData, blackholeData, crystalData, parryData, dodgeData, jumpData);
+        List<SkillData> swordData = new();
+        List<SkillData> dashData = new();
+        List<SkillData> cloneData = new();
+        List<SkillData> blackholeData = new();
+        List<SkillData> crystalData = new();
+        List<SkillData> parryData = new();
+        List<SkillData> dodgeData = new();
+        List<SkillData> jumpData = new();
 
-        dash.CheckUnlock(dashData);
-        clone.CheckUnlock(cloneData);
-        sword.CheckUnlock(swordData);
-        blackhole.CheckUnlock(blackholeData);
-        crystal.CheckUnlock(crystalData);
-        parry.CheckUnlock(parryData);
-        dodge.CheckUnlock(dodgeData);
-        doubleJump.CheckUnlock(jumpData);
-        
-    }
-
-    private void SetupList(List<SkillData> swordData, List<SkillData> dashData, List<SkillData> cloneData, List<SkillData> blackholeData, List<SkillData> crystalData, List<SkillData> parryData, List<SkillData> dodgeData, List<SkillData> jumpData)
-    {
-        foreach (SkillData skillData in skillDataBase)
+        foreach (SkillData data in skillDataBase)
         {
-            if (SkillType.Sword == skillData.skillType)
+            if (data == null) continue;
+
+            switch (data.skillType)
             {
-                swordData.Add(skillData);
-            }
-            if (SkillType.Dash == skillData.skillType)
-            {
-                dashData.Add(skillData);
-            }
-            if (SkillType.Clone == skillData.skillType)
-            {
-                cloneData.Add(skillData);
-            }
-            if (SkillType.Blackhole == skillData.skillType)
-            {
-                blackholeData.Add(skillData);
-            }
-            if (SkillType.Crystal == skillData.skillType)
-            {
-                crystalData.Add(skillData);
-            }
-            if (SkillType.Parry == skillData.skillType)
-            {
-                parryData.Add(skillData);
-            }
-            if (SkillType.Dodge == skillData.skillType)
-            {
-                dodgeData.Add(skillData);
-            }
-            if (SkillType.Jump == skillData.skillType)
-            {
-                jumpData.Add(skillData);
+                case SkillType.Sword: swordData.Add(data); break;
+                case SkillType.Dash: dashData.Add(data); break;
+                case SkillType.Clone: cloneData.Add(data); break;
+                case SkillType.Blackhole: blackholeData.Add(data); break;
+                case SkillType.Crystal: crystalData.Add(data); break;
+                case SkillType.Parry: parryData.Add(data); break;
+                case SkillType.Dodge: dodgeData.Add(data); break;
+                case SkillType.Jump: jumpData.Add(data); break;
             }
         }
+
+        dash?.CheckUnlock(dashData);
+        clone?.CheckUnlock(cloneData);
+        sword?.CheckUnlock(swordData);
+        blackhole?.CheckUnlock(blackholeData);
+        crystal?.CheckUnlock(crystalData);
+        parry?.CheckUnlock(parryData);
+        dodge?.CheckUnlock(dodgeData);
+        doubleJump?.CheckUnlock(jumpData);
     }
 
     public void LockSkills()
     {
         foreach (var item in skillDataBase)
         {
-            item.unlocked = false;
+            if (item != null)
+                item.unlocked = false;
         }
     }
 
@@ -119,47 +106,50 @@ public class SkillManager : MonoBehaviour, ISaveManager
         if (_data.skillTree.Count == 0)
         {
             LockSkills();
-        }
-        foreach (KeyValuePair<string, bool> pair in _data.skillTree)
-        {
-            foreach (var item in skillDataBase)
-            {
-                if (item != null && item.skillId == pair.Key)
-                {
-                    item.unlocked = pair.Value;
-                }
-            }
+            return;
         }
 
+        foreach (var item in skillDataBase)
+        {
+            if (item != null && _data.skillTree.TryGetValue(item.skillId, out bool isUnlocked))
+            {
+                item.unlocked = isUnlocked;
+            }
+        }
     }
 
     public void SaveData(ref GameData _data)
     {
         _data.skillTree.Clear();
 
-        foreach (SkillData pair in skillDataBase)
+        foreach (SkillData skill in skillDataBase)
         {
-            _data.skillTree.Add(pair.skillId, pair.unlocked);
+            if (skill != null)
+                _data.skillTree.Add(skill.skillId, skill.unlocked);
         }
     }
 
 #if UNITY_EDITOR
-    [ContextMenu("Fill up skill data base")]
-    private void FillUpItemDataBase() => skillDataBase = new List<SkillData>(GetItemDataBase());
+    [ContextMenu("Fill up skill database")]
+    private void FillUpItemDataBase()
+    {
+        skillDataBase = GetItemDataBase().FindAll(s => s != null);
+    }
 
     private List<SkillData> GetItemDataBase()
     {
-        List<SkillData> skillDataBase = new List<SkillData>();
-        string[] assetName = AssetDatabase.FindAssets("", new[] { "Assets/Data/Skills" });
+        List<SkillData> dataBase = new();
+        string[] assetGUIDs = AssetDatabase.FindAssets("", new[] { "Assets/Data/Skills" });
 
-        foreach (string SOName in assetName)
+        foreach (string guid in assetGUIDs)
         {
-            var SOpath = AssetDatabase.GUIDToAssetPath(SOName);
-            var itemData = AssetDatabase.LoadAssetAtPath<SkillData>(SOpath);
-            skillDataBase.Add(itemData);
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            SkillData skill = AssetDatabase.LoadAssetAtPath<SkillData>(path);
+            if (skill != null)
+                dataBase.Add(skill);
         }
 
-        return skillDataBase;
+        return dataBase;
     }
 #endif
 }

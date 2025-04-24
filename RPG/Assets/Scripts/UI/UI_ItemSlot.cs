@@ -54,7 +54,7 @@ public class UI_ItemSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHand
             Inventory.instance.RemoveItem(item.data);
             return;
         }
-
+        Debug.Log("pointer down item " + item.data);
         if (item.data.itemType == ItemType.Equipment)
             Inventory.instance.EquipItem(item.data);
 

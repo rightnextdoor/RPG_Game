@@ -15,7 +15,7 @@ public class SkeletonBattleState : EnemyState
     public override void Enter()
     {
         base.Enter();
-        player = PlayerManager.instance.player.transform;
+        player = PlayerUtils.GetPlayerSafe().transform;
 
         if (player.GetComponent<PlayerStats>().isDead)
         {

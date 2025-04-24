@@ -11,7 +11,7 @@ public class Skill : MonoBehaviour
 
     protected virtual void Start()
     {
-        player = PlayerManager.instance.player;
+        player = PlayerUtils.GetPlayerSafe();
     }
     protected virtual void Update()
     {

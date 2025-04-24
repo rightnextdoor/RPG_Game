@@ -15,7 +15,7 @@ public class KnightBlockState : EnemyState
     {
         base.Enter();
         stateTimer = enemy.blockDuration;
-        player = PlayerManager.instance.player;
+        player = PlayerUtils.GetPlayerSafe();
         enemy.stats.MakeInvincible(true);
     }
 

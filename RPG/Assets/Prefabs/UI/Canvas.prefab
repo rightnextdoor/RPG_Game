@@ -767,10 +767,10 @@ RectTransform:
   - {fileID: 6975126287218624527}
   m_Father: {fileID: 5125844586758911755}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 350, y: -50}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7371083582664650440
 CanvasRenderer:
@@ -4184,7 +4184,7 @@ GameObject:
   - component: {fileID: 7689198795040268408}
   - component: {fileID: 1245720633962297625}
   m_Layer: 5
-  m_Name: Stash
+  m_Name: StashSlotParent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6062,7 +6062,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 11500000, guid: b7a17c0af02eac34cb48b22602f63a9a, type: 3}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
         m_MethodName: 
         m_Mode: 1
@@ -8484,10 +8484,10 @@ RectTransform:
   - {fileID: 4793604404521621295}
   m_Father: {fileID: 5125844586758911755}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 250, y: -50}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5841350617773354169
 CanvasRenderer:
@@ -9788,7 +9788,7 @@ GameObject:
   - component: {fileID: 2522504350511644007}
   - component: {fileID: 3522474262765671982}
   m_Layer: 5
-  m_Name: Health
+  m_Name: Health_Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10497,7 +10497,7 @@ GameObject:
   - component: {fileID: 7370976136021874416}
   - component: {fileID: 7866116994406575078}
   m_Layer: 5
-  m_Name: Equipment
+  m_Name: EquipmentSlotParent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10733,10 +10733,10 @@ RectTransform:
   - {fileID: 5702292737711269311}
   m_Father: {fileID: 5125844586758911755}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 50, y: -50}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7385082471445129987
 CanvasRenderer:
@@ -11166,7 +11166,7 @@ GameObject:
   - component: {fileID: 6552851500585913257}
   - component: {fileID: 5131685441963574973}
   m_Layer: 5
-  m_Name: Weapon
+  m_Name: Checkpoint_CraftWeapon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11267,8 +11267,8 @@ GameObject:
   - component: {fileID: 368033921742263599}
   - component: {fileID: 2195438922315566657}
   m_Layer: 5
-  m_Name: BossHealthbar
-  m_TagString: Untagged
+  m_Name: BossHealthBar
+  m_TagString: BossHealthBar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -11463,7 +11463,7 @@ GameObject:
   - component: {fileID: 7744653612376653019}
   - component: {fileID: 7142348218133960107}
   m_Layer: 5
-  m_Name: Travel
+  m_Name: Checkpoint_Travel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12719,7 +12719,7 @@ GameObject:
   - component: {fileID: 4906614210644581737}
   - component: {fileID: 757328405641688922}
   m_Layer: 5
-  m_Name: 'Travel '
+  m_Name: TravelButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -13180,7 +13180,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1768607468168620515}
   m_Layer: 5
-  m_Name: Shop
+  m_Name: Checkpoint_Shop
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16323,7 +16323,7 @@ GameObject:
   - component: {fileID: 7464555527878169933}
   - component: {fileID: 8657814952800490366}
   m_Layer: 5
-  m_Name: Skills
+  m_Name: Checkpoint_Skills
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -19080,7 +19080,7 @@ GameObject:
   - component: {fileID: 8946170115493816812}
   - component: {fileID: 5682689567788422604}
   m_Layer: 5
-  m_Name: Xp
+  m_Name: XpText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -20021,7 +20021,7 @@ GameObject:
   - component: {fileID: 7550800238015703520}
   - component: {fileID: 2490980521656899668}
   m_Layer: 5
-  m_Name: Fill
+  m_Name: BackXp_Fill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -29693,7 +29693,7 @@ GameObject:
   - component: {fileID: 2227611937402444198}
   - component: {fileID: 7363732149600074239}
   m_Layer: 5
-  m_Name: Fill
+  m_Name: BackHealthBar_Fill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -29903,7 +29903,7 @@ GameObject:
   - component: {fileID: 8933352327893343968}
   - component: {fileID: 6459299208184209850}
   m_Layer: 5
-  m_Name: Weapon
+  m_Name: Checkpoint_ShopWeapon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30132,7 +30132,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1680046081736643372}
   m_Layer: 5
-  m_Name: Craft
+  m_Name: Checkpoint_Craft
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30890,7 +30890,7 @@ GameObject:
   - component: {fileID: 1136717165357119752}
   - component: {fileID: 9050719416731151132}
   m_Layer: 5
-  m_Name: CraftWindow
+  m_Name: Checkpoint_CraftWindow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -31593,7 +31593,7 @@ GameObject:
   - component: {fileID: 6291583484082841024}
   - component: {fileID: 6332976364394559577}
   m_Layer: 5
-  m_Name: Stash
+  m_Name: Checkpoint_StashSlotParent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -38172,7 +38172,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 11500000, guid: b7a17c0af02eac34cb48b22602f63a9a, type: 3}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
         m_MethodName: 
         m_Mode: 1
@@ -39101,10 +39101,10 @@ RectTransform:
   - {fileID: 4678031742262427234}
   m_Father: {fileID: 5125844586758911755}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 150, y: -50}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1799592214073807888
 CanvasRenderer:
@@ -43493,7 +43493,7 @@ GameObject:
   - component: {fileID: 3868900396342243006}
   - component: {fileID: 7822989605857345528}
   m_Layer: 5
-  m_Name: GameOver
+  m_Name: GameOverUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -48493,7 +48493,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2611915218205367898}
   m_Layer: 5
-  m_Name: Stats
+  m_Name: StatsSlotParent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -49876,7 +49876,7 @@ GameObject:
   - component: {fileID: 7404943934392820973}
   - component: {fileID: 3420179847654580986}
   m_Layer: 5
-  m_Name: Level
+  m_Name: LevelText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -50534,7 +50534,7 @@ GameObject:
   - component: {fileID: 4156261793637021835}
   - component: {fileID: 7585942969335567304}
   m_Layer: 5
-  m_Name: ShopWindow
+  m_Name: Checkpoint_ShopWindow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -52754,7 +52754,7 @@ GameObject:
   - component: {fileID: 641058783236426499}
   - component: {fileID: 1555255572284930243}
   m_Layer: 5
-  m_Name: Stats
+  m_Name: Checkpoint_Stats
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -53103,7 +53103,7 @@ GameObject:
   - component: {fileID: 7072332455818349057}
   - component: {fileID: 6665507200966783487}
   m_Layer: 5
-  m_Name: Inventory
+  m_Name: InventorySlotParent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

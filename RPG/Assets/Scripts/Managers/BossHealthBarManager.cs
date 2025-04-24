@@ -1,26 +1,31 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class BossHealthBarManager : MonoBehaviour
 {
     public static BossHealthBarManager instance;
-    public GameObject bossHealthBar;
+
     private void Awake()
     {
         if (instance != null)
-            Destroy(instance.gameObject);
-        else
-            instance = this;
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
+        DontDestroyOnLoad(gameObject);
     }
-    
+
+    private UI_BossHealth CurrentBossHealthUI =>
+        UIManager.instance != null ? UIManager.instance.GetUIBossHealth() : null;
+
     public void BossFightStart(Enemy_Boss boss)
     {
-        bossHealthBar.GetComponent<UI_BossHealthBar>().BossFightStart(boss);
+        CurrentBossHealthUI?.ShowBossBar(boss);
     }
 
     public void BossFightOver()
     {
-        bossHealthBar.GetComponent<UI_BossHealthBar>().BossFightOver();
+        CurrentBossHealthUI?.HideBossBar();
     }
 }

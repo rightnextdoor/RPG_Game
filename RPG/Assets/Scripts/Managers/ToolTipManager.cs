@@ -1,6 +1,6 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ToolTipManager : MonoBehaviour
 {
@@ -13,16 +13,48 @@ public class ToolTipManager : MonoBehaviour
     private void Awake()
     {
         if (instance != null)
-            Destroy(instance.gameObject);
-        else
-            instance = this;
+        {
+            Destroy(gameObject);
+            return;
+        }
 
+        instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void Start()
+    {
+        StartCoroutine(WaitForUIManagerAndAssign());
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        StartCoroutine(WaitForUIManagerAndAssign());
+    }
+
+    private IEnumerator WaitForUIManagerAndAssign()
+    {
+        yield return new WaitUntil(() =>
+            UIManager.instance != null && UIManager.instance.GetUIToolTipUI() != null);
+
+        var ui = UIManager.instance.GetUIToolTipUI();
+
+        toolTip = ui.toolTip;
+        itemToolTip = ui.itemToolTip;
+        skillToolTip = ui.skillToolTip;
     }
 
     public void HideToolTip()
     {
-        toolTip.HideTooltip();
-        itemToolTip.HideItemTooltip();
-        skillToolTip.HideTooltip();
+        toolTip?.HideTooltip();
+        itemToolTip?.HideItemTooltip();
+        skillToolTip?.HideTooltip();
     }
 }

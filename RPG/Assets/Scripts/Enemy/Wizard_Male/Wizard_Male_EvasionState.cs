@@ -15,7 +15,7 @@ public class Wizard_Male_EvasionState : EnemyState
     public override void Enter()
     {
         base.Enter();
-        player = PlayerManager.instance.player.transform;
+        player = PlayerUtils.GetPlayerSafe().transform;
         stateTimer = enemy.evasionTimer;
 
         if (player.position.x > enemy.transform.position.x)

@@ -1,27 +1,29 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
+using UnityEditor;
 
 public class EnemyManager : MonoBehaviour, ISaveManager
 {
     public static EnemyManager instance;
 
-    [SerializeField]private List<EnemyData_Boss> bossDataBase;
-    [SerializeField]private List<EnemyData_Regular> enemyDataBase;
-
+    [Header("Enemy Databases")]
+    [SerializeField] private List<EnemyData_Boss> bossDataBase;
+    [SerializeField] private List<EnemyData_Regular> enemyDataBase;
 
     private void Awake()
     {
-        if (instance != null)
-            Destroy(instance.gameObject);
-        else
-            instance = this;
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
-    private void Start()
-    {
-    }
+    #region Public Methods
 
     public void UpdateBosses()
     {
@@ -30,10 +32,12 @@ public class EnemyManager : MonoBehaviour, ISaveManager
 
     public void DefaultStat()
     {
-        foreach (EnemyData_Boss boss in bossDataBase)
+        foreach (var boss in bossDataBase)
         {
-            if(boss != null) 
+            if (boss != null)
+            {
                 boss.isDead = false;
+            }
         }
 
         ResetEnemyDeath();
@@ -41,36 +45,42 @@ public class EnemyManager : MonoBehaviour, ISaveManager
 
     public void ResetEnemyDeath()
     {
-        foreach (EnemyData_Regular enemy in enemyDataBase)
+        foreach (var enemy in enemyDataBase)
         {
-            if(enemy != null)
+            if (enemy != null)
+            {
                 enemy.isDead = false;
+            }
         }
     }
 
+    #endregion
+
+    #region Save/Load
+
     public void LoadData(GameData _data)
     {
-        foreach (KeyValuePair<string, bool> pair in _data.bosses)
+        foreach (var pair in _data.bosses)
         {
-            foreach (EnemyData_Boss boss in bossDataBase)
+            foreach (var boss in bossDataBase)
             {
-                if (boss == null)
-                    return;
-
-                if (boss.enemyId == pair.Key)
+                if (boss != null && boss.enemyId == pair.Key)
+                {
                     boss.isDead = pair.Value;
+                    break;
+                }
             }
         }
 
-        foreach (KeyValuePair<string, bool> pair in _data.enemies)
+        foreach (var pair in _data.enemies)
         {
-            foreach (EnemyData_Regular enemy in enemyDataBase)
+            foreach (var enemy in enemyDataBase)
             {
-                if (enemy == null)
-                    return;
-
-                if (enemy.enemyId == pair.Key)
+                if (enemy != null && enemy.enemyId == pair.Key)
+                {
                     enemy.isDead = pair.Value;
+                    break;
+                }
             }
         }
     }
@@ -78,56 +88,48 @@ public class EnemyManager : MonoBehaviour, ISaveManager
     public void SaveData(ref GameData _data)
     {
         _data.bosses.Clear();
-        foreach (EnemyData_Boss boss in bossDataBase)
+        foreach (var boss in bossDataBase)
         {
-            if(boss != null)
+            if (boss != null)
                 _data.bosses.Add(boss.enemyId, boss.isDead);
         }
 
         _data.enemies.Clear();
-        foreach (EnemyData_Regular enemy in enemyDataBase)
+        foreach (var enemy in enemyDataBase)
         {
-            if(enemy != null)
+            if (enemy != null)
                 _data.enemies.Add(enemy.enemyId, enemy.isDead);
         }
     }
 
+    #endregion
+
 #if UNITY_EDITOR
-    [ContextMenu("Fill up Enemy data base")]
-    private void FillUpBossDataBase()
+    #region Editor Helpers
+
+    [ContextMenu("Fill Enemy Database")]
+    private void FillUpEnemyDatabase()
     {
-        bossDataBase = new List<EnemyData_Boss>(GetBossDataBase());
-        enemyDataBase = new List<EnemyData_Regular>(GetEnemyDataBase());
+        bossDataBase = GetEnemyDataFromPath<EnemyData_Boss>("Assets/Data/Enemy/Boss");
+        enemyDataBase = GetEnemyDataFromPath<EnemyData_Regular>("Assets/Data/Enemy/Regular");
     }
 
-    private List<EnemyData_Boss> GetBossDataBase()
+    private List<T> GetEnemyDataFromPath<T>(string path) where T : ScriptableObject
     {
-        List<EnemyData_Boss> checkDataBase = new List<EnemyData_Boss>();
-        string[] assetName = AssetDatabase.FindAssets("", new[] { "Assets/Data/Enemy/Boss" });
+        List<T> results = new List<T>();
+        string[] guids = AssetDatabase.FindAssets("", new[] { path });
 
-        foreach (string SOName in assetName)
+        foreach (string guid in guids)
         {
-            var SOpath = AssetDatabase.GUIDToAssetPath(SOName);
-            var itemData = AssetDatabase.LoadAssetAtPath<EnemyData_Boss>(SOpath);
-            checkDataBase.Add(itemData);
+            string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+            T asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+            if (asset != null)
+                results.Add(asset);
         }
 
-        return checkDataBase;
+        return results;
     }
 
-    private List<EnemyData_Regular> GetEnemyDataBase()
-    {
-        List<EnemyData_Regular> checkDataBase = new List<EnemyData_Regular>();
-        string[] assetName = AssetDatabase.FindAssets("", new[] { "Assets/Data/Enemy/Regular" });
-
-        foreach (string SOName in assetName)
-        {
-            var SOpath = AssetDatabase.GUIDToAssetPath(SOName);
-            var itemData = AssetDatabase.LoadAssetAtPath<EnemyData_Regular>(SOpath);
-            checkDataBase.Add(itemData);
-        }
-
-        return checkDataBase;
-    }
+    #endregion
 #endif
 }

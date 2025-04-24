@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 using static Enemy_Boss;
 
 public class UnlockManager : MonoBehaviour, ISaveManager
@@ -13,10 +14,16 @@ public class UnlockManager : MonoBehaviour, ISaveManager
 
     private void Awake()
     {
-        if (instance != null)
-            Destroy(instance.gameObject);
-        else
-            instance = this;
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
+
+        if (transform.root == transform)
+            DontDestroyOnLoad(gameObject);
     }
 
     public List<ItemData> getShopItemData() => shopItemData;
@@ -44,15 +51,13 @@ public class UnlockManager : MonoBehaviour, ISaveManager
     public void BossUnlockData(BossType bossType)
     {
         List<ItemData> itemToRemove = new List<ItemData>();
+
         foreach (ItemData item in lockItemData)
         {
-            if (item.bossUnlockName != BossType.None)
+            if (item != null && item.bossUnlockName == bossType)
             {
-                if (item.bossUnlockName == bossType)
-                {
-                    shopItemData.Add(item);
-                    itemToRemove.Add(item);
-                }
+                shopItemData.Add(item);
+                itemToRemove.Add(item);
             }
         }
 
@@ -68,18 +73,13 @@ public class UnlockManager : MonoBehaviour, ISaveManager
             return;
 
         List<ItemData> itemToRemove = new List<ItemData>();
-        
+
         foreach (ItemData item in lockItemData)
         {
-            if (item == null) continue;
-
-            if (item.levelUnlock != 0 && item != null)
+            if (item != null && item.levelUnlock == _level)
             {
-                if (item.levelUnlock == _level)
-                {
-                    shopItemData.Add(item);
-                    itemToRemove.Add(item);
-                }
+                shopItemData.Add(item);
+                itemToRemove.Add(item);
             }
         }
 
@@ -91,31 +91,19 @@ public class UnlockManager : MonoBehaviour, ISaveManager
 
     public void LoadData(GameData _data)
     {
-        if (_data.lockItemData.Count != 0)
+        if (_data.lockItemData.Count > 0)
         {
-            lockItemData.Clear();
-            foreach (ItemData pair in _data.lockItemData)
-            {
-                lockItemData.Add(pair);
-            }
-        }
-        
-        if (_data.shopItemData.Count != 0)
-        {
-            shopItemData.Clear();
-            foreach (ItemData item in _data.shopItemData)
-            {
-                shopItemData.Add(item);
-            }
+            lockItemData = new List<ItemData>(_data.lockItemData);
         }
 
-        if (_data.craftItemData.Count != 0)
+        if (_data.shopItemData.Count > 0)
         {
-            craftItemData.Clear();
-            foreach (ItemData_Equipment item in _data.craftItemData)
-            {
-                craftItemData.Add(item);
-            }
+            shopItemData = new List<ItemData>(_data.shopItemData);
+        }
+
+        if (_data.craftItemData.Count > 0)
+        {
+            craftItemData = new List<ItemData_Equipment>(_data.craftItemData);
         }
     }
 
@@ -127,17 +115,20 @@ public class UnlockManager : MonoBehaviour, ISaveManager
 
         foreach (ItemData item in lockItemData)
         {
-            _data.lockItemData.Add(item);
+            if (item != null)
+                _data.lockItemData.Add(item);
         }
 
         foreach (ItemData item in shopItemData)
         {
-            _data.shopItemData.Add(item);
+            if (item != null)
+                _data.shopItemData.Add(item);
         }
 
         foreach (ItemData_Equipment item in craftItemData)
         {
-            _data.craftItemData.Add(item);
+            if (item != null)
+                _data.craftItemData.Add(item);
         }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Inventory : MonoBehaviour, ISaveManager
 {
@@ -16,7 +17,7 @@ public class Inventory : MonoBehaviour, ISaveManager
     public Dictionary<ItemData, InventoryItem> inventoryDictionary = new Dictionary<ItemData, InventoryItem>();
 
     public List<InventoryItem> stash = new List<InventoryItem>();
-    public Dictionary <ItemData, InventoryItem> stashDictionary = new Dictionary<ItemData, InventoryItem>();
+    public Dictionary<ItemData, InventoryItem> stashDictionary = new Dictionary<ItemData, InventoryItem>();
 
     [Header("Inventory UI")]
     [SerializeField] private Transform inventorySlotParent;
@@ -40,69 +41,110 @@ public class Inventory : MonoBehaviour, ISaveManager
 
     [Header("Data base")]
     public List<ItemData> itemDataBase;
-    public List<InventoryItem> loadedItems;
-    public List<ItemData_Equipment> loadedEquipment;
+    public List<InventoryItem> loadedItems = new();
+    public List<ItemData_Equipment> loadedEquipment = new();
+
+    private bool hasLoadedItems = false;
 
     private void Awake()
     {
-        if (instance == null)
-            instance = this;
-        else
+        if (instance != null)
+        {
             Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        SceneManager.sceneLoaded += OnSceneLoaded;
+
+        StartCoroutine(InitialGameLoad());
     }
 
-    private void Start()
+    private void OnDestroy()
     {
-        inventoryItemSlots = inventorySlotParent.GetComponentsInChildren<UI_ItemSlot>();
-        stashItemSlots = stashSlotParent.GetComponentsInChildren<UI_ItemSlot>();
-        checkpointStashItemSlots = checkpointStashSlotParent.GetComponentsInChildren<UI_ItemSlot>();
-        equipmentSlots = equpmentSlotParent.GetComponentsInChildren<UI_EquipmentSlot>();
-        statSlot = statSlotParent.GetComponentsInChildren<UI_StatSlot>();
-        
-        StartCoroutine(LoadWithDelay());
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    private IEnumerator LoadWithDelay()
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        yield return new WaitForSeconds(.1f);
-        AddStartingItems();
+        StartCoroutine(ReassignUIOnly());
+    }
+
+    private IEnumerator InitialGameLoad()
+    {
+        yield return new WaitUntil(() =>
+            UIManager.instance != null && UIManager.instance.GetUIInventory() != null);
+
+        AssignUIParents();
+        AssignUISlots();
+
+        if (!hasLoadedItems)
+        {
+            AddStartingItems();
+            hasLoadedItems = true;
+        }
+    }
+
+    private IEnumerator ReassignUIOnly()
+    {
+        yield return new WaitUntil(() =>
+            UIManager.instance != null && UIManager.instance.GetUIInventory() != null);
+
+        AssignUIParents();
+        AssignUISlots();
+        UpdateSlotsUI();
+    }
+
+    private void AssignUIParents()
+    {
+        var ui = UIManager.instance?.GetUIInventory();
+        if (ui == null) return;
+
+        inventorySlotParent = ui.inventorySlotParent;
+        stashSlotParent = ui.stashSlotParent;
+        checkpointStashSlotParent = ui.checkpointStashSlotParent;
+        equpmentSlotParent = ui.equipmentSlotParent;
+        statSlotParent = ui.statSlotParent;
+    }
+
+    private void AssignUISlots()
+    {
+        inventoryItemSlots = inventorySlotParent.GetComponentsInChildren<UI_ItemSlot>(true);
+        stashItemSlots = stashSlotParent.GetComponentsInChildren<UI_ItemSlot>(true);
+        checkpointStashItemSlots = checkpointStashSlotParent.GetComponentsInChildren<UI_ItemSlot>(true);
+        equipmentSlots = equpmentSlotParent.GetComponentsInChildren<UI_EquipmentSlot>(true);
+        statSlot = statSlotParent.GetComponentsInChildren<UI_StatSlot>(true);
     }
 
     private void AddStartingItems()
     {
-        foreach (ItemData_Equipment item in loadedEquipment)
-        {
+        foreach (var item in loadedEquipment)
             EquipItem(item);
-        }
 
         if (loadedItems.Count > 0)
         {
-            foreach (InventoryItem item in loadedItems)
-            {
+            foreach (var item in loadedItems)
                 for (int i = 0; i < item.stackSize; i++)
-                {
                     AddItem(item.data);
-                }
-            }
-
-            return; 
         }
-
-        for (int i = 0; i < startingItems.Count; i++)
+        else
         {
-            if(startingItems[i] != null)
-                AddItem(startingItems[i]);
+            foreach (var item in startingItems)
+                if (item != null)
+                    AddItem(item);
         }
+
     }
 
     public void EquipItem(ItemData _item)
     {
         ItemData_Equipment newEquipment = _item as ItemData_Equipment;
-        InventoryItem newItem = new InventoryItem(newEquipment);
+        InventoryItem newItem = new(newEquipment);
 
         ItemData_Equipment oldEquipment = null;
-
-        foreach (KeyValuePair<ItemData_Equipment, InventoryItem> item in equipmentDictionary)
+        foreach (var item in equipmentDictionary)
         {
             if (item.Key.equipmentType == newEquipment.equipmentType)
                 oldEquipment = item.Key;
@@ -116,17 +158,15 @@ public class Inventory : MonoBehaviour, ISaveManager
 
         equipment.Add(newItem);
         equipmentDictionary.Add(newEquipment, newItem);
-
         newEquipment.AddModifiers();
 
         RemoveItem(_item);
-
         UpdateSlotsUI();
     }
 
     public void UnequipItem(ItemData_Equipment itemToRemove)
     {
-        if (equipmentDictionary.TryGetValue(itemToRemove, out InventoryItem value))
+        if (equipmentDictionary.TryGetValue(itemToRemove, out var value))
         {
             equipment.Remove(value);
             equipmentDictionary.Remove(itemToRemove);
@@ -136,30 +176,24 @@ public class Inventory : MonoBehaviour, ISaveManager
 
     private void UpdateSlotsUI()
     {
-        for (int i = 0; i < equipmentSlots.Length; i++)
+        foreach (var slot in equipmentSlots)
         {
-            foreach (KeyValuePair<ItemData_Equipment, InventoryItem> item in equipmentDictionary)
+            foreach (var item in equipmentDictionary)
             {
-                if (item.Key.equipmentType == equipmentSlots[i].slotType)
-                    equipmentSlots[i].UpdateSlot(item.Value);
+                if (item.Key.equipmentType == slot.slotType)
+                    slot.UpdateSlot(item.Value);
             }
         }
 
-        for (int i = 0; i < inventoryItemSlots.Length; i++)
-        {
-            inventoryItemSlots[i].CleanUpSlot();
-        }
-
-        for (int i = 0; i < stashItemSlots.Length; i++)
-        {
-            stashItemSlots[i].CleanUpSlot();
-            checkpointStashItemSlots[i].CleanUpSlot();
-        }
+        foreach (var slot in inventoryItemSlots)
+            slot.CleanUpSlot();
+        foreach (var slot in stashItemSlots)
+            slot.CleanUpSlot();
+        foreach (var slot in checkpointStashItemSlots)
+            slot.CleanUpSlot();
 
         for (int i = 0; i < inventory.Count; i++)
-        {
             inventoryItemSlots[i].UpdateSlot(inventory[i]);
-        }
 
         for (int i = 0; i < stash.Count; i++)
         {
@@ -172,10 +206,8 @@ public class Inventory : MonoBehaviour, ISaveManager
 
     public void UpdateStatsUI()
     {
-        for (int i = 0; i < statSlot.Length; i++) // update info of stats in character UI
-        {
-            statSlot[i].UpdateStatValueUI();
-        }
+        foreach (var stat in statSlot)
+            stat.UpdateStatValueUI();
     }
 
     public void AddItem(ItemData _item)
@@ -190,13 +222,11 @@ public class Inventory : MonoBehaviour, ISaveManager
 
     private void AddToStash(ItemData _item)
     {
-        if (stashDictionary.TryGetValue(_item, out InventoryItem value))
-        {
+        if (stashDictionary.TryGetValue(_item, out var value))
             value.AddStack();
-        }
         else
         {
-            InventoryItem newItem = new InventoryItem(_item);
+            InventoryItem newItem = new(_item);
             stash.Add(newItem);
             stashDictionary.Add(_item, newItem);
         }
@@ -204,13 +234,11 @@ public class Inventory : MonoBehaviour, ISaveManager
 
     private void AddToInventory(ItemData _item)
     {
-        if (inventoryDictionary.TryGetValue(_item, out InventoryItem value))
-        {
+        if (inventoryDictionary.TryGetValue(_item, out var value))
             value.AddStack();
-        }
         else
         {
-            InventoryItem newItem = new InventoryItem(_item);
+            InventoryItem newItem = new(_item);
             inventory.Add(newItem);
             inventoryDictionary.Add(_item, newItem);
         }
@@ -218,28 +246,25 @@ public class Inventory : MonoBehaviour, ISaveManager
 
     public void RemoveItem(ItemData _item)
     {
-        if (inventoryDictionary.TryGetValue(_item, out InventoryItem value))
+        if (inventoryDictionary.TryGetValue(_item, out var value))
         {
             if (value.stackSize <= 1)
             {
                 inventory.Remove(value);
                 inventoryDictionary.Remove(_item);
             }
-            else
-                value.RemoveStack();
+            else value.RemoveStack();
         }
 
-        if (stashDictionary.TryGetValue(_item, out InventoryItem stashValue))
+        if (stashDictionary.TryGetValue(_item, out var stashValue))
         {
             if (stashValue.stackSize <= 1)
             {
                 stash.Remove(stashValue);
                 stashDictionary.Remove(_item);
             }
-            else
-                stashValue.RemoveStack();
+            else stashValue.RemoveStack();
         }
-
 
         UpdateSlotsUI();
     }
@@ -253,44 +278,25 @@ public class Inventory : MonoBehaviour, ISaveManager
         return true;
     }
 
-    public bool CanCraft(ItemData_Equipment _itemToCraft, List<InventoryItem> _requiredMaterials, GameObject _equipmentUI)
+    public bool CanCraft(ItemData_Equipment itemToCraft, List<InventoryItem> required, GameObject ui)
     {
-       // Check if all required materials are avalible with the required quantity.
-
-        foreach (var requiredItem in _requiredMaterials)
+        foreach (var r in required)
         {
-            if (stashDictionary.TryGetValue(requiredItem.data, out InventoryItem stashItem))
-            {
-                if (stashItem.stackSize < requiredItem.stackSize)
-                {
-                    Debug.Log("Not enough materials: " + requiredItem.data.name);
-                    return false;
-                }
-            }
-            else
-            {
-                Debug.Log("Materials not found in stash: " + requiredItem.data.name);
+            if (!stashDictionary.TryGetValue(r.data, out var stashItem) || stashItem.stackSize < r.stackSize)
                 return false;
-            }
-        }
-        // If all materials are avalible, remove them from stash.
-
-        foreach (var requiredMaterial in _requiredMaterials)
-        {
-            for (int i = 0; i < requiredMaterial.stackSize; i++)
-            {
-                RemoveItem(requiredMaterial.data);
-            }
         }
 
-        AddItem(_itemToCraft);
-        Debug.Log("Craft is successful: " + _itemToCraft.name);
+        foreach (var r in required)
+            for (int i = 0; i < r.stackSize; i++)
+                RemoveItem(r.data);
 
-        if (_itemToCraft.equipmentType != EquipmentType.Flask)
+        AddItem(itemToCraft);
+
+        if (itemToCraft.equipmentType != EquipmentType.Flask)
         {
-            UnlockManager.instance.CraftedItem(_itemToCraft);
-            _equipmentUI.GetComponent<UI_CraftList>().CallCraft();
-        }    
+            UnlockManager.instance.CraftedItem(itemToCraft);
+            ui.GetComponent<UI_CraftList>().CallCraft();
+        }
 
         return true;
     }
@@ -298,115 +304,85 @@ public class Inventory : MonoBehaviour, ISaveManager
     public List<InventoryItem> GetEquipmentList() => equipment;
     public List<InventoryItem> GetStashList() => stash;
 
-    public ItemData_Equipment GetEquipment(EquipmentType _type)
+    public ItemData_Equipment GetEquipment(EquipmentType type)
     {
-        ItemData_Equipment equipedItem = null;
-
-        foreach (KeyValuePair<ItemData_Equipment, InventoryItem> item in equipmentDictionary)
-        {
-            if (item.Key.equipmentType == _type)
-                equipedItem = item.Key;
-        }
-        return equipedItem;
+        foreach (var item in equipmentDictionary)
+            if (item.Key.equipmentType == type)
+                return item.Key;
+        return null;
     }
 
     public void UseFlask()
     {
-        ItemData_Equipment currentFlask = GetEquipment(EquipmentType.Flask);
+        var flask = GetEquipment(EquipmentType.Flask);
+        if (flask == null || Time.time <= lastTimeUsedFlask + flaskCooldown) return;
 
-        if (currentFlask == null)
-            return;
-
-        bool canUseFlask = Time.time > lastTimeUsedFlask + flaskCooldown;
-
-        if (canUseFlask)
-        {
-            AudioManager.instance.PlaySFX("Flask");
-            flaskCooldown = currentFlask.itemCooldown;
-            currentFlask.Effect(null);
-            lastTimeUsedFlask = Time.time;
-        }
-        else
-            Debug.Log("Flask on cooldown");
+        AudioManager.instance.PlaySFX("Flask");
+        flaskCooldown = flask.itemCooldown;
+        flask.Effect(null);
+        lastTimeUsedFlask = Time.time;
     }
 
     public bool CanUseArmor()
     {
-        ItemData_Equipment currentArmor = GetEquipment(EquipmentType.Armor);
+        var armor = GetEquipment(EquipmentType.Armor);
+        if (armor == null || Time.time <= lastTimeUsedArmor + aramorCooldown) return false;
 
-        if (Time.time > lastTimeUsedArmor + aramorCooldown)
-        {
-            aramorCooldown = currentArmor.itemCooldown;
-            lastTimeUsedArmor = Time.time;
-            return true;
-        }
-        Debug.Log("Armor on cooldown");
-        return false;
+        aramorCooldown = armor.itemCooldown;
+        lastTimeUsedArmor = Time.time;
+        return true;
     }
 
     public void LoadData(GameData _data)
     {
-        foreach (KeyValuePair<string, int> pair in _data.inventory)
+        foreach (var pair in _data.inventory)
         {
-            foreach (var item in itemDataBase)
+            var item = itemDataBase.Find(i => i != null && i.itemId == pair.Key);
+            if (item != null)
             {
-                if (item != null && item.itemId == pair.Key)
-                {
-                    InventoryItem itemToLoad = new InventoryItem(item);
-                    itemToLoad.stackSize = pair.Value;
-
-                    loadedItems.Add(itemToLoad);
-                }
+                InventoryItem loadItem = new(item) { stackSize = pair.Value };
+                loadedItems.Add(loadItem);
             }
         }
 
-        foreach (string loadedItemID in _data.equipmentId)
+        foreach (var id in _data.equipmentId)
         {
-            foreach (var item in itemDataBase)
-            {
-                if (item != null && loadedItemID == item.itemId)
-                {
-                    loadedEquipment.Add(item as ItemData_Equipment);
-                }
-            }
+            var equip = itemDataBase.Find(i => i != null && i.itemId == id) as ItemData_Equipment;
+            if (equip != null)
+                loadedEquipment.Add(equip);
         }
     }
 
     public void SaveData(ref GameData _data)
     {
         _data.inventory.Clear();
-        _data.equipmentId.Clear(); 
+        _data.equipmentId.Clear();
 
-        foreach (KeyValuePair<ItemData, InventoryItem> pair in inventoryDictionary)
-        {
-            _data.inventory.Add(pair.Key.itemId, pair.Value.stackSize);
-        }
+        foreach (var pair in inventoryDictionary)
+            _data.inventory[pair.Key.itemId] = pair.Value.stackSize;
 
-        foreach (KeyValuePair<ItemData, InventoryItem> pair in stashDictionary)
-        {
-            _data.inventory.Add(pair.Key.itemId, pair.Value.stackSize);
-        }
+        foreach (var pair in stashDictionary)
+            _data.inventory[pair.Key.itemId] = pair.Value.stackSize;
 
-        foreach (KeyValuePair<ItemData_Equipment, InventoryItem> pair in equipmentDictionary)
-        {
+        foreach (var pair in equipmentDictionary)
             _data.equipmentId.Add(pair.Key.itemId);
-        }
     }
 
- #if UNITY_EDITOR
+#if UNITY_EDITOR
     [ContextMenu("Fill up item data base")]
     private void FillUpItemDataBase() => itemDataBase = new List<ItemData>(GetItemDataBase());
 
     private List<ItemData> GetItemDataBase()
     {
-        List<ItemData> itemDataBase = new List<ItemData>();
-        string[] assetName = AssetDatabase.FindAssets("", new[] {"Assets/Data/Items"});
+        List<ItemData> itemDataBase = new();
+        string[] assetName = AssetDatabase.FindAssets("", new[] { "Assets/Data/Items" });
 
-        foreach (string SOName in assetName)
+        foreach (string guid in assetName)
         {
-            var SOpath = AssetDatabase.GUIDToAssetPath(SOName);
-            var itemData = AssetDatabase.LoadAssetAtPath<ItemData>(SOpath);
-            itemDataBase.Add(itemData);
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+            var itemData = AssetDatabase.LoadAssetAtPath<ItemData>(path);
+            if (itemData != null)
+                itemDataBase.Add(itemData);
         }
 
         return itemDataBase;

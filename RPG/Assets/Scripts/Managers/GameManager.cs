@@ -4,9 +4,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
-    [SerializeField] GameObject gameOverUI;
-
-    public bool skipEntryCutscene = false; //Add this flag
+    [HideInInspector] public bool skipEntryCutscene = false;
 
     private void Awake()
     {
@@ -17,28 +15,33 @@ public class GameManager : MonoBehaviour
         }
 
         instance = this;
-        DontDestroyOnLoad(gameObject);
-    }
 
+        GameObject master = GameObject.Find("GameManager");
+        if (master == null)
+        {
+            master = new GameObject("GameManager");
+            DontDestroyOnLoad(master);
+        }
+
+        transform.SetParent(master.transform);
+        DontDestroyOnLoad(master);
+    }
 
     public void RestartScene()
     {
-        EnemyManager.instance.ResetEnemyDeath();
-
-        //Set the flag before continuing
+        EnemyManager.instance?.ResetEnemyDeath();      
         skipEntryCutscene = true;
-
-        CheckpointManager.instance.ContinueGame();
+        CheckpointManager.instance?.ContinueGame();
     }
 
     public void GameOver()
     {
-        AudioManager.instance.PlaySFX("GameOver");
-        gameOverUI.SetActive(true);
+        AudioManager.instance?.PlaySFX("GameOver");
+        UIManager.instance?.GetUIGameOver()?.ShowGameOverScreen();
     }
 
-    public void PauseGame(bool _pause)
+    public void PauseGame(bool pause)
     {
-        Time.timeScale = _pause ? 0 : 1;
+        Time.timeScale = pause ? 0 : 1;
     }
 }

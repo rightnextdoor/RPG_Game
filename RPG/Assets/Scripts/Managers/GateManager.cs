@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -12,16 +11,35 @@ public class GateManager : MonoBehaviour, ISaveManager
     private void Awake()
     {
         if (instance != null)
-            Destroy(instance.gameObject);
-        else
-            instance = this;
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        AssignToGameManagerRoot();
+    }
+
+    private void AssignToGameManagerRoot()
+    {
+        GameObject root = GameObject.Find("GameManager");
+        if (root == null)
+        {
+            root = new GameObject("GameManager");
+            DontDestroyOnLoad(root);
+        }
+
+        transform.SetParent(root.transform);
     }
 
     public void DefaultGates()
     {
         foreach (GateData gate in gateDatabase)
         {
-            gate.isLocked = true;
+            if (gate != null)
+                gate.isLocked = true;
         }
     }
 
@@ -29,12 +47,10 @@ public class GateManager : MonoBehaviour, ISaveManager
     {
         foreach (GateData gate in gateDatabase)
         {
-            if (gate != null)
-            {
-                if (gate.gateId == _data.gateId)
-                    gate.isLocked = _data.isLocked;
-            }         
+            if (gate != null && gate.gateId == _data.gateId)
+                gate.isLocked = _data.isLocked;
         }
+
         SaveManager.instance.SaveGame();
     }
 
@@ -44,11 +60,8 @@ public class GateManager : MonoBehaviour, ISaveManager
         {
             foreach (GateData gate in gateDatabase)
             {
-                if (gate != null)
-                {
-                    if(gate.gateId == pair.Key)
-                        gate.isLocked = pair.Value;
-                }
+                if (gate != null && gate.gateId == pair.Key)
+                    gate.isLocked = pair.Value;
             }
         }
     }
@@ -60,9 +73,7 @@ public class GateManager : MonoBehaviour, ISaveManager
         foreach (GateData gate in gateDatabase)
         {
             if (gate != null)
-            {
                 _data.gates.Add(gate.gateId, gate.isLocked);
-            }
         }
     }
 
@@ -73,13 +84,14 @@ public class GateManager : MonoBehaviour, ISaveManager
     private List<GateData> GetItemDataBase()
     {
         List<GateData> dataBase = new List<GateData>();
-        string[] assetName = AssetDatabase.FindAssets("", new[] { "Assets/Data/Gate" });
+        string[] assetNames = AssetDatabase.FindAssets("", new[] { "Assets/Data/Gate" });
 
-        foreach (string SOName in assetName)
+        foreach (string guid in assetNames)
         {
-            var SOpath = AssetDatabase.GUIDToAssetPath(SOName);
-            var itemData = AssetDatabase.LoadAssetAtPath<GateData>(SOpath);
-            dataBase.Add(itemData);
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            GateData itemData = AssetDatabase.LoadAssetAtPath<GateData>(path);
+            if (itemData != null)
+                dataBase.Add(itemData);
         }
 
         return dataBase;
