@@ -98,6 +98,9 @@ public class NotificationManager : MonoBehaviour
 
     private void AssignSceneObjects()
     {
+        if(SceneManager.GetActiveScene().name == GameManager.instance.mainMenu.SceneName)
+            return;
+
         var ui = UIManager.instance?.GetUINotification();
         if (ui == null || ui.notificationParent == null || ui.specialNotificationParent == null)
         {

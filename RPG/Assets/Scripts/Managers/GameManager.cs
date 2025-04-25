@@ -5,6 +5,7 @@ public class GameManager : MonoBehaviour
     public static GameManager instance;
 
     [HideInInspector] public bool skipEntryCutscene = false;
+    public SceneField mainMenu;
 
     private void Awake()
     {

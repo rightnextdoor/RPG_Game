@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class PlayerManager : MonoBehaviour, ISaveManager
 {
@@ -16,7 +17,7 @@ public class PlayerManager : MonoBehaviour, ISaveManager
             if (_player == null)
             {
                 TryRebindPlayer();
-                if (_player == null)
+                if (_player == null && SceneManager.GetActiveScene().name != GameManager.instance.mainMenu.SceneName)
                 {
                     Debug.LogWarning("[PlayerManager] Player reference is null.");
                 }

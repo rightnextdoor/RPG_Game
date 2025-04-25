@@ -94,6 +94,9 @@ public class AudioManager : MonoBehaviour
 
     private string GetZoneFromScene(string sceneName)
     {
+        if (SceneManager.GetActiveScene().name == GameManager.instance.mainMenu.SceneName)
+            return null;
+
         foreach (var map in zoneSceneMapping)
         {
             foreach (var zone in map.zones)
@@ -109,6 +112,9 @@ public class AudioManager : MonoBehaviour
 
     public void PlayZoneMusic(string zoneName)
     {
+        if(SceneManager.GetActiveScene().name == GameManager.instance.mainMenu.SceneName)
+            return;
+
         var def = zoneMusicDefinitions.Find(z => z.zoneName == zoneName);
         if (def == null)
         {
