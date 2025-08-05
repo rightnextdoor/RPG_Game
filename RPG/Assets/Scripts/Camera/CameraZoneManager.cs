@@ -1,6 +1,7 @@
-using UnityEngine;
-using Cinemachine;
+﻿using Cinemachine;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class CameraZoneManager : MonoBehaviour
 {
@@ -13,92 +14,261 @@ public class CameraZoneManager : MonoBehaviour
     public CinemachineVirtualCamera verticalCam;
     public CinemachineVirtualCamera panCam;
 
-    [Header("Shared Follow Target")]
+    [Header("Shared Follow Targets")]
     public Transform horizontalTarget;
     public Transform verticalTarget;
     public Transform fixedTarget;
     public Transform panTarget;
     public Transform cutsceneCamTarget;
 
-    [Header("Zone Follow Smoothing")]
-    public float zoneTargetSmoothSpeed = 10f;
+    [Header("Player Camera Settings")]
+    [Tooltip("Horizontal damping for the player camera framing transposer")]
+    [SerializeField] private float playerCamXDamping = 2f;
+    [Tooltip("Vertical damping for the player camera framing transposer")]
+    [SerializeField] private float playerCamYDamping = 2f;
+    [Tooltip("Dead zone width for the player camera")]
+    [SerializeField] private float playerCamDeadZoneWidth = 0.2f;
+    [Tooltip("Dead zone height for the player camera")]
+    [SerializeField] private float playerCamDeadZoneHeight = 0.2f;
+    [Tooltip("Soft zone width for the player camera")]
+    [SerializeField] private float playerCamSoftZoneWidth = 0.6f;
+    [Tooltip("Soft zone height for the player camera")]
+    [SerializeField] private float playerCamSoftZoneHeight = 0.4f;
+    [Tooltip("Screen X position (0–1) for the player camera")]
+    [SerializeField] private float playerCamScreenX = 0.5f;
+    [Tooltip("Screen Y position (0–1) for the player camera")]
+    [SerializeField] private float playerCamScreenY = 0.65f;
+    [Tooltip("Vertical offset applied below the player")]
+    [SerializeField] private float playerCamOffsetY = -2f;
 
-    [Header("Falling YDamping Settings")]
-    [SerializeField] private float fallPanAmount = 0.25f;
+    [Header("Horizontal Camera Settings")]
+    [Tooltip("Horizontal damping for the horizontal-only camera")]
+    [SerializeField] private float horizontalCamXDamping = 2f;
+    [Tooltip("Vertical damping for the horizontal-only camera")]
+    [SerializeField] private float horizontalCamYDamping = 0f;
+    [Tooltip("Dead zone width for the horizontal-only camera")]
+    [SerializeField] private float horizontalCamDeadZoneWidth = 0.05f;
+    [Tooltip("Dead zone height for the horizontal-only camera")]
+    [SerializeField] private float horizontalCamDeadZoneHeight = 10f;
+    [Tooltip("Soft zone width for the horizontal-only camera")]
+    [SerializeField] private float horizontalCamSoftZoneWidth = 0.6f;
+    [Tooltip("Soft zone height for the horizontal-only camera")]
+    [SerializeField] private float horizontalCamSoftZoneHeight = 0f;
+    [Tooltip("Screen X position (0–1) for the horizontal-only camera")]
+    [SerializeField] private float horizontalCamScreenX = 0.5f;
+    [Tooltip("Screen Y position (0–1) for the horizontal-only camera")]
+    [SerializeField] private float horizontalCamScreenY = 0.5f;
+
+    [Header("Vertical Camera Settings")]
+    [Tooltip("Horizontal damping for the vertical-only camera")]
+    [SerializeField] private float verticalCamXDamping = 0f;
+    [Tooltip("Vertical damping for the vertical-only camera")]
+    [SerializeField] private float verticalCamYDamping = 2f;
+    [Tooltip("Dead zone width for the vertical-only camera")]
+    [SerializeField] private float verticalCamDeadZoneWidth = 10f;
+    [Tooltip("Dead zone height for the vertical-only camera")]
+    [SerializeField] private float verticalCamDeadZoneHeight = 0.1f;
+    [Tooltip("Soft zone width for the vertical-only camera")]
+    [SerializeField] private float verticalCamSoftZoneWidth = 0f;
+    [Tooltip("Soft zone height for the vertical-only camera")]
+    [SerializeField] private float verticalCamSoftZoneHeight = 0.8f;
+    [Tooltip("Screen X position (0–1) for the vertical-only camera")]
+    [SerializeField] private float verticalCamScreenX = 0.5f;
+    [Tooltip("Screen Y position (0–1) for the vertical-only camera")]
+    [SerializeField] private float verticalCamScreenY = 0.5f;
+
+    [Header("Pan Camera Settings")]
+    [Tooltip("Horizontal damping for the pan camera framing transposer")]
+    [SerializeField] private float panCamXDamping = 2f;
+    [Tooltip("Vertical damping for the pan camera framing transposer")]
+    [SerializeField] private float panCamYDamping = 2f;
+    [Tooltip("Dead zone width for the pan camera")]
+    [SerializeField] private float panCamDeadZoneWidth = 0f;
+    [Tooltip("Dead zone height for the pan camera")]
+    [SerializeField] private float panCamDeadZoneHeight = 0f;
+    [Tooltip("Soft zone width for the pan camera")]
+    [SerializeField] private float panCamSoftZoneWidth = 0.8f;
+    [Tooltip("Soft zone height for the pan camera")]
+    [SerializeField] private float panCamSoftZoneHeight = 0.8f;
+    [Tooltip("Screen X position (0–1) for the pan camera")]
+    [SerializeField] private float panCamScreenX = 0.5f;
+    [Tooltip("Screen Y position (0–1) for the pan camera")]
+    [SerializeField] private float panCamScreenY = 0.5f;
+
+    [Header("Zone Follow Smoothing")]
+    [SerializeField] private float zoneTargetSmoothSpeed = 10f;
+
+    [Header("Falling Y-Damping Settings")]
+    [SerializeField] private float fallPanAmount = 0.1f;
     [SerializeField] private float fallYPanTime = 0.35f;
-    [SerializeField] private float fallSpeedYDampingChangeThreshold = -15f;
+    [Tooltip("Velocity threshold to trigger fall damping")]
+    [SerializeField] private float fallSpeedThreshold = -15f;
 
     [Header("Falling Offset Settings")]
-    [SerializeField] private float fallOffsetY = -10f;
-    [SerializeField] private float fallOffsetLerpTime = 0.35f;
+    [SerializeField] private float fallOffsetY = -3f;
+    [SerializeField] private float fallOffsetLerpTime = 0.15f;
+    [Tooltip("Horizontal look-ahead when moving")]
     [SerializeField] private float moveOffsetX = 7f;
 
-    private Vector2 defaultOffset;
+    [Header("Blend Settings")]
+    [Tooltip("Ease duration between normal zones")]
+    [SerializeField] private float zoneBlendTime = 0.4f;
+    [Tooltip("Ease duration into/out of pan zones")]
+    [SerializeField] private float panBlendTime = 0.6f;
+    [Tooltip("Default blend for other transitions")]
+    [SerializeField] private float defaultBlendTime = 0.3f;
 
-    private Vector3 zoneTargetVelocity = Vector3.zero;
+    private CinemachineBrain brain;
     private Transform player;
     private Rigidbody2D playerRB;
-    private CameraZone currentZone;
-    private bool initialized = false;
 
-    private float normYPanAmount;
-    private bool isLerpingYDamping;
-    private Coroutine lerpYDampingCoroutine;
-    private Coroutine offsetLerpCoroutine;
+    private Vector2 defaultOffset;
+    private float normYdamping;
+    private float defaultVertYDamping;
+    private Vector2 defaultVertOffset;
 
-    private Coroutine panCoroutine;
+    private bool initialized;
     private bool isPanning;
+    public bool IsPanning => isPanning;
 
-    public CameraZone CurrentZone => currentZone;
+    [SerializeField] private float panSmoothTime = 0.5f;
+
+    private CameraZone currentZone;
+    private readonly List<CameraZone> activeZones = new List<CameraZone>();
+    private Vector3 zoneTargetVelocity;
+
+    public CameraZone CurrentZone => activeZones.Count > 0 ? activeZones[^1] : null;
 
     private void Awake()
     {
         if (instance != null && instance != this)
-        {
             Destroy(gameObject);
-            return;
-        }
+        else
+            instance = this;
 
-        instance = this;
-        
+        brain = Camera.main.GetComponent<CinemachineBrain>();
     }
 
     private IEnumerator Start()
     {
         yield return null;
-
-        while (PlayerManager.instance == null || PlayerUtils.GetPlayerSafe() == null || !PlayerManager.instance.player.gameObject.activeInHierarchy)
-        {
+        while (PlayerManager.instance == null ||
+               PlayerUtils.GetPlayerSafe() == null ||
+               !PlayerManager.instance.player.gameObject.activeInHierarchy)
             yield return null;
-        }
 
         player = PlayerUtils.GetPlayerSafe().transform;
         playerRB = PlayerUtils.GetPlayerSafe().GetComponent<Rigidbody2D>();
-        
+
         EnableCameras();
-        SetupPlayerCam();
-        SetupHorizontalCam();
-        SetupVerticalCam();
-        SetupFixedCam();
-        SetupPanCam();
+        SetupCameras();
 
         initialized = true;
-
         yield return new WaitForSeconds(0.05f);
         RestorePlayerCamDamping();
     }
 
     private void EnableCameras()
     {
-        if (playerCam != null) playerCam.enabled = true;
-        if (fixedCam != null) fixedCam.enabled = true;
-        if (horizontalCam != null) horizontalCam.enabled = true;
-        if (verticalCam != null) verticalCam.enabled = true;
-        if (panCam != null) panCam.enabled = true;
+        playerCam.enabled = true;
+        fixedCam.enabled = true;
+        horizontalCam.enabled = true;
+        verticalCam.enabled = true;
+        panCam.enabled = true;
     }
 
+    private void SetupCameras()
+    {
+        // Player camera
+        SetupCamera(playerCam, player, 20,
+            playerCamXDamping, playerCamYDamping,
+            playerCamDeadZoneWidth, playerCamDeadZoneHeight,
+            playerCamSoftZoneWidth, playerCamSoftZoneHeight,
+            playerCamScreenX, playerCamScreenY);
 
-    // Call this at scene start if using a cutscene to force camera to snap to the spawn position
+        // tracked offset & fall defaults
+        var pt = playerCam.GetCinemachineComponent<CinemachineFramingTransposer>();
+        pt.m_TrackedObjectOffset += new Vector3(0f, playerCamOffsetY, 0f);
+        normYdamping = pt.m_YDamping;
+        defaultOffset = pt.m_TrackedObjectOffset;
+
+        // Horizontal-only
+        SetupCamera(horizontalCam, horizontalTarget, 10,
+            horizontalCamXDamping, horizontalCamYDamping,
+            horizontalCamDeadZoneWidth, horizontalCamDeadZoneHeight,
+            horizontalCamSoftZoneWidth, horizontalCamSoftZoneHeight,
+            horizontalCamScreenX, horizontalCamScreenY);
+
+        // Vertical-only
+        SetupCamera(verticalCam, verticalTarget, 5,
+            verticalCamXDamping, verticalCamYDamping,
+            verticalCamDeadZoneWidth, verticalCamDeadZoneHeight,
+            verticalCamSoftZoneWidth, verticalCamSoftZoneHeight,
+            verticalCamScreenX, verticalCamScreenY);
+        var vt = verticalCam.GetCinemachineComponent<CinemachineFramingTransposer>();
+        defaultVertYDamping = vt.m_YDamping;
+        defaultVertOffset = vt.m_TrackedObjectOffset;
+
+        // Fixed (no transposer override)
+        SetupFixedCam();
+
+        // Pan camera
+        SetupCamera(panCam, panTarget, 5,
+            panCamXDamping, panCamYDamping,
+            panCamDeadZoneWidth, panCamDeadZoneHeight,
+            panCamSoftZoneWidth, panCamSoftZoneHeight,
+            panCamScreenX, panCamScreenY);
+    }
+
+    private void SetupCamera(
+        CinemachineVirtualCamera cam,
+        Transform target,
+        int priority,
+        float xD, float yD,
+        float deadW, float deadH,
+        float softW, float softH,
+        float screenX, float screenY
+    )
+    {
+        if (cam == null || target == null) return;
+        cam.Follow = target;
+        cam.Priority = priority;
+
+        var t = cam.GetCinemachineComponent<CinemachineFramingTransposer>();
+        if (t != null)
+        {
+            t.m_XDamping = xD;
+            t.m_YDamping = yD;
+            t.m_DeadZoneWidth = deadW;
+            t.m_DeadZoneHeight = deadH;
+            t.m_SoftZoneWidth = softW;
+            t.m_SoftZoneHeight = softH;
+            t.m_ScreenX = screenX;
+            t.m_ScreenY = screenY;
+        }
+
+        cam.PreviousStateIsValid = false;
+        cam.OnTargetObjectWarped(target, Vector3.zero);
+    }
+
+    private void SetupFixedCam()
+    {
+        if (fixedCam == null || fixedTarget == null) return;
+        fixedCam.Follow = fixedTarget;
+        fixedCam.Priority = 5;
+    }
+
+    private void RestorePlayerCamDamping()
+    {
+        if (playerCam == null) return;
+        var t = playerCam.GetCinemachineComponent<CinemachineFramingTransposer>();
+        if (t != null)
+        {
+            t.m_XDamping = playerCamXDamping;
+            t.m_YDamping = playerCamYDamping;
+        }
+    }
+
     public void PrepareForCutscene(Vector3 spawnPosition)
     {
         EnableCameras();
@@ -106,21 +276,7 @@ public class CameraZoneManager : MonoBehaviour
 
         cutsceneCamTarget.position = new Vector3(spawnPosition.x, spawnPosition.y, -10f);
         playerCam.Follow = cutsceneCamTarget;
-
-        // Ensure Transposer is initialized
-        var transposer = playerCam.GetCinemachineComponent<CinemachineFramingTransposer>();
-        if (transposer != null)
-        {
-            // Set default transposer values just like SetupPlayerCam
-            transposer.m_XDamping = 2f;
-            transposer.m_YDamping = 2f;
-            transposer.m_DeadZoneWidth = 0.1f;
-            transposer.m_DeadZoneHeight = 0.1f;
-            transposer.m_SoftZoneWidth = 0.8f;
-            transposer.m_SoftZoneHeight = 0.8f;
-            transposer.m_ScreenY = 0.65f;
-        }
-
+        RestorePlayerCamDamping();
         playerCam.PreviousStateIsValid = false;
         playerCam.OnTargetObjectWarped(cutsceneCamTarget, Vector3.zero);
         playerCam.Priority = 20;
@@ -130,208 +286,123 @@ public class CameraZoneManager : MonoBehaviour
     {
         if (playerCam != null && playerCam.Follow != null)
         {
-            playerCam.OnTargetObjectWarped(playerCam.Follow, Vector3.zero);
             playerCam.PreviousStateIsValid = false;
+            playerCam.OnTargetObjectWarped(playerCam.Follow, Vector3.zero);
         }
-    }
-
-    private void SetupPlayerCam()
-    {
-        if (playerCam == null || player == null) return;
-
-        playerCam.Follow = player;
-
-        var transposer = playerCam.GetCinemachineComponent<CinemachineFramingTransposer>();
-        transposer.m_XDamping = 2f;
-        transposer.m_YDamping = 2f;
-        transposer.m_DeadZoneWidth = 0.4f;
-        transposer.m_DeadZoneHeight = 0.45f;
-        transposer.m_SoftZoneWidth = 0.8f;
-        transposer.m_SoftZoneHeight = 0.8f;
-        transposer.m_ScreenY = 0.65f;
-
-        normYPanAmount = transposer.m_YDamping;
-        defaultOffset = transposer.m_TrackedObjectOffset;
-
-        playerCam.PreviousStateIsValid = false;
-        playerCam.OnTargetObjectWarped(player, Vector3.zero);
-        playerCam.Priority = 20;
-    }
-
-    private void RestorePlayerCamDamping()
-    {
-        if (playerCam == null) return;
-
-        var transposer = playerCam.GetCinemachineComponent<CinemachineFramingTransposer>();
-        transposer.m_XDamping = 2f;
-        transposer.m_YDamping = 2f;
-    }
-
-    private void SetupHorizontalCam()
-    {
-        if (horizontalCam == null || horizontalTarget == null) return;
-
-        horizontalCam.Follow = horizontalTarget;
-        horizontalCam.Priority = 10;
-
-        var transposer = horizontalCam.GetCinemachineComponent<CinemachineFramingTransposer>();
-        transposer.m_XDamping = 2f;
-        transposer.m_YDamping = 0f;
-        transposer.m_DeadZoneWidth = 0.05f;
-        transposer.m_DeadZoneHeight = 10f;
-        transposer.m_SoftZoneWidth = 0.6f;
-        transposer.m_SoftZoneHeight = 0f;
-        transposer.m_ScreenY = 0.5f;
-    }
-
-    private void SetupVerticalCam()
-    {
-        if (verticalCam == null || verticalTarget == null) return;
-
-        verticalCam.Follow = verticalTarget;
-        verticalCam.Priority = 5;
-
-        var transposer = verticalCam.GetCinemachineComponent<CinemachineFramingTransposer>();
-        transposer.m_XDamping = 0f;
-        transposer.m_YDamping = 2f;
-        transposer.m_DeadZoneWidth = 10f;
-        transposer.m_DeadZoneHeight = 0.1f;
-        transposer.m_SoftZoneWidth = 0f;
-        transposer.m_SoftZoneHeight = 0.8f;
-        transposer.m_ScreenX = 0.5f;
-        transposer.m_ScreenY = 0.5f;
-    }
-
-    private void SetupFixedCam()
-    {
-        if (fixedCam == null || fixedTarget == null) return;
-
-        fixedCam.Follow = fixedTarget;
-        fixedCam.Priority = 5;
-    }
-    private void SetupPanCam()
-    {
-        if (panCam == null || panTarget == null) return;
-
-        panCam.Follow = panTarget;
-        panCam.Priority = 5;
-
-        var transposer = panCam.GetCinemachineComponent<CinemachineFramingTransposer>();
-        transposer.m_XDamping = 2f;
-        transposer.m_YDamping = 2f;
-        transposer.m_DeadZoneWidth = 0f;
-        transposer.m_DeadZoneHeight = 0f;
-        transposer.m_SoftZoneWidth = 0.8f;
-        transposer.m_SoftZoneHeight = 0.8f;
-        transposer.m_ScreenX = 0.5f;
-        transposer.m_ScreenY = 0.5f;
     }
 
     public void StartPan(PanDirection direction, float distance, float duration, Vector2 zoneCenter)
     {
-        if (isPanning) return;
-        if (panCoroutine != null) StopCoroutine(panCoroutine);
-        panCoroutine = StartCoroutine(HandlePan(direction, distance, duration, zoneCenter));
-    }
-
-    private IEnumerator HandlePan(PanDirection direction, float distance, float duration, Vector2 zoneCenter)
-    {
-        isPanning = true;
-
-        panTarget.position = new Vector3(zoneCenter.x, zoneCenter.y, -10f);
-
-        SetPriority(panCam, 30);
-        SetPriority(playerCam, 5);
-        SetPriority(horizontalCam, 5);
-        SetPriority(verticalCam, 5);
-        SetPriority(fixedCam, 5);
-
-        Vector3 start = panTarget.position;
-        Vector3 offset = direction switch
+        // 1) Snap the panTarget immediately to the final pan position
+        Vector3 dirVec = direction switch
         {
             PanDirection.Up => Vector3.up,
             PanDirection.Down => Vector3.down,
             PanDirection.Left => Vector3.left,
             PanDirection.Right => Vector3.right,
             _ => Vector3.zero
-        } * distance;
+        };
+        Vector3 endPos = new Vector3(zoneCenter.x, zoneCenter.y, -10f) + dirVec * distance;
+        panTarget.position = endPos;
 
-        Vector3 end = start + offset;
+        // 2) Immediately switch to the pan camera (your zone script's delay has already elapsed)
+        SetBrainBlend(panBlendTime);
+        SetPriority(panCam, 30);
+        SetPriority(playerCam, 5);
+        SetPriority(horizontalCam, 5);
+        SetPriority(verticalCam, 5);
+        SetPriority(fixedCam, 5);
 
-        float t = 0f;
-        while (t < duration)
-        {
-            t += Time.deltaTime;
-            panTarget.position = Vector3.Lerp(start, end, t / duration);
-            yield return null;
-        }
+        isPanning = true;
+
+        // 3) Restore your default blend after the pan blend duration
+        StartCoroutine(RestoreDefaultBlend(panBlendTime));
     }
 
     public void StopPan()
     {
-        if (panCoroutine != null) StopCoroutine(panCoroutine);
+        // bail out entirely if this component is disabled/inactive
+        if (!this.isActiveAndEnabled)
+            return;
+
+        // only blend back if we actually switched in
+        if (!isPanning)
+            return;
+
         isPanning = false;
+        SetBrainBlend(panBlendTime);
         SetPriority(panCam, 5);
 
         if (currentZone != null)
             ApplyZone(currentZone);
         else
             ResetToFreeFollow();
+
+        // this one was already guarded before, and now the entire method is protected
+        StartCoroutine(RestoreDefaultBlend(panBlendTime));
     }
 
     public void ApplyZone(CameraZone zone)
     {
-        if (!initialized || player == null || zone == null) return;
-
+        if (!initialized || player == null || zone == null || isPanning) return;
+        SetBrainBlend(zoneBlendTime);
+        if (!activeZones.Contains(zone)) activeZones.Add(zone);
         currentZone = zone;
+        SwitchZone(currentZone);
+        StartCoroutine(RestoreDefaultBlend(zoneBlendTime));
+    }
+
+    public void ExitZone(CameraZone zone)
+    {
+        if (!initialized || isPanning) return;
+        SetBrainBlend(zoneBlendTime);
+        if (activeZones.Remove(zone)) PruneInactiveZones();
+        if (activeZones.Count > 0) currentZone = activeZones[^1];
+        else currentZone = null;
+        if (currentZone != null) SwitchZone(currentZone);
+        else ResetToFreeFollow();
+        StartCoroutine(RestoreDefaultBlend(zoneBlendTime));
+    }
+
+    private void PruneInactiveZones()
+    {
+        for (int i = activeZones.Count - 1; i >= 0; i--)
+        {
+            var z = activeZones[i];
+            var col = z.GetComponent<Collider2D>();
+            if (col == null || !col.OverlapPoint(player.position))
+                activeZones.RemoveAt(i);
+        }
+    }
+
+    private void SwitchZone(CameraZone zone)
+    {
+        // reset priorities
+        SetPriority(playerCam, 5);
+        SetPriority(horizontalCam, 5);
+        SetPriority(verticalCam, 5);
+        SetPriority(fixedCam, 5);
 
         switch (zone.mode)
         {
             case CameraZone.ZoneMode.Fixed:
-                if (fixedTarget != null)
-                {
-                    Vector2 center = zone.GetFixedCenter();
-                    fixedTarget.position = new Vector3(center.x, center.y, -10f);
-                }
-
+                var fc = zone.GetFixedCenter();
+                fixedTarget.position = new Vector3(fc.x, fc.y, -10f);
                 SetPriority(fixedCam, 20);
-                SetPriority(playerCam, 10);
-                SetPriority(horizontalCam, 5);
-                SetPriority(verticalCam, 5);
                 break;
 
             case CameraZone.ZoneMode.FreeFollow:
-                currentZone = null;
-                SetPlayerCam(2f, 2f);
-                SetPriority(horizontalCam, 5);
-                SetPriority(fixedCam, 5);
-                SetPriority(verticalCam, 5);
+                ResetToFreeFollow();
                 break;
 
             case CameraZone.ZoneMode.HorizontalOnly:
-                if (horizontalTarget != null)
-                {
-                    float centerY = zone.GetCenterY();
-                    horizontalTarget.position = new Vector3(player.position.x, centerY, -10f);
-                }
-
+                horizontalTarget.position = new Vector3(player.position.x, zone.GetCenterY(), -10f);
                 SetPriority(horizontalCam, 20);
-                SetPriority(playerCam, 10);
-                SetPriority(fixedCam, 5);
-                SetPriority(verticalCam, 5);
                 break;
 
             case CameraZone.ZoneMode.VerticalOnly:
-                if (verticalTarget != null)
-                {
-                    float centerX = zone.GetFixedCenter().x;
-                    verticalTarget.position = new Vector3(centerX, player.position.y, -10f);
-                }
-
+                verticalTarget.position = new Vector3(zone.GetFixedCenter().x, player.position.y, -10f);
                 SetPriority(verticalCam, 20);
-                SetPriority(playerCam, 10);
-                SetPriority(horizontalCam, 5);
-                SetPriority(fixedCam, 5);
                 break;
         }
     }
@@ -339,26 +410,68 @@ public class CameraZoneManager : MonoBehaviour
     public void ResetToFreeFollow()
     {
         currentZone = null;
-        SetPlayerCam(2f, 2f);
-        SetPriority(horizontalCam, 5);
-        SetPriority(fixedCam, 5);
-        SetPriority(verticalCam, 5);
+        SetupCamera(playerCam, player, 20,
+            playerCamXDamping, playerCamYDamping,
+            playerCamDeadZoneWidth, playerCamDeadZoneHeight,
+            playerCamSoftZoneWidth, playerCamSoftZoneHeight,
+            playerCamScreenX, playerCamScreenY);
+        SetPriority(playerCam, 20);
     }
 
-    private void SetPlayerCam(float xDamp, float yDamp)
+    private void LateUpdate()
     {
-        if (playerCam == null) return;
+        if (player == null) return;
 
-        var transposer = playerCam.GetCinemachineComponent<CinemachineFramingTransposer>();
-        transposer.m_XDamping = xDamp;
-        transposer.m_YDamping = yDamp;
-        transposer.m_DeadZoneWidth = 0.1f;
-        transposer.m_DeadZoneHeight = 0.1f;
-        transposer.m_SoftZoneWidth = 0.8f;
-        transposer.m_SoftZoneHeight = 0.8f;
-        transposer.m_ScreenY = 0.65f;
+        // Move zone follow targets for horizontal/vertical zones
+        if (horizontalCam.Priority == 20 && currentZone != null)
+        {
+            Vector3 goal = new Vector3(player.position.x, currentZone.GetCenterY(), -10f);
+            horizontalTarget.position = Vector3.SmoothDamp(
+                horizontalTarget.position,
+                goal,
+                ref zoneTargetVelocity,
+                1f / zoneTargetSmoothSpeed
+            );
+        }
+        if (verticalCam.Priority == 20 && currentZone != null)
+        {
+            Vector3 goal = new Vector3(currentZone.GetFixedCenter().x, player.position.y, -10f);
+            verticalTarget.position = Vector3.SmoothDamp(
+                verticalTarget.position,
+                goal,
+                ref zoneTargetVelocity,
+                1f / zoneTargetSmoothSpeed
+            );
+        }
 
-        playerCam.Priority = 20;
+        // Apply dynamic fall-follow offsets for FreeFollow and Vertical cams
+        HandleFallFollow(playerCam, normYdamping, defaultOffset);
+        HandleFallFollow(verticalCam, defaultVertYDamping, defaultVertOffset);
+
+    }
+
+
+    private void HandleFallFollow(CinemachineVirtualCamera cam, float baseYDamp, Vector2 baseOffset)
+    {
+        if (cam == null || cam.Priority != 20) return;
+        var t = cam.GetCinemachineComponent<CinemachineFramingTransposer>();
+        bool falling = playerRB.velocity.y < fallSpeedThreshold;
+
+        t.m_YDamping = Mathf.Lerp(t.m_YDamping, falling ? fallPanAmount : baseYDamp, Time.deltaTime / fallYPanTime);
+        float lookY = falling ? fallOffsetY : baseOffset.y;
+        t.m_TrackedObjectOffset = Vector2.Lerp(t.m_TrackedObjectOffset, new Vector2(baseOffset.x, lookY), Time.deltaTime / fallOffsetLerpTime);
+    }
+
+    private void SetBrainBlend(float blendTime)
+    {
+        if (brain != null)
+            brain.m_DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Style.EaseInOut, blendTime);
+    }
+
+    private IEnumerator RestoreDefaultBlend(float delay)
+    {
+        yield return new WaitForSeconds(delay + 0.01f);
+        SetBrainBlend(defaultBlendTime);
     }
 
     private void SetPriority(CinemachineVirtualCamera cam, int priority)
@@ -366,102 +479,6 @@ public class CameraZoneManager : MonoBehaviour
         if (cam != null)
             cam.Priority = priority;
     }
-
-    private void LateUpdate()
-    {
-        if (player == null) return;
-
-        // Move zone follow targets for horizontal/vertical/fixed zones
-        if (horizontalCam != null && horizontalCam.Priority == 20 && currentZone != null && horizontalTarget != null)
-        {
-            float centerY = currentZone.GetCenterY();
-            Vector3 targetPos = new Vector3(player.position.x, centerY, -10f);
-            horizontalTarget.position = Vector3.SmoothDamp(horizontalTarget.position, targetPos, ref zoneTargetVelocity, 1f / zoneTargetSmoothSpeed);
-        }
-        else if (verticalCam != null && verticalCam.Priority == 20 && currentZone != null && verticalTarget != null)
-        {
-            float centerX = currentZone.GetFixedCenter().x;
-            Vector3 targetPos = new Vector3(centerX, player.position.y, -10f);
-            verticalTarget.position = Vector3.SmoothDamp(verticalTarget.position, targetPos, ref zoneTargetVelocity, 1f / zoneTargetSmoothSpeed);
-        }
-        else if (fixedCam != null && fixedCam.Priority == 20 && currentZone != null && fixedTarget != null)
-        {
-            Vector2 center = currentZone.GetFixedCenter();
-            fixedTarget.position = new Vector3(center.x, center.y, -10f);
-        }
-
-        // Apply dynamic camera offset when in FreeFollow
-        Player getPlayer = PlayerManager.instance.player;      
-        if (playerCam != null && playerRB != null && playerCam.Priority == 20 && getPlayer != null)
-        {
-            var transposer = playerCam.GetCinemachineComponent<CinemachineFramingTransposer>();
-            bool isFalling = playerRB.velocity.y < fallSpeedYDampingChangeThreshold;
-
-            if (!isLerpingYDamping)
-            {
-                if (isFalling && transposer.m_YDamping != fallPanAmount)
-                {
-                    if (lerpYDampingCoroutine != null) StopCoroutine(lerpYDampingCoroutine);
-                    lerpYDampingCoroutine = StartCoroutine(LerpYAction(true));
-                }
-                else if (!isFalling && transposer.m_YDamping != normYPanAmount)
-                {
-                    if (lerpYDampingCoroutine != null) StopCoroutine(lerpYDampingCoroutine);
-                    lerpYDampingCoroutine = StartCoroutine(LerpYAction(false));
-                }
-            }
-            
-            // Apply directional X offset when moving
-            float offsetX = Mathf.Abs(playerRB.velocity.x) > 0.1f ? Mathf.Sign(playerRB.velocity.x) * (moveOffsetX * getPlayer.facingDir) : 0f;
-            float offsetY = isFalling ? fallOffsetY : defaultOffset.y;
-
-            Vector2 targetOffset = new Vector2(offsetX, offsetY);
-            if (offsetLerpCoroutine != null) StopCoroutine(offsetLerpCoroutine);
-            offsetLerpCoroutine = StartCoroutine(LerpTrackedObjectOffset(targetOffset, fallOffsetLerpTime));
-        }
-    }
-
-
-    private IEnumerator LerpYAction(bool isPlayerFalling)
-    {
-        isLerpingYDamping = true;
-
-        var transposer = playerCam.GetCinemachineComponent<CinemachineFramingTransposer>();
-        float startDamp = transposer.m_YDamping;
-        float endDamp = isPlayerFalling ? fallPanAmount : normYPanAmount;
-
-        float t = 0f;
-        while (t < fallYPanTime)
-        {
-            t += Time.deltaTime;
-            float lerp = Mathf.Lerp(startDamp, endDamp, t / fallYPanTime);
-            transposer.m_YDamping = lerp;
-            yield return null;
-        }
-
-        isLerpingYDamping = false;
-    }
-
-    private IEnumerator LerpTrackedObjectOffset(Vector2 targetOffset, float duration)
-    {
-        var transposer = playerCam.GetCinemachineComponent<CinemachineFramingTransposer>();
-        Vector2 startOffset = transposer.m_TrackedObjectOffset;
-
-        float t = 0f;
-        while (t < duration)
-        {
-            t += Time.deltaTime;
-            transposer.m_TrackedObjectOffset = Vector2.Lerp(startOffset, targetOffset, t / duration);
-            yield return null;
-        }
-    }
-
 }
 
-public enum PanDirection
-{
-    Up,
-    Down,
-    Left,
-    Right
-}
+public enum PanDirection { Up, Down, Left, Right }

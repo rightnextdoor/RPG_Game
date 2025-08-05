@@ -53,9 +53,17 @@ public class CameraZone : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (!other.CompareTag("Player")) return;
+        if (!Application.isPlaying)
+            return;
 
-        CameraZoneManager.instance?.ResetToFreeFollow();
+        if (!other.CompareTag("Player"))
+            return;
+
+        var mgr = CameraZoneManager.instance;
+        if (mgr == null || !mgr.isActiveAndEnabled)
+            return;
+
+        mgr.ExitZone(this);
     }
 
     private void OnDrawGizmos()

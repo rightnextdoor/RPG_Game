@@ -7,7 +7,7 @@ public class CameraPanZone : MonoBehaviour
     public PanDirection direction = PanDirection.Right;
     public float panDistance = 3f;
     public float panTime = 0.5f;
-    public float delayBeforePan = 0.2f;
+    public float delayBeforePan = 1f;
 
     private Coroutine delayCoroutine;
 
@@ -15,31 +15,34 @@ public class CameraPanZone : MonoBehaviour
     {
         if (!collision.CompareTag("Player")) return;
 
-        if (delayCoroutine != null)
-            StopCoroutine(delayCoroutine);
+        // Snap panTarget immediately to zone center
+        Vector2 center = GetComponent<Collider2D>().bounds.center;
+        CameraZoneManager.instance.panTarget.position = new Vector3(center.x, center.y, -10f);
 
-        delayCoroutine = StartCoroutine(DelayedPan());
+        if (delayCoroutine != null)
+        {
+            StopCoroutine(delayCoroutine);
+            delayCoroutine = null;
+        }
+        delayCoroutine = StartCoroutine(DelayedPan(center));
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
         if (!collision.CompareTag("Player")) return;
-
         if (delayCoroutine != null)
+        {
             StopCoroutine(delayCoroutine);
-
-        if (CameraZoneManager.instance != null)
-            CameraZoneManager.instance.StopPan();
+            delayCoroutine = null;
+        }
+        CameraZoneManager.instance?.StopPan();
     }
 
-    private IEnumerator DelayedPan()
+    private IEnumerator DelayedPan(Vector2 center)
     {
         yield return new WaitForSeconds(delayBeforePan);
-
-        Vector2 center = GetComponent<Collider2D>().bounds.center;
-
-        if (CameraZoneManager.instance != null)
-            CameraZoneManager.instance.StartPan(direction, panDistance, panTime, center);
+        CameraZoneManager.instance?.StartPan(direction, panDistance, panTime, center);
+        delayCoroutine = null;
     }
 
     private void OnDrawGizmos()
@@ -63,3 +66,4 @@ public class CameraPanZone : MonoBehaviour
         Gizmos.DrawLine(box.bounds.center, box.bounds.center + (Vector3)(dir * panDistance));
     }
 }
+
