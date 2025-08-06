@@ -163,9 +163,24 @@ public class CameraZoneManager : MonoBehaviour
         EnableCameras();
         SetupCameras();
 
+        SnapTargetsToBoundaryCenter();
+
         initialized = true;
         yield return new WaitForSeconds(0.05f);
         RestorePlayerCamDamping();
+    }
+
+    private void SnapTargetsToBoundaryCenter()
+    {
+        // world‐center of the main camera:
+        var camPos = Camera.main.transform.position;
+        camPos.z = -10f;
+
+        if (horizontalTarget != null) horizontalTarget.position = camPos;
+        if (verticalTarget != null) verticalTarget.position = camPos;
+        if (fixedTarget != null) fixedTarget.position = camPos;
+        if (panTarget != null) panTarget.position = camPos;
+        if (cutsceneCamTarget != null) cutsceneCamTarget.position = camPos;
     }
 
     private void EnableCameras()
@@ -277,10 +292,10 @@ public class CameraZoneManager : MonoBehaviour
         cutsceneCamTarget.position = new Vector3(spawnPosition.x, spawnPosition.y, -10f);
         playerCam.Follow = cutsceneCamTarget;
         RestorePlayerCamDamping();
-        playerCam.PreviousStateIsValid = false;
-        playerCam.OnTargetObjectWarped(cutsceneCamTarget, Vector3.zero);
+        ForceSnap();
         playerCam.Priority = 20;
     }
+
 
     public void ForceSnap()
     {

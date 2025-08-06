@@ -6,7 +6,7 @@ public class CameraPanZone : MonoBehaviour
 {
     public PanDirection direction = PanDirection.Right;
     public float panDistance = 3f;
-    public float panTime = 0.5f;
+    public float panTime = 1f;
     public float delayBeforePan = 1f;
 
     private Coroutine delayCoroutine;
