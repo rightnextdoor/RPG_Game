@@ -31,6 +31,8 @@ public class LevelChanger : MonoBehaviour
 
         if (player != null)
         {
+            CameraZoneManager.instance?.FreezeForSceneExit();
+
             LevelConnection.ActiveConnection = levelConnection;
 
             SceneCutsceneManager manager = FindObjectOfType<SceneCutsceneManager>();

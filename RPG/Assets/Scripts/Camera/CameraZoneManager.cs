@@ -137,6 +137,16 @@ public class CameraZoneManager : MonoBehaviour
     private readonly List<CameraZone> activeZones = new List<CameraZone>();
     private Vector3 zoneTargetVelocity;
 
+    private Transform cutsceneSubject;
+    public void SetCutsceneSubject(Transform t) { cutsceneSubject = t; }
+    public void ClearCutsceneSubject() { cutsceneSubject = null; }
+    private Transform CamSubject => cutsceneSubject != null ? cutsceneSubject : player;
+
+    private bool freezeCamera = false;
+    private CinemachineVirtualCamera freezeActiveCam;
+    private float freezePrevXDamp, freezePrevYDamp;
+    private bool freezeAppliedDamping = false;
+
     public CameraZone CurrentZone => activeZones.Count > 0 ? activeZones[^1] : null;
 
     private void Awake()
@@ -166,6 +176,53 @@ public class CameraZoneManager : MonoBehaviour
         SnapTargetsToBoundaryCenter();
 
         initialized = true;
+
+        var subject = player; // scene-load case: real player is active
+        if (subject != null)
+        {
+            // Find a zone under the spawn/player point
+            CameraZone snapZone = null;
+            var hits = Physics2D.OverlapPointAll(subject.position);
+            for (int i = 0; i < hits.Length; i++)
+            {
+                var z = hits[i].GetComponent<CameraZone>();
+                if (z != null) { snapZone = z; break; }
+            }
+
+            if (snapZone != null)
+            {
+                // Use a hard cut for the first placement
+                if (brain != null)
+                    brain.m_DefaultBlend = new CinemachineBlendDefinition(
+                        CinemachineBlendDefinition.Style.Cut, 0f);
+
+                // Reset stacks and make this the current zone
+                activeZones.Clear();
+                currentZone = snapZone;
+                activeZones.Add(snapZone);
+
+                // Apply the zone (sets targets & priorities)
+                SwitchZone(currentZone);
+
+                // Force the active vcam to rebuild right now (no easing)
+                CinemachineVirtualCamera active = null;
+                Transform follow = null;
+                if (fixedCam != null && fixedCam.Priority == 20) { active = fixedCam; follow = fixedTarget; }
+                else if (horizontalCam != null && horizontalCam.Priority == 20) { active = horizontalCam; follow = horizontalTarget; }
+                else if (verticalCam != null && verticalCam.Priority == 20) { active = verticalCam; follow = verticalTarget; }
+                else { active = playerCam; follow = player; }
+
+                if (active != null && follow != null)
+                {
+                    active.PreviousStateIsValid = false;
+                    active.OnTargetObjectWarped(follow, Vector3.zero);
+                }
+
+                // Restore your normal default blend for later transitions
+                SetBrainBlend(defaultBlendTime);
+            }
+        }
+
         yield return new WaitForSeconds(0.05f);
         RestorePlayerCamDamping();
     }
@@ -287,22 +344,213 @@ public class CameraZoneManager : MonoBehaviour
     public void PrepareForCutscene(Vector3 spawnPosition)
     {
         EnableCameras();
-        if (cutsceneCamTarget == null || playerCam == null) return;
+        if (playerCam == null) return;
 
-        cutsceneCamTarget.position = new Vector3(spawnPosition.x, spawnPosition.y, -10f);
-        playerCam.Follow = cutsceneCamTarget;
-        RestorePlayerCamDamping();
-        ForceSnap();
-        playerCam.Priority = 20;
+        // --- Find a zone at the spawn point (if any) ---
+        CameraZone zoneAtSpawn = null;
+        var hits = Physics2D.OverlapPointAll(spawnPosition);
+        for (int i = 0; i < hits.Length; i++)
+        {
+            var z = hits[i].GetComponent<CameraZone>();
+            if (z != null) { zoneAtSpawn = z; break; }
+        }
+
+        // Save & switch to a hard CUT so we don't see any blend before the fade
+        CinemachineBlendDefinition savedBlend = default;
+        bool haveBrain = (brain != null);
+        if (haveBrain)
+        {
+            savedBlend = brain.m_DefaultBlend;
+            brain.m_DefaultBlend = new CinemachineBlendDefinition(
+                CinemachineBlendDefinition.Style.Cut, 0f);
+        }
+
+        // Reset vcam priorities
+        SetPriority(playerCam, 5);
+        SetPriority(horizontalCam, 5);
+        SetPriority(verticalCam, 5);
+        SetPriority(fixedCam, 5);
+
+        CinemachineVirtualCamera active = null;
+        Transform follow = null;
+
+        // --- If the spawn is inside a non-FreeFollow zone, use that zone camera ---
+        if (zoneAtSpawn != null && zoneAtSpawn.mode != CameraZone.ZoneMode.FreeFollow)
+        {
+            currentZone = zoneAtSpawn;
+            activeZones.Clear();
+            activeZones.Add(zoneAtSpawn);
+
+            switch (zoneAtSpawn.mode)
+            {
+                case CameraZone.ZoneMode.Fixed:
+                    {
+                        var fc = zoneAtSpawn.GetFixedCenter();
+                        if (fixedTarget != null)
+                            fixedTarget.position = new Vector3(fc.x, fc.y, -10f);
+                        SetPriority(fixedCam, 20);
+                        active = fixedCam;
+                        follow = fixedTarget;
+                        break;
+                    }
+                case CameraZone.ZoneMode.HorizontalOnly:
+                    {
+                        float y = zoneAtSpawn.GetCenterY();
+                        if (horizontalTarget != null)
+                            horizontalTarget.position = new Vector3(spawnPosition.x, y, -10f);
+                        SetPriority(horizontalCam, 20);
+                        active = horizontalCam;
+                        follow = horizontalTarget;
+                        break;
+                    }
+                case CameraZone.ZoneMode.VerticalOnly:
+                    {
+                        float x = zoneAtSpawn.GetFixedCenter().x;
+                        if (verticalTarget != null)
+                            verticalTarget.position = new Vector3(x, spawnPosition.y, -10f);
+                        SetPriority(verticalCam, 20);
+                        active = verticalCam;
+                        follow = verticalTarget;
+                        break;
+                    }
+            }
+        }
+        else
+        {
+            // --- No zone (or FreeFollow): use the playerCam with the cutscene target ---
+            if (cutsceneCamTarget == null) return;
+
+            cutsceneCamTarget.position = new Vector3(spawnPosition.x, spawnPosition.y, -10f);
+            playerCam.Follow = cutsceneCamTarget;
+
+            // Use the same gameplay damping you already configure
+            RestorePlayerCamDamping();
+
+            SetPriority(playerCam, 20);
+            active = playerCam;
+            follow = cutsceneCamTarget;
+        }
+
+        // --- Force an immediate snap (no easing) so the camera is correct before fade starts ---
+        if (active != null && follow != null)
+        {
+            active.PreviousStateIsValid = false;
+            active.OnTargetObjectWarped(follow, Vector3.zero);
+        }
+
+        // Restore your normal blend for later transitions
+        if (haveBrain)
+            brain.m_DefaultBlend = savedBlend;
+    }
+
+    public void FreezeForSceneExit()
+    {
+        EnableCameras();
+
+        // Freeze per-frame camera motion (your LateUpdate should early-return if this is true)
+        freezeCamera = true;
+
+        // Tell other logic we're in a cutscene-like state (optional but keeps behavior consistent)
+        if (cutsceneSubject == null && player != null)
+            cutsceneSubject = player;
+
+        var cam = Camera.main;
+        if (cam == null) return;
+
+        // 1) Grab the CURRENT on-screen camera pose and lens
+        Vector3 currentPose = cam.transform.position;
+        currentPose.z = -10f; // keep your 2D camera z
+        float currentOrthoSize = cam.orthographic ? cam.orthographicSize : 0f;
+
+        // 2) Use fixedCam as a freeze camera that outputs this exact pose (no follow)
+        if (fixedCam == null) return;
+
+        // Match lens so there's no reframe
+        var lens = fixedCam.m_Lens;
+        if (cam.orthographic) lens.Orthographic = true;
+        lens.OrthographicSize = currentOrthoSize;
+        fixedCam.m_Lens = lens;
+
+        // Detach follow so nothing drives the vcam; make the vcam's own transform the source of truth
+        fixedCam.Follow = null;
+
+        // Put the vcam at the exact current camera pose
+        fixedCam.transform.position = currentPose;
+
+        // 3) Kill any internal damping on the freeze camera (if components exist)
+        var ft = fixedCam.GetCinemachineComponent<CinemachineFramingTransposer>();
+        if (ft != null)
+        {
+            ft.m_XDamping = 0f;
+            ft.m_YDamping = 0f;
+            ft.m_DeadZoneWidth = 0f;
+            ft.m_DeadZoneHeight = 0f;
+            ft.m_SoftZoneWidth = 0f;
+            ft.m_SoftZoneHeight = 0f;
+            ft.m_ScreenX = 0.5f;
+            ft.m_ScreenY = 0.5f;
+        }
+        var comp = fixedCam.GetCinemachineComponent<CinemachineComposer>();
+        if (comp != null)
+        {
+            comp.m_HorizontalDamping = 0f;
+            comp.m_VerticalDamping = 0f;
+            comp.m_DeadZoneWidth = 0f;
+            comp.m_DeadZoneHeight = 0f;
+            comp.m_SoftZoneWidth = 0f;
+            comp.m_SoftZoneHeight = 0f;
+            comp.m_ScreenX = 0.5f;
+            comp.m_ScreenY = 0.5f;
+        }
+
+        // 4) Temporarily disable any Confiner on the freeze camera to avoid a one-frame push
+        var conf = fixedCam.GetComponent<CinemachineConfiner>();
+        bool confWasEnabled = false;
+        if (conf != null)
+        {
+            confWasEnabled = conf.enabled;
+            conf.enabled = false;
+        }
+
+        // 5) Make the freeze camera the only one with priority, and CUT to it immediately
+        SetPriority(playerCam, 5);
+        SetPriority(horizontalCam, 5);
+        SetPriority(verticalCam, 5);
+        SetPriority(panCam, 5);
+        SetPriority(fixedCam, 100);
+
+        CinemachineBlendDefinition savedBlend = default;
+        if (brain != null)
+        {
+            savedBlend = brain.m_DefaultBlend;
+            brain.m_DefaultBlend = new CinemachineBlendDefinition(
+                CinemachineBlendDefinition.Style.Cut, 0f);
+        }
+
+        // Force the brain to adopt the freeze vcam's pose right now
+        fixedCam.PreviousStateIsValid = false;
+        // (No OnTargetObjectWarped needed since Follow is null and we're outputting the vcam's own transform)
+
+        // Restore normal blend after we’ve cut; confiner stays off for the remaining fade
+        if (brain != null)
+            brain.m_DefaultBlend = savedBlend;
     }
 
 
     public void ForceSnap()
     {
-        if (playerCam != null && playerCam.Follow != null)
+        CinemachineVirtualCamera active = null;
+        Transform follow = null;
+
+        if (fixedCam != null && fixedCam.Priority == 20) { active = fixedCam; follow = fixedTarget; }
+        else if (horizontalCam != null && horizontalCam.Priority == 20) { active = horizontalCam; follow = horizontalTarget; }
+        else if (verticalCam != null && verticalCam.Priority == 20) { active = verticalCam; follow = verticalTarget; }
+        else if (playerCam != null) { active = playerCam; follow = playerCam.Follow; }
+
+        if (active != null && follow != null)
         {
-            playerCam.PreviousStateIsValid = false;
-            playerCam.OnTargetObjectWarped(playerCam.Follow, Vector3.zero);
+            active.PreviousStateIsValid = false;
+            active.OnTargetObjectWarped(follow, Vector3.zero);
         }
     }
 
@@ -357,26 +605,41 @@ public class CameraZoneManager : MonoBehaviour
         StartCoroutine(RestoreDefaultBlend(panBlendTime));
     }
 
+    private void OnDisable()
+    {
+        StopAllCoroutines();
+    }
+
+
     public void ApplyZone(CameraZone zone)
     {
+        if (!Application.isPlaying || !isActiveAndEnabled || !gameObject.activeInHierarchy) return;
         if (!initialized || player == null || zone == null || isPanning) return;
+
         SetBrainBlend(zoneBlendTime);
         if (!activeZones.Contains(zone)) activeZones.Add(zone);
         currentZone = zone;
         SwitchZone(currentZone);
-        StartCoroutine(RestoreDefaultBlend(zoneBlendTime));
+
+        if (isActiveAndEnabled && gameObject.activeInHierarchy)
+            StartCoroutine(RestoreDefaultBlend(zoneBlendTime));
     }
 
     public void ExitZone(CameraZone zone)
     {
-        if (!initialized || isPanning) return;
+        // Ignore calls while exiting Play Mode or when this component is inactive
+        if (!Application.isPlaying || !isActiveAndEnabled || !gameObject.activeInHierarchy) return;
+
         SetBrainBlend(zoneBlendTime);
         if (activeZones.Remove(zone)) PruneInactiveZones();
-        if (activeZones.Count > 0) currentZone = activeZones[^1];
-        else currentZone = null;
+        currentZone = (activeZones.Count > 0) ? activeZones[^1] : null;
+
         if (currentZone != null) SwitchZone(currentZone);
         else ResetToFreeFollow();
-        StartCoroutine(RestoreDefaultBlend(zoneBlendTime));
+
+        // Only start the coroutine if we are still active
+        if (isActiveAndEnabled && gameObject.activeInHierarchy)
+            StartCoroutine(RestoreDefaultBlend(zoneBlendTime));
     }
 
     private void PruneInactiveZones()
@@ -385,7 +648,7 @@ public class CameraZoneManager : MonoBehaviour
         {
             var z = activeZones[i];
             var col = z.GetComponent<Collider2D>();
-            if (col == null || !col.OverlapPoint(player.position))
+            if (col == null || !col.OverlapPoint(CamSubject.position))
                 activeZones.RemoveAt(i);
         }
     }
@@ -411,13 +674,73 @@ public class CameraZoneManager : MonoBehaviour
                 break;
 
             case CameraZone.ZoneMode.HorizontalOnly:
-                horizontalTarget.position = new Vector3(player.position.x, zone.GetCenterY(), -10f);
+                horizontalTarget.position = new Vector3(CamSubject.position.x, zone.GetCenterY(), -10f);
                 SetPriority(horizontalCam, 20);
                 break;
 
             case CameraZone.ZoneMode.VerticalOnly:
-                verticalTarget.position = new Vector3(zone.GetFixedCenter().x, player.position.y, -10f);
+                verticalTarget.position = new Vector3(zone.GetFixedCenter().x, CamSubject.position.y, -10f);
                 SetPriority(verticalCam, 20);
+                break;
+        }
+    }
+
+    public void SnapToZoneAtPoint(Vector2 point)
+    {
+        CameraZone[] zones = FindObjectsOfType<CameraZone>();
+        CameraZone found = null;
+
+        foreach (var z in zones)
+        {
+            var col = z.GetComponent<Collider2D>();
+            if (col != null && col.OverlapPoint(point))
+            {
+                found = z;
+                break;
+            }
+        }
+
+        // Reset priorities
+        SetPriority(playerCam, 5);
+        SetPriority(horizontalCam, 5);
+        SetPriority(verticalCam, 5);
+        SetPriority(fixedCam, 5);
+
+        currentZone = null;
+        activeZones.Clear();
+
+        if (found == null)
+            return;
+
+        currentZone = found;
+        activeZones.Add(found);
+
+        switch (found.mode)
+        {
+            case CameraZone.ZoneMode.Fixed:
+                {
+                    var fc = found.GetFixedCenter();
+                    if (fixedTarget != null) fixedTarget.position = new Vector3(fc.x, fc.y, -10f);
+                    SetPriority(fixedCam, 20);
+                    break;
+                }
+            case CameraZone.ZoneMode.HorizontalOnly:
+                {
+                    float y = found.GetCenterY();
+                    if (horizontalTarget != null) horizontalTarget.position = new Vector3(point.x, y, -10f);
+                    SetPriority(horizontalCam, 20);
+                    break;
+                }
+            case CameraZone.ZoneMode.VerticalOnly:
+                {
+                    float x = found.GetFixedCenter().x;
+                    if (verticalTarget != null) verticalTarget.position = new Vector3(x, point.y, -10f);
+                    SetPriority(verticalCam, 20);
+                    break;
+                }
+            case CameraZone.ZoneMode.FreeFollow:
+            default:
+                // leave priorities as-is; cutscene logic will decide whether to use playerCam
                 break;
         }
     }
@@ -437,31 +760,42 @@ public class CameraZoneManager : MonoBehaviour
     {
         if (player == null) return;
 
-        // Move zone follow targets for horizontal/vertical zones
-        if (horizontalCam.Priority == 20 && currentZone != null)
+        if (freezeCamera) return;
+
+        // If a cutscene subject is active, we keep the zone camera frozen
+        // at the position we snapped it to when the cutscene started.
+        bool cutsceneActive = (cutsceneSubject != null);
+        if (!cutsceneActive)
         {
-            Vector3 goal = new Vector3(player.position.x, currentZone.GetCenterY(), -10f);
-            horizontalTarget.position = Vector3.SmoothDamp(
-                horizontalTarget.position,
-                goal,
-                ref zoneTargetVelocity,
-                1f / zoneTargetSmoothSpeed
-            );
-        }
-        if (verticalCam.Priority == 20 && currentZone != null)
-        {
-            Vector3 goal = new Vector3(currentZone.GetFixedCenter().x, player.position.y, -10f);
-            verticalTarget.position = Vector3.SmoothDamp(
-                verticalTarget.position,
-                goal,
-                ref zoneTargetVelocity,
-                1f / zoneTargetSmoothSpeed
-            );
+            // Move zone follow targets for horizontal/vertical zones (normal gameplay)
+            if (horizontalCam.Priority == 20 && currentZone != null)
+            {
+                Vector3 goal = new Vector3(CamSubject.position.x, currentZone.GetCenterY(), -10f);
+                horizontalTarget.position = Vector3.SmoothDamp(
+                    horizontalTarget.position,
+                    goal,
+                    ref zoneTargetVelocity,
+                    1f / zoneTargetSmoothSpeed
+                );
+            }
+            if (verticalCam.Priority == 20 && currentZone != null)
+            {
+                Vector3 goal = new Vector3(currentZone.GetFixedCenter().x, CamSubject.position.y, -10f);
+                verticalTarget.position = Vector3.SmoothDamp(
+                    verticalTarget.position,
+                    goal,
+                    ref zoneTargetVelocity,
+                    1f / zoneTargetSmoothSpeed
+                );
+            }
         }
 
-        // Apply dynamic fall-follow offsets for FreeFollow and Vertical cams
-        HandleFallFollow(playerCam, normYdamping, defaultOffset);
-        HandleFallFollow(verticalCam, defaultVertYDamping, defaultVertOffset);
+        // Apply dynamic fall-follow offsets only during gameplay (not during cutscenes)
+        if (!cutsceneActive)
+        {
+            HandleFallFollow(playerCam, normYdamping, defaultOffset);
+            HandleFallFollow(verticalCam, defaultVertYDamping, defaultVertOffset);
+        }
 
     }
 
