@@ -47,6 +47,11 @@ public class SceneCutsceneManager : MonoBehaviour
         currentEntryType = LevelConnection.ActiveConnection.GetEntryCutsceneType(sceneName);
 
         cutscenePlayer = Instantiate(cutscenePlayerPrefab, spawnPoint.position, Quaternion.identity);
+
+#if UNITY_EDITOR
+        cutscenePlayer.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.DontSave;
+#endif
+
         SetCutsceneIdle(cutscenePlayer);
 
         if (CameraZoneManager.instance != null)
@@ -96,6 +101,10 @@ public class SceneCutsceneManager : MonoBehaviour
     {
         director = gameObject.AddComponent<PlayableDirector>();
         director.playableAsset = timeline;
+
+#if UNITY_EDITOR
+        director.hideFlags |= HideFlags.HideInInspector | HideFlags.DontSave;
+#endif
 
         foreach (var output in timeline.outputs)
         {
@@ -169,12 +178,23 @@ public class SceneCutsceneManager : MonoBehaviour
             player.EnableControl();
         }
 
+#if UNITY_EDITOR
+        if (UnityEditor.Selection.activeObject == cutscenePlayer)
+            UnityEditor.Selection.activeObject = null;
+        if (UnityEditor.Selection.activeObject == d)
+            UnityEditor.Selection.activeObject = null;
+#endif
+
         // Destroy clone safely
         if (cutscenePlayer != null)
         {
             var clone = cutscenePlayer;
             cutscenePlayer = null;
-            Destroy(clone);
+
+            if (Application.isPlaying && isActiveAndEnabled && gameObject.activeInHierarchy)
+                StartCoroutine(DestroyEndOfFrame(clone));
+            else
+                Destroy(clone);
         }
 
         // Clean up director (use coroutine only if still active)
@@ -182,11 +202,19 @@ public class SceneCutsceneManager : MonoBehaviour
         {
             d.playableAsset = null;
             if (Application.isPlaying && isActiveAndEnabled && gameObject.activeInHierarchy)
-                StartCoroutine(DestroyDirectorEndOfFrame(d));
+                StartCoroutine(DestroyEndOfFrame(d));
             else
                 Destroy(d);
         }
     }
+
+    private IEnumerator DestroyEndOfFrame(UnityEngine.Object obj)
+    {
+        yield return null;
+        yield return null;
+        if (obj != null) Destroy(obj);
+    }
+
 
     private void OnDisable()
     {
