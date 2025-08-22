@@ -1775,7 +1775,7 @@ Transform:
   m_GameObject: {fileID: 5239265314562701956}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -114.165054, y: -34.378998, z: 0}
+  m_LocalPosition: {x: -175.99997, y: -2.1303406, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2016,18 +2016,52 @@ MonoBehaviour:
   horizontalCam: {fileID: 2074693789482475964}
   verticalCam: {fileID: 1472826483998143133}
   panCam: {fileID: 5004037844367395864}
-  horizontalTarget: {fileID: 6671134709279669501}
-  verticalTarget: {fileID: 5216885699063826242}
-  fixedTarget: {fileID: 2918419711894061561}
   panTarget: {fileID: 956514499040153286}
   cutsceneCamTarget: {fileID: 3747359357668985067}
+  playerCamXDamping: 2
+  playerCamYDamping: 2
+  playerCamDeadZoneWidth: 0.5
+  playerCamDeadZoneHeight: 0.5
+  playerCamSoftZoneWidth: 0.6
+  playerCamSoftZoneHeight: 0.6
+  playerCamScreenX: 0.5
+  playerCamScreenY: 0.5
+  playerCamOffsetY: 0
+  horizontalCamXDamping: 2
+  horizontalCamYDamping: 0
+  horizontalCamDeadZoneWidth: 0.05
+  horizontalCamDeadZoneHeight: 10
+  horizontalCamSoftZoneWidth: 0.6
+  horizontalCamSoftZoneHeight: 0
+  horizontalCamScreenX: 0.5
+  horizontalCamScreenY: 0.5
+  verticalCamXDamping: 0
+  verticalCamYDamping: 2
+  verticalCamDeadZoneWidth: 10
+  verticalCamDeadZoneHeight: 0.1
+  verticalCamSoftZoneWidth: 0
+  verticalCamSoftZoneHeight: 0.8
+  verticalCamScreenX: 0.5
+  verticalCamScreenY: 0.5
+  panCamXDamping: 2
+  panCamYDamping: 2
+  panCamDeadZoneWidth: 0
+  panCamDeadZoneHeight: 0
+  panCamSoftZoneWidth: 0.8
+  panCamSoftZoneHeight: 0.8
+  panCamScreenX: 0.5
+  panCamScreenY: 0.5
   zoneTargetSmoothSpeed: 10
   fallPanAmount: 0.25
   fallYPanTime: 0.35
-  fallSpeedYDampingChangeThreshold: -15
+  fallSpeedThreshold: -15
   fallOffsetY: -10
   fallOffsetLerpTime: 0.35
   moveOffsetX: 7
+  zoneBlendTime: 0.8
+  panBlendTime: 0.6
+  defaultBlendTime: 0.3
+  panSmoothTime: 0.5
 --- !u!1 &7739266779356839893
 GameObject:
   m_ObjectHideFlags: 0

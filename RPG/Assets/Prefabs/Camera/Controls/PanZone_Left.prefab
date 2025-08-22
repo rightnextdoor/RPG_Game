@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &3624037049866635841
+--- !u!1 &7709145107708187569
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,23 +8,23 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1314513116234608760}
-  - component: {fileID: 1923790087536707633}
-  - component: {fileID: 3774632078132038564}
+  - component: {fileID: 3998887340353978841}
+  - component: {fileID: 6015552640512910852}
+  - component: {fileID: 8783998250352919794}
   m_Layer: 0
-  m_Name: PanZone_Right
+  m_Name: PanZone_Left
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1314513116234608760
+--- !u!4 &3998887340353978841
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3624037049866635841}
+  m_GameObject: {fileID: 7709145107708187569}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 105.3246, y: 28.519615, z: -0.21690084}
@@ -33,29 +33,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1923790087536707633
+--- !u!114 &6015552640512910852
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3624037049866635841}
+  m_GameObject: {fileID: 7709145107708187569}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0be7904ef048adb4b9850a469e75474d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  direction: 3
+  direction: 2
   panDistance: 5
-  panTime: 0.5
-  delayBeforePan: 0.5
---- !u!61 &3774632078132038564
+  panTime: 1
+  delayBeforePan: 1
+--- !u!61 &8783998250352919794
 BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3624037049866635841}
+  m_GameObject: {fileID: 7709145107708187569}
   m_Enabled: 1
   m_Density: 1
   m_Material: {fileID: 0}

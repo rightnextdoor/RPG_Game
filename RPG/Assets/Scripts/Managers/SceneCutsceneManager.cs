@@ -15,6 +15,9 @@ public class SceneCutsceneManager : MonoBehaviour
     private PlayableDirector director;
     private CutsceneType currentEntryType;
 
+    private bool cutsceneEnded;
+    private Coroutine fallbackRoutine;
+
     private void Start()
     {
         Player player = PlayerManager.instance.player;
@@ -43,13 +46,19 @@ public class SceneCutsceneManager : MonoBehaviour
         string sceneName = SceneManager.GetActiveScene().name;
         currentEntryType = LevelConnection.ActiveConnection.GetEntryCutsceneType(sceneName);
 
+        cutscenePlayer = Instantiate(cutscenePlayerPrefab, spawnPoint.position, Quaternion.identity);
+
+#if UNITY_EDITOR
+        cutscenePlayer.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.DontSave;
+#endif
+
+        SetCutsceneIdle(cutscenePlayer);
+
         if (CameraZoneManager.instance != null)
         {
-            CameraZoneManager.instance.PrepareForCutscene(spawnPoint.position);
+            CameraZoneManager.instance.SetCutsceneSubject(cutscenePlayer.transform);
+            CameraZoneManager.instance.PrepareForCutscene(spawnPoint.position);  // <- hard cut & immediate rebuild
         }
-
-        cutscenePlayer = Instantiate(cutscenePlayerPrefab, spawnPoint.position, Quaternion.identity);
-        SetCutsceneIdle(cutscenePlayer);
 
         UI_FadeScreen.instance.FadeIn(() =>
         {
@@ -93,6 +102,10 @@ public class SceneCutsceneManager : MonoBehaviour
         director = gameObject.AddComponent<PlayableDirector>();
         director.playableAsset = timeline;
 
+#if UNITY_EDITOR
+        director.hideFlags |= HideFlags.HideInInspector | HideFlags.DontSave;
+#endif
+
         foreach (var output in timeline.outputs)
         {
             if (output.streamName.Contains("Animation") || output.streamName.Contains("Animator"))
@@ -102,55 +115,119 @@ public class SceneCutsceneManager : MonoBehaviour
             }
         }
 
-        //Force snap camera again to ensure it starts correctly
-        if (CameraZoneManager.instance != null)
-        {
-            CameraZoneManager.instance.PrepareForCutscene(cutscenePlayer.transform.position);
-        }
-
         director.stopped += OnCutsceneFinished;
         director.Play();
 
         //Failsafe timeout if cutscene doesn't end normally
-        StartCoroutine(FallbackCutsceneEnd());
+        fallbackRoutine = StartCoroutine(FallbackCutsceneEnd());
+
+        if (fallbackRoutine != null) { StopCoroutine(fallbackRoutine); fallbackRoutine = null; }
+        if (Application.isPlaying && isActiveAndEnabled && gameObject.activeInHierarchy)
+            fallbackRoutine = StartCoroutine(FallbackCutsceneEnd());
+
     }
 
     private IEnumerator FallbackCutsceneEnd()
     {
-        yield return new WaitForSeconds(5f); // timeline should always be < 5 seconds
-        if (cutscenePlayer != null)
-        {
+        yield return new WaitForSeconds(10f); // timeline should always be < 5 seconds
+        if (cutsceneEnded) yield break;
+
+        if (Application.isPlaying && isActiveAndEnabled && gameObject.activeInHierarchy && director != null)
             OnCutsceneFinished(director);
-        }
     }
 
 
     private void OnCutsceneFinished(PlayableDirector d)
     {
-        Vector3 finalPosition = cutscenePlayer.transform.position;
-        Destroy(cutscenePlayer);
-
-        Player player = PlayerManager.instance.player;
-        player.transform.position = finalPosition;
-
-        if (currentEntryType == CutsceneType.RunInFromRight || currentEntryType == CutsceneType.JumpInFromRight)
+        // If we’re exiting play mode or object is inactive, do minimal cleanup and bail
+        if (!Application.isPlaying || !isActiveAndEnabled || !gameObject.activeInHierarchy)
         {
-            player.Flip();
+            if (d != null) d.stopped -= OnCutsceneFinished;
+            if (d != null) Destroy(d);
+            return;
         }
 
-        player.gameObject.SetActive(true);
-        player.EnableControl();
+        if (cutsceneEnded) return;
+        cutsceneEnded = true;
 
-        d.stopped -= OnCutsceneFinished;
-        d.playableAsset = null;
+        // Stop fallback if still pending
+        if (fallbackRoutine != null) { StopCoroutine(fallbackRoutine); fallbackRoutine = null; }
+
+        // Unhook first to avoid re-entry
+        if (d != null) d.stopped -= OnCutsceneFinished;
+
+        // Cache final position BEFORE destroying anything
+        Vector3 finalPosition = (cutscenePlayer != null)
+            ? cutscenePlayer.transform.position
+            : PlayerManager.instance.player.transform.position;
+
+        // Cameras: stop treating clone as subject
+        CameraZoneManager.instance?.ClearCutsceneSubject();
+
+        // Move/enable real player
+        var player = PlayerManager.instance.player;
+        if (player != null)
+        {
+            player.transform.position = finalPosition;
+
+            var cz = CameraZoneManager.instance?.CurrentZone;
+            if (cz == null || cz.mode == CameraZone.ZoneMode.FreeFollow)
+                CameraZoneManager.instance?.ResetToFreeFollow();
+
+            player.gameObject.SetActive(true);
+            player.EnableControl();
+        }
+
+#if UNITY_EDITOR
+        if (UnityEditor.Selection.activeObject == cutscenePlayer)
+            UnityEditor.Selection.activeObject = null;
+        if (UnityEditor.Selection.activeObject == d)
+            UnityEditor.Selection.activeObject = null;
+#endif
+
+        // Destroy clone safely
+        if (cutscenePlayer != null)
+        {
+            var clone = cutscenePlayer;
+            cutscenePlayer = null;
+
+            if (Application.isPlaying && isActiveAndEnabled && gameObject.activeInHierarchy)
+                StartCoroutine(DestroyEndOfFrame(clone));
+            else
+                Destroy(clone);
+        }
+
+        // Clean up director (use coroutine only if still active)
+        if (d != null)
+        {
+            d.playableAsset = null;
+            if (Application.isPlaying && isActiveAndEnabled && gameObject.activeInHierarchy)
+                StartCoroutine(DestroyEndOfFrame(d));
+            else
+                Destroy(d);
+        }
     }
 
-    private void ActivateRealPlayerAtSpawn()
+    private IEnumerator DestroyEndOfFrame(UnityEngine.Object obj)
     {
-        Player player = PlayerManager.instance.player;
-        player.transform.position = activeChanger.GetSpawnPoint().position;
-        player.gameObject.SetActive(true);
-        player.EnableControl();
+        yield return null;
+        yield return null;
+        if (obj != null) Destroy(obj);
+    }
+
+
+    private void OnDisable()
+    {
+        if (director != null) director.stopped -= OnCutsceneFinished;
+        if (fallbackRoutine != null) { StopCoroutine(fallbackRoutine); fallbackRoutine = null; }
+        StopAllCoroutines();
+    }
+
+
+    private IEnumerator DestroyDirectorEndOfFrame(PlayableDirector dir)
+    {
+        yield return null; // wait one frame
+        if (dir != null) Destroy(dir);
     }
 
     public TimelineAsset GetExitCutscene(CutsceneType type)
