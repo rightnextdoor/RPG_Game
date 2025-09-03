@@ -1,0 +1,106 @@
+using UnityEngine;
+
+public class AttackStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enemy
+{
+    protected AttackDetail detail;
+    protected System.Func<EnemyState> nextStateFactory;
+
+    protected int remainingAttacks;
+    protected bool isMulti;
+
+    protected bool isLingering;
+
+    public AttackStateBase(
+        TEnemy enemyBase,
+        EnemyStateMachine stateMachine,
+        AttackDetail attackDetail,
+        System.Func<EnemyState> nextStateFactory
+    ) : base(enemyBase, stateMachine, attackDetail != null ? attackDetail.animBoolName : string.Empty)
+    {
+        Configure(attackDetail, nextStateFactory);
+    }
+
+    public void Configure(AttackDetail attackDetail, System.Func<EnemyState> nextFactory)
+    {
+        detail = attackDetail;
+        nextStateFactory = nextFactory;
+
+        int amount = Mathf.Max(1, attackDetail.attackAmount);
+        remainingAttacks = amount;
+        isMulti = amount > 1;
+        isLingering = false;
+    }
+
+    public override void Enter()
+    {
+        base.Enter();
+        stateTimer = 0f;
+        isLingering = false;
+    }
+
+    public override void Update()
+    {
+        base.Update();
+
+        enemy.SetZeroVelocity();
+
+        if (isLingering)
+        {
+            if (stateTimer <= 0f && nextStateFactory != null)
+                stateMachine.ChangeState(nextStateFactory());
+            return;
+        }
+
+        if (isMulti && CanAttack())
+            MultiAttack();
+        else
+            SingleAttack();
+    }
+
+    public override void Exit()
+    {
+        base.Exit();
+    }
+
+    protected virtual void SingleAttack()
+    {
+        if (triggerCalled)
+            Linger();
+    }
+
+    protected virtual void MultiAttack()
+    {
+        if (triggerCalled)
+        { 
+            if (remainingAttacks > 0)
+            {       
+                AttackTrigger(detail.animBoolName);   
+            }
+            else
+            {
+                Linger();
+            }
+        }
+    }
+
+    private bool CanAttack()
+    {
+        if (remainingAttacks > 0 && stateTimer < 0)
+        {
+            remainingAttacks--;
+            float min = detail.attackTimeMin;
+            float max = detail.attackTimeMax;
+            if (max < min) max = min;
+            stateTimer = (min == 0f && max == 0f) ? 0f : Random.Range(min, max);
+            return true;
+        }
+
+        return false;
+    }
+
+    protected virtual void Linger()
+    {
+        isLingering = true;
+        stateTimer = Mathf.Max(0f, detail.lingerTime);
+    }
+}

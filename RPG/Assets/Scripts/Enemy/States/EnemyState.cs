@@ -38,5 +38,12 @@ public class EnemyState
         enemyBase.AssignLastAnimName(animBoolName);
     }
 
+    public void AttackTrigger(string boolName)
+    {
+        triggerCalled = false;
+        enemyBase.anim.SetBool(boolName, false);
+        enemyBase.anim.SetBool(boolName, true);
+    }
+
     public virtual void AnimationFinishTrigger() => triggerCalled = true;
 }

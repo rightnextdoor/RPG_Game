@@ -126,6 +126,26 @@ public class Entity : MonoBehaviour
     }
     #endregion
     #region Collision
+    public Transform GetGroundCheck()
+    {
+        return groundCheck;
+    }
+
+    public Transform GetWallCheck()
+    {
+        return wallCheck;
+    }
+
+    public float GetGroundCheackDistance()
+    {
+        return groundCheackDistance;
+    }
+
+    public LayerMask GetWhatIsGround()
+    {
+        return whatIsGround;
+    }
+
     public virtual bool IsGroundDetected() => Physics2D.Raycast(groundCheck.position, Vector2.down, groundCheackDistance, whatIsGround);
     public virtual bool IsWallDetected() => Physics2D.Raycast(wallCheck.position, Vector2.right * facingDir, wallCheckDistance, whatIsGround);
 
@@ -133,7 +153,7 @@ public class Entity : MonoBehaviour
     {
         Gizmos.DrawLine(groundCheck.position, new Vector3(groundCheck.position.x, groundCheck.position.y - groundCheackDistance));
         Gizmos.DrawLine(wallCheck.position, new Vector3(wallCheck.position.x + wallCheckDistance * facingDir, wallCheck.position.y));
-        Gizmos.DrawWireSphere(attackCheck.position, attackCheckRadius);
+        //Gizmos.DrawWireSphere(attackCheck.position, attackCheckRadius);
     }
     #endregion
     #region Flip

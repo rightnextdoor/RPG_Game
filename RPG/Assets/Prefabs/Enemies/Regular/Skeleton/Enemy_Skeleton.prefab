@@ -55,8 +55,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1811136370598386579}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.95, y: -0.2, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.69, y: -0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -173,14 +173,15 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8335576987894752095}
+  - {fileID: 3888429274525928104}
   - {fileID: 5822341731999400053}
   - {fileID: 2377763661008289137}
-  - {fileID: 3888429274525928104}
   - {fileID: 6618029779798571677}
   - {fileID: 3540206032943359781}
   - {fileID: 1184412516803499936}
   - {fileID: 4506395243446561197}
   - {fileID: 8711728355701691456}
+  - {fileID: 6493241867647775066}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!50 &961556229124629421
@@ -375,7 +376,7 @@ MonoBehaviour:
   knockbackPower: {x: 7, y: 12}
   knockbackOffset: {x: 0.5, y: 2}
   knockbackDuration: 0.07
-  attackCheck: {fileID: 3888429274525928104}
+  attackCheck: {fileID: 6493241867647775066}
   attackCheckRadius: 1.38
   groundCheck: {fileID: 5822341731999400053}
   groundCheackDistance: 1
@@ -404,14 +405,64 @@ MonoBehaviour:
   minMeleeAttackCooldown: 1
   maxMeleeAttackCooldown: 2
   lastTimeMeleeAttacked: 0
+  attackDetails:
+  - name: Attack1
+    animBoolName: Attack1
+    cooldown: 0
+    lingerTime: 0
+    attackChecks:
+    - label: Attack
+      shape: 5
+      checkTransform: {fileID: 3888429274525928104}
+      debugDraw: 0
+      circleRadius: 1.5
+      boxSize: {x: 0, y: 0}
+      capsuleSize: {x: 0, y: 0}
+      capsuleDirection: 0
+      lineLength: 0
+      lineThickness: 0
+      arcRadius: 10
+      arcAngleDegrees: 1
+      arcInnerRadius: 10
+      polygonPoints: []
+    spawnPrefab: []
+    lastTimeAttack: 0
+  evasionSpeedMultiplier: 1.25
+  evasionDuration: 0.5
+  evasionCooldown: 1.5
+  lastEvasionTime: 0
   evasionTimer: 1.5
   evasionSpeed: 10
   evasionDistance: 0.5
+  minEvasionCooldown: 0
+  maxEvasionCooldown: 0.5
   isSummon: 0
   enemyData: {fileID: 0}
+  moveMode: 0
+  moveSpeedMultiplier: 1
+  randomizeFacingOnMoveEnter: 1
+  allowBattleInterruptFromMove: 1
+  patrolAreaAnchor: {fileID: 0}
+  patrolAreaSize: {x: 8, y: 2}
+  enterIdleOnPatrolBoundary: 1
+  moveStopsEnabled: 1
+  moveStopIntervalRange: {x: 2, y: 5}
+  moveStopDurationRange: {x: 0.4, y: 1}
+  flipOnStopChance: 0.5
+  surfaceCrawlMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  surfaceProbeAhead: 0.4
+  surfaceProbeDown: 0.5
   stunDuration: 1
   stunDirection: {x: 10, y: 12}
   counterImage: {fileID: 4676605648977866115}
+  HasMultiAttack: 0
+  IsSpearSkeleton: 0
+  chanceToMultiAttack: 0
+  defaultChanceToMultiAttack: 5
+  multiAttackCooldown: 5
+  multiAttackCooldownTimer: 0
 --- !u!1 &3325982861166663723
 GameObject:
   m_ObjectHideFlags: 0
@@ -854,6 +905,7 @@ GameObject:
   - component: {fileID: 985323427688150444}
   - component: {fileID: 8994022173557428893}
   - component: {fileID: 6716645523702700571}
+  - component: {fileID: 8946874464490068266}
   m_Layer: 7
   m_Name: Animator
   m_TagString: Untagged
@@ -961,6 +1013,55 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8891cf8231703214d9b57412371cdbbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &8946874464490068266
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7806436574887299065}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d987166f1567a14c872e5c23483cdbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 6aec6ea34410bda4da99f133ea4ffddd, type: 2}
+  gizmoHub: {fileID: 0}
+  selectedAttack: 
+  selectedCheck: 
+  lastAttackIndex: 0
+  lastCheckIndex: 0
+--- !u!1 &8022656739580803428
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6493241867647775066}
+  m_Layer: 7
+  m_Name: oldcheck
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6493241867647775066
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8022656739580803428}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.934, y: -0.11, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2804285015675024855}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8037396764938742339
 GameObject:
   m_ObjectHideFlags: 0
