@@ -176,6 +176,7 @@ Transform:
   - {fileID: 3888429274525928104}
   - {fileID: 5822341731999400053}
   - {fileID: 2377763661008289137}
+  - {fileID: 3320586264321614567}
   - {fileID: 6618029779798571677}
   - {fileID: 3540206032943359781}
   - {fileID: 1184412516803499936}
@@ -389,9 +390,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   playerDistance: 10
+  idleTime: 6
   canPatrol: 1
   moveSpeed: 2.5
-  idleTime: 6
   moveTime: 5
   battleTime: 4
   agroDistance: 2
@@ -406,10 +407,20 @@ MonoBehaviour:
   maxMeleeAttackCooldown: 2
   lastTimeMeleeAttacked: 0
   attackDetails:
-  - name: Attack1
-    animBoolName: Attack1
-    cooldown: 0
+  - name: Attack
+    animBoolName: Attack
+    action: 0
+    unlocked: 1
+    cannotUseWithTeleport: 0
+    chance: 1
+    minCooldown: 1
+    maxCooldown: 2
     lingerTime: 0
+    attackAmount: 1
+    attackTimeMin: 0
+    attackTimeMax: 0
+    rangeMin: 0.5
+    rangeMax: 2.2
     attackChecks:
     - label: Attack
       shape: 5
@@ -426,11 +437,11 @@ MonoBehaviour:
       arcInnerRadius: 10
       polygonPoints: []
     spawnPrefab: []
-    lastTimeAttack: 0
-  evasionSpeedMultiplier: 1.25
+  teleportForAttack: 0
+  evasionSpeedMultiplier: 1.5
   evasionDuration: 0.5
-  evasionCooldown: 1.5
-  lastEvasionTime: 0
+  evasionCooldownMin: 0
+  evasionCooldownMax: 0.5
   evasionTimer: 1.5
   evasionSpeed: 10
   evasionDistance: 0.5
@@ -442,7 +453,7 @@ MonoBehaviour:
   moveSpeedMultiplier: 1
   randomizeFacingOnMoveEnter: 1
   allowBattleInterruptFromMove: 1
-  patrolAreaAnchor: {fileID: 0}
+  patrolAreaAnchor: {fileID: 3320586264321614567}
   patrolAreaSize: {x: 8, y: 2}
   enterIdleOnPatrolBoundary: 1
   moveStopsEnabled: 1
@@ -451,7 +462,7 @@ MonoBehaviour:
   flipOnStopChance: 0.5
   surfaceCrawlMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 2056
   surfaceProbeAhead: 0.4
   surfaceProbeDown: 0.5
   stunDuration: 1
@@ -1026,11 +1037,41 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   profile: {fileID: 11400000, guid: 6aec6ea34410bda4da99f133ea4ffddd, type: 2}
-  gizmoHub: {fileID: 0}
   selectedAttack: 
   selectedCheck: 
   lastAttackIndex: 0
   lastCheckIndex: 0
+--- !u!1 &7854238298700861954
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3320586264321614567}
+  m_Layer: 0
+  m_Name: PatrolArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3320586264321614567
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7854238298700861954}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1.2054621, y: 0.013576316, z: -0.010332905}
+  m_LocalScale: {x: 0.7142857, y: 0.7142857, z: 0.7142857}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2804285015675024855}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8022656739580803428
 GameObject:
   m_ObjectHideFlags: 0

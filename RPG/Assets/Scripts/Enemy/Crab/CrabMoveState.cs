@@ -35,7 +35,7 @@ public class CrabMoveState : EnemyState
         hitTimer -= Time.deltaTime;
         flipTimer -= Time.deltaTime;
 
-        enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, rb.velocity.y);
+        enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, rb.linearVelocity.y);
         
         if(hitTimer < 0f)
             enemy.RunIntoPlayerAttack(enemy.moveState);

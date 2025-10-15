@@ -13,8 +13,8 @@ public class Entity : MonoBehaviour
     #endregion
 
     [Header("Knockback info")]
-    [SerializeField] protected Vector2 knockbackPower = new Vector2(7,12);
-    [SerializeField] protected Vector2 knockbackOffset = new Vector2(.5f,2);
+    [SerializeField] protected Vector2 knockbackPower = new Vector2(7, 12);
+    [SerializeField] protected Vector2 knockbackOffset = new Vector2(.5f, 2);
     [SerializeField] protected float knockbackDuration = .07f;
     protected bool isKnocked;
 
@@ -26,6 +26,7 @@ public class Entity : MonoBehaviour
     [SerializeField] protected Transform wallCheck;
     [SerializeField] protected float wallCheckDistance = .8f;
     [SerializeField] protected LayerMask whatIsGround;
+    [HideInInspector] public bool boundaryTouchedOnMove;
 
     public int KnockbackDir { get; private set; }
     public int facingDir { get; private set; } = 1;
@@ -94,8 +95,8 @@ public class Entity : MonoBehaviour
 
         float xOffset = Random.Range(knockbackOffset.x, knockbackOffset.y);
 
-        if(knockbackPower.x > 0 || knockbackPower.y > 0) //comment out if you want player to freeze
-            rb.velocity = new Vector2((knockbackPower.x + xOffset) * KnockbackDir, knockbackPower.y);
+        if (knockbackPower.x > 0 || knockbackPower.y > 0) //comment out if you want player to freeze
+            rb.linearVelocity = new Vector2((knockbackPower.x + xOffset) * KnockbackDir, knockbackPower.y);
 
         yield return new WaitForSeconds(knockbackDuration);
         isKnocked = false;
@@ -113,7 +114,7 @@ public class Entity : MonoBehaviour
         if (isKnocked)
             return;
 
-        rb.velocity = new Vector2(0, 0);
+        rb.linearVelocity = new Vector2(0, 0);
     }
 
     public void SetVelocity(float _xVelocity, float _yVelocity)
@@ -121,10 +122,11 @@ public class Entity : MonoBehaviour
         if (isKnocked)
             return;
 
-        rb.velocity = new Vector2(_xVelocity, _yVelocity);
+        rb.linearVelocity = new Vector2(_xVelocity, _yVelocity);
         FlipController(_xVelocity);
     }
     #endregion
+
     #region Collision
     public Transform GetGroundCheck()
     {
@@ -146,16 +148,27 @@ public class Entity : MonoBehaviour
         return whatIsGround;
     }
 
+    private Vector2 OppositeX(Transform probe)
+    {
+        Vector2 entityPos = transform.position;
+        Vector2 probePos = probe.position;
+        return new Vector2(2f * entityPos.x - probePos.x, probePos.y);
+    }
+
+
     public virtual bool IsGroundDetected() => Physics2D.Raycast(groundCheck.position, Vector2.down, groundCheackDistance, whatIsGround);
     public virtual bool IsWallDetected() => Physics2D.Raycast(wallCheck.position, Vector2.right * facingDir, wallCheckDistance, whatIsGround);
+    public virtual bool IsGroundBehindDetected() => Physics2D.Raycast(OppositeX(groundCheck), Vector2.down, groundCheackDistance, whatIsGround);
+    public virtual bool IsWallBehindDetected() => Physics2D.Raycast(OppositeX(wallCheck), Vector2.right * facingDir, wallCheckDistance, whatIsGround);
+
 
     protected virtual void OnDrawGizmos()
     {
         Gizmos.DrawLine(groundCheck.position, new Vector3(groundCheck.position.x, groundCheck.position.y - groundCheackDistance));
         Gizmos.DrawLine(wallCheck.position, new Vector3(wallCheck.position.x + wallCheckDistance * facingDir, wallCheck.position.y));
-        //Gizmos.DrawWireSphere(attackCheck.position, attackCheckRadius);
     }
     #endregion
+
     #region Flip
     public virtual void Flip()
     {

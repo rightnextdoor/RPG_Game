@@ -19,7 +19,7 @@ public class WizardFireBall_Controller : Explosion
         }
 
         if (canMove)
-            rb.velocity = new Vector2(xVelocity, rb.velocity.y);
+            rb.linearVelocity = new Vector2(xVelocity, rb.linearVelocity.y);
     }
 
     public void SetupFireBall(float _speed, CharacterStats _myStats, float _radius, float _explosionTimer)

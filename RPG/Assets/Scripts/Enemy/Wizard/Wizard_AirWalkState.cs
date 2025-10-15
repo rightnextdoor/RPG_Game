@@ -51,7 +51,7 @@ public class Wizard_AirWalkState : EnemyState
 
         if (spellTimer < 0f)
         {
-            enemy.SetVelocity(enemy.moveSpeed * moveDir, rb.velocity.y);
+            enemy.SetVelocity(enemy.moveSpeed * moveDir, rb.linearVelocity.y);
             
         }
 

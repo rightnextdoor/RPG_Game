@@ -25,7 +25,7 @@ public class ItemObject : MonoBehaviour
     public void SetupItem(ItemData _itemData, Vector2 _velocity)
     {
         itemData = _itemData;
-        rb.velocity = _velocity;
+        rb.linearVelocity = _velocity;
 
         SetupVisuals();
     }
@@ -34,7 +34,7 @@ public class ItemObject : MonoBehaviour
     {
         if (!Inventory.instance.CanAddItem() && itemData.itemType == ItemType.Equipment)
         {
-            rb.velocity = new Vector2(0, 7);
+            rb.linearVelocity = new Vector2(0, 7);
             NotificationManager.instance.ShowNotification("Inventory is full");
             return;
         }

@@ -49,7 +49,7 @@ public class SkeletonEvasionState : EnemyState
             return;
         }
 
-        enemy.SetVelocity(enemy.evasionSpeed * moveDir, rb.velocity.y);
+        enemy.SetVelocity(enemy.evasionSpeed * moveDir, rb.linearVelocity.y);
 
         if (stateTimer < 0)
         {

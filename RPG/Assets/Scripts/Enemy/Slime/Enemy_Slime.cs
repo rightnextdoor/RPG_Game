@@ -100,7 +100,7 @@ public class Enemy_Slime : Enemy_Regular
 
         isKnocked = true;
 
-        GetComponent<Rigidbody2D>().velocity = new Vector2 (xVelocity * -facingDir, yVelocity);
+        GetComponent<Rigidbody2D>().linearVelocity = new Vector2 (xVelocity * -facingDir, yVelocity);
 
         Invoke("CancelKnockback", 1.5f);
     }

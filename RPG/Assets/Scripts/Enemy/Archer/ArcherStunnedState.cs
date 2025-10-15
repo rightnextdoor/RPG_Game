@@ -18,7 +18,7 @@ public class ArcherStunnedState : EnemyState
 
         stateTimer = enemy.stunDuration;
 
-        rb.velocity = new Vector2(-enemy.facingDir * enemy.stunDirection.x, enemy.stunDirection.y);
+        rb.linearVelocity = new Vector2(-enemy.facingDir * enemy.stunDirection.x, enemy.stunDirection.y);
     }
 
     public override void Exit()

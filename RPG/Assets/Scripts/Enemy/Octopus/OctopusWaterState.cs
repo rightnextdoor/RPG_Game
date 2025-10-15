@@ -38,13 +38,13 @@ public class OctopusWaterState : EnemyState
 
         fallTimer -= Time.deltaTime;
         if (fallTimer > 0 && jumpInWater)
-            rb.velocity = new Vector2(0, 20);
+            rb.linearVelocity = new Vector2(0, 20);
 
         if (stateTimer < 0 && jumpInWater)
             MoveToStartPostion();
 
         if (stateTimer > 0 && jumpOutWater)
-            rb.velocity = new Vector2(0, 30);
+            rb.linearVelocity = new Vector2(0, 30);
 
         if (stateTimer <= 0 && jumpOutWater)
         {

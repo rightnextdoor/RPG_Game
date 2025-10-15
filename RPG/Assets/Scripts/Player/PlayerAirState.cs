@@ -45,7 +45,7 @@ public class PlayerAirState : PlayerState
             stateMachine.ChangeState(player.idleState);
 
         if (xInput != 0)
-            player.SetVelocity(player.moveSpeed * .8f * xInput, rb.velocity.y);
+            player.SetVelocity(player.moveSpeed * .8f * xInput, rb.linearVelocity.y);
 
         
     }

@@ -30,7 +30,7 @@ public class JumperJumpState : EnemyState
         enemy.Attack();
         
 
-        if (rb.velocity.y < 0 && enemy.IsGroundDetected())
+        if (rb.linearVelocity.y < 0 && enemy.IsGroundDetected())
         {
             if (enemy.IsWallDetected())
             {

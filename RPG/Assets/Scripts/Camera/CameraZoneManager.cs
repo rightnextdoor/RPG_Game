@@ -1,6 +1,6 @@
-﻿using Cinemachine;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
+using Unity.Cinemachine;
 using UnityEngine;
 
 public class CameraZoneManager : MonoBehaviour
@@ -8,11 +8,11 @@ public class CameraZoneManager : MonoBehaviour
     public static CameraZoneManager instance;
 
     [Header("Cinemachine Virtual Cameras")]
-    public CinemachineVirtualCamera playerCam;
-    public CinemachineVirtualCamera fixedCam;
-    public CinemachineVirtualCamera horizontalCam;
-    public CinemachineVirtualCamera verticalCam;
-    public CinemachineVirtualCamera panCam;
+    public CinemachineCamera playerCam;
+    public CinemachineCamera fixedCam;
+    public CinemachineCamera horizontalCam;
+    public CinemachineCamera verticalCam;
+    public CinemachineCamera panCam;
 
     [Header("Shared Follow Targets")]
     public Transform panTarget;
@@ -124,7 +124,7 @@ public class CameraZoneManager : MonoBehaviour
     private float defaultVertYDamping;
     private Vector2 defaultVertOffset;
 
-    private CinemachineConfiner fixedConfiner;
+    private CinemachineConfiner2D fixedConfiner;
     private float defaultScreenX, defaultScreenY;
 
     private bool initialized;
@@ -163,8 +163,9 @@ public class CameraZoneManager : MonoBehaviour
     {
         freezeCamera = true;
         if (brain != null)
-            brain.m_DefaultBlend = new CinemachineBlendDefinition(
-                CinemachineBlendDefinition.Style.Cut, 0f);
+            brain.DefaultBlend = new CinemachineBlendDefinition(
+                CinemachineBlendDefinition.Styles.Cut, 0f);
+
         Physics2D.SyncTransforms();
 
         while (PlayerManager.instance == null ||
@@ -200,10 +201,10 @@ public class CameraZoneManager : MonoBehaviour
 
                 SwitchZone(currentZone);
 
-                CinemachineVirtualCamera active = null;
-                if (fixedCam != null && fixedCam.Priority == 20) active = fixedCam;
-                else if (horizontalCam != null && horizontalCam.Priority == 20) active = horizontalCam;
-                else if (verticalCam != null && verticalCam.Priority == 20) active = verticalCam;
+                CinemachineCamera active = null;
+                if (fixedCam != null && fixedCam.Priority.Value == 20) active = fixedCam;
+                else if (horizontalCam != null && horizontalCam.Priority.Value == 20) active = horizontalCam;
+                else if (verticalCam != null && verticalCam.Priority.Value == 20) active = verticalCam;
                 else active = playerCam;
 
                 Transform follow = (active != null) ? active.Follow : null;
@@ -221,8 +222,6 @@ public class CameraZoneManager : MonoBehaviour
                     fixedCam.PreviousStateIsValid = false;
                     fixedLerpActive = false;
                 }
-
-                
             }
         }
         SetBrainBlend(defaultBlendTime);
@@ -262,14 +261,15 @@ public class CameraZoneManager : MonoBehaviour
             playerCamScreenX, playerCamScreenY);
 
         // tracked offset & fall defaults
-        var pt = playerCam.GetCinemachineComponent<CinemachineFramingTransposer>();
+        var pt = playerCam.GetComponent<CinemachinePositionComposer>();
         if (pt != null)
         {
-            pt.m_TrackedObjectOffset += new Vector3(0f, playerCamOffsetY, 0f);
-            normYdamping = pt.m_YDamping;
-            defaultOffset = pt.m_TrackedObjectOffset;
-            defaultScreenX = pt.m_ScreenX;
-            defaultScreenY = pt.m_ScreenY;
+            pt.TargetOffset += new Vector3(0f, playerCamOffsetY, 0f);
+            normYdamping = pt.Damping.y;
+            defaultOffset = pt.TargetOffset;
+            var c = pt.Composition;
+            defaultScreenX = c.ScreenPosition.x;
+            defaultScreenY = c.ScreenPosition.y;
         }
 
         // Horizontal-only
@@ -286,11 +286,11 @@ public class CameraZoneManager : MonoBehaviour
             verticalCamDeadZoneWidth, verticalCamDeadZoneHeight,
             verticalCamSoftZoneWidth, verticalCamSoftZoneHeight,
             verticalCamScreenX, verticalCamScreenY);
-        var vt = verticalCam.GetCinemachineComponent<CinemachineFramingTransposer>();
+        var vt = verticalCam.GetComponent<CinemachinePositionComposer>();
         if (vt != null)
         {
-            defaultVertYDamping = vt.m_YDamping;
-            defaultVertOffset = vt.m_TrackedObjectOffset;
+            defaultVertYDamping = vt.Damping.y;
+            defaultVertOffset = vt.TargetOffset;
         }
 
         // Fixed (no transposer override)
@@ -304,37 +304,51 @@ public class CameraZoneManager : MonoBehaviour
             panCamScreenX, panCamScreenY);
     }
 
-
     private void SetupCamera(
-        CinemachineVirtualCamera cam,
-        Transform target,
-        int priority,
-        float xD, float yD,
-        float deadW, float deadH,
-        float softW, float softH,
-        float screenX, float screenY
-    )
+    CinemachineCamera cam,
+    Transform target,
+    int priority,
+    float xD, float yD,
+    float deadW, float deadH,
+    float softW, float softH,
+    float screenX, float screenY
+)
     {
         if (cam == null || target == null) return;
         cam.Follow = target;
-        cam.Priority = priority;
+        cam.Priority = new PrioritySettings { Enabled = true, Value = priority };
 
-        var t = cam.GetCinemachineComponent<CinemachineFramingTransposer>();
+        var t = cam.GetComponent<CinemachinePositionComposer>();
         if (t != null)
         {
-            t.m_XDamping = xD;
-            t.m_YDamping = yD;
-            t.m_DeadZoneWidth = deadW;
-            t.m_DeadZoneHeight = deadH;
-            t.m_SoftZoneWidth = softW;
-            t.m_SoftZoneHeight = softH;
-            t.m_ScreenX = screenX;
-            t.m_ScreenY = screenY;
+            // Damping
+            var d = t.Damping; d.x = xD; d.y = yD; t.Damping = d;
+
+            // CM3: screen/dead/soft live under Composition
+            var c = t.Composition;
+
+            // Dead zone
+            var dz = c.DeadZone;
+            dz.Enabled = (deadW != 0f || deadH != 0f);
+            dz.Size = new Vector2(deadW, deadH);
+            c.DeadZone = dz;
+
+            // Soft zone → use HardLimits in CM3
+            var hl = c.HardLimits;
+            hl.Enabled = (softW != 0f || softH != 0f);
+            hl.Size = new Vector2(softW, softH);
+            c.HardLimits = hl;
+
+            // Screen position
+            c.ScreenPosition = new Vector2(screenX, screenY);
+
+            t.Composition = c;
         }
 
         cam.PreviousStateIsValid = false;
         cam.OnTargetObjectWarped(target, Vector3.zero);
     }
+
 
     private void SetupFixedCam()
     {
@@ -342,43 +356,45 @@ public class CameraZoneManager : MonoBehaviour
 
         // We will NOT use Follow for fixedCam; it will be driven by transform.
         fixedCam.Follow = null;
-        fixedCam.Priority = 5;
+        fixedCam.Priority = new PrioritySettings { Enabled = true, Value = 5 };
 
         // Ensure there is no body/composer damping to push the view
-        var ft = fixedCam.GetCinemachineComponent<CinemachineFramingTransposer>();
+        var ft = fixedCam.GetComponent<CinemachinePositionComposer>();
         if (ft != null)
         {
-            ft.m_XDamping = 0f;
-            ft.m_YDamping = 0f;
-            ft.m_DeadZoneWidth = 0f;
-            ft.m_DeadZoneHeight = 0f;
-            ft.m_SoftZoneWidth = 0f;
-            ft.m_SoftZoneHeight = 0f;
-            ft.m_ScreenX = 0.5f;
-            ft.m_ScreenY = 0.5f;
+            var d = ft.Damping; d.x = 0f; d.y = 0f; ft.Damping = d;
+
+            // CM3: zones & screen live under Composition
+            var c = ft.Composition;
+
+            var dz = c.DeadZone; dz.Enabled = false; dz.Size = Vector2.zero; c.DeadZone = dz;
+            var hl = c.HardLimits; hl.Enabled = false; hl.Size = Vector2.zero; c.HardLimits = hl;
+
+            c.ScreenPosition = new Vector2(0.5f, 0.5f);
+            ft.Composition = c;
         }
-        var comp = fixedCam.GetCinemachineComponent<CinemachineComposer>();
+
+        var comp = fixedCam.GetComponent<CinemachineRotationComposer>();
         if (comp != null)
         {
-            comp.m_HorizontalDamping = 0f;
-            comp.m_VerticalDamping = 0f;
-            comp.m_DeadZoneWidth = 0f;
-            comp.m_DeadZoneHeight = 0f;
-            comp.m_SoftZoneWidth = 0f;
-            comp.m_SoftZoneHeight = 0f;
-            comp.m_ScreenX = 0.5f;
-            comp.m_ScreenY = 0.5f;
+            comp.Damping = Vector2.zero;
+
+            // Same CM3 Composition pattern
+            var rc = comp.Composition;
+            var dz = rc.DeadZone; dz.Enabled = false; dz.Size = Vector2.zero; rc.DeadZone = dz;
+            rc.ScreenPosition = new Vector2(0.5f, 0.5f);
+            comp.Composition = rc;
         }
     }
+
 
     private void RestorePlayerCamDamping()
     {
         if (playerCam == null) return;
-        var t = playerCam.GetCinemachineComponent<CinemachineFramingTransposer>();
+        var t = playerCam.GetComponent<CinemachinePositionComposer>();
         if (t != null)
         {
-            t.m_XDamping = playerCamXDamping;
-            t.m_YDamping = playerCamYDamping;
+            var d = t.Damping; d.x = playerCamXDamping; d.y = playerCamYDamping; t.Damping = d;
         }
     }
 
@@ -403,9 +419,9 @@ public class CameraZoneManager : MonoBehaviour
         bool haveBrain = (brain != null);
         if (haveBrain)
         {
-            savedBlend = brain.m_DefaultBlend;
-            brain.m_DefaultBlend = new CinemachineBlendDefinition(
-                CinemachineBlendDefinition.Style.Cut, 0f);
+            savedBlend = brain.DefaultBlend;
+            brain.DefaultBlend = new CinemachineBlendDefinition(
+                CinemachineBlendDefinition.Styles.Cut, 0f);
         }
 
         // Reset vcam priorities
@@ -414,8 +430,7 @@ public class CameraZoneManager : MonoBehaviour
         SetPriority(verticalCam, 5);
         SetPriority(fixedCam, 5);
 
-        CinemachineVirtualCamera active = null;
-
+        CinemachineCamera active = null;
 
         // --- If the spawn is inside a non-FreeFollow zone, use that zone camera ---
         if (zoneAtSpawn != null && zoneAtSpawn.mode != CameraZone.ZoneMode.FreeFollow)
@@ -433,7 +448,7 @@ public class CameraZoneManager : MonoBehaviour
                         if (fixedCam != null)
                         {
                             // No confiner push, no follow, place at exact center
-                            var conf = fixedCam.GetComponent<CinemachineConfiner>();
+                            var conf = fixedCam.GetComponent<CinemachineConfiner2D>();
                             if (conf != null) conf.enabled = false;
 
                             var fc = zoneAtSpawn.GetFixedCenter();
@@ -473,8 +488,9 @@ public class CameraZoneManager : MonoBehaviour
         else
         {
             // --- No zone (or FreeFollow): use the playerCam with the cutscene target ---
-            if (cutsceneCamTarget == null) { 
-                if (haveBrain) brain.m_DefaultBlend = savedBlend; freezeCamera = false; return; 
+            if (cutsceneCamTarget == null)
+            {
+                if (haveBrain) brain.DefaultBlend = savedBlend; freezeCamera = false; return;
             }
 
             cutsceneCamTarget.position = new Vector3(spawnPosition.x, spawnPosition.y, -10f);
@@ -501,7 +517,7 @@ public class CameraZoneManager : MonoBehaviour
 
         // Restore your normal blend for later transitions
         if (haveBrain)
-            brain.m_DefaultBlend = savedBlend;
+            brain.DefaultBlend = savedBlend;
         freezeCamera = false;
     }
 
@@ -518,46 +534,44 @@ public class CameraZoneManager : MonoBehaviour
         if (cam == null) return;
 
         Vector3 currentPose = cam.transform.position;
-        currentPose.z = -10f; 
+        currentPose.z = -10f;
         float currentOrthoSize = cam.orthographic ? cam.orthographicSize : 0f;
 
         if (fixedCam == null) return;
 
-        var lens = fixedCam.m_Lens;
-        if (cam.orthographic) lens.Orthographic = true;
+        var lens = fixedCam.Lens;
         lens.OrthographicSize = currentOrthoSize;
-        fixedCam.m_Lens = lens;
+        fixedCam.Lens = lens;
 
         fixedCam.Follow = null;
-
         fixedCam.transform.position = currentPose;
 
-        var ft = fixedCam.GetCinemachineComponent<CinemachineFramingTransposer>();
+        var ft = fixedCam.GetComponent<CinemachinePositionComposer>();
         if (ft != null)
         {
-            ft.m_XDamping = 0f;
-            ft.m_YDamping = 0f;
-            ft.m_DeadZoneWidth = 0f;
-            ft.m_DeadZoneHeight = 0f;
-            ft.m_SoftZoneWidth = 0f;
-            ft.m_SoftZoneHeight = 0f;
-            ft.m_ScreenX = 0.5f;
-            ft.m_ScreenY = 0.5f;
-        }
-        var comp = fixedCam.GetCinemachineComponent<CinemachineComposer>();
-        if (comp != null)
-        {
-            comp.m_HorizontalDamping = 0f;
-            comp.m_VerticalDamping = 0f;
-            comp.m_DeadZoneWidth = 0f;
-            comp.m_DeadZoneHeight = 0f;
-            comp.m_SoftZoneWidth = 0f;
-            comp.m_SoftZoneHeight = 0f;
-            comp.m_ScreenX = 0.5f;
-            comp.m_ScreenY = 0.5f;
+            var d = ft.Damping; d.x = 0f; d.y = 0f; ft.Damping = d;
+
+            // CM3: zones & screen live under Composition
+            var c = ft.Composition;
+            var dz = c.DeadZone; dz.Enabled = false; dz.Size = Vector2.zero; c.DeadZone = dz;
+            var hl = c.HardLimits; hl.Enabled = false; hl.Size = Vector2.zero; c.HardLimits = hl;
+            c.ScreenPosition = new Vector2(0.5f, 0.5f);
+            ft.Composition = c;
         }
 
-        var conf = fixedCam.GetComponent<CinemachineConfiner>();
+        var comp = fixedCam.GetComponent<CinemachineRotationComposer>();
+        if (comp != null)
+        {
+            comp.Damping = Vector2.zero;
+
+            // CM3: also via Composition
+            var rc = comp.Composition;
+            var dz = rc.DeadZone; dz.Enabled = false; dz.Size = Vector2.zero; rc.DeadZone = dz;
+            rc.ScreenPosition = new Vector2(0.5f, 0.5f);
+            comp.Composition = rc;
+        }
+
+        var conf = fixedCam.GetComponent<CinemachineConfiner2D>();
         bool confWasEnabled = false;
         if (conf != null)
         {
@@ -574,25 +588,25 @@ public class CameraZoneManager : MonoBehaviour
         CinemachineBlendDefinition savedBlend = default;
         if (brain != null)
         {
-            savedBlend = brain.m_DefaultBlend;
-            brain.m_DefaultBlend = new CinemachineBlendDefinition(
-                CinemachineBlendDefinition.Style.Cut, 0f);
+            savedBlend = brain.DefaultBlend;
+            brain.DefaultBlend = new CinemachineBlendDefinition(
+                CinemachineBlendDefinition.Styles.Cut, 0f);
         }
 
         fixedCam.PreviousStateIsValid = false;
 
         if (brain != null)
-            brain.m_DefaultBlend = savedBlend;
+            brain.DefaultBlend = savedBlend;
     }
 
 
     public void ForceSnap()
     {
-        CinemachineVirtualCamera active = null;
+        CinemachineCamera active = null;
 
-        if (fixedCam != null && fixedCam.Priority == 20) active = fixedCam;
-        else if (horizontalCam != null && horizontalCam.Priority == 20) active = horizontalCam;
-        else if (verticalCam != null && verticalCam.Priority == 20) active = verticalCam;
+        if (fixedCam != null && fixedCam.Priority.Value == 20) active = fixedCam;
+        else if (horizontalCam != null && horizontalCam.Priority.Value == 20) active = horizontalCam;
+        else if (verticalCam != null && verticalCam.Priority.Value == 20) active = verticalCam;
         else if (playerCam != null) active = playerCam;
 
         var follow = (active != null) ? active.Follow : null;
@@ -654,7 +668,6 @@ public class CameraZoneManager : MonoBehaviour
         StopAllCoroutines();
     }
 
-
     public void ApplyZone(CameraZone zone)
     {
         if (!Application.isPlaying || !isActiveAndEnabled || !gameObject.activeInHierarchy) return;
@@ -701,41 +714,48 @@ public class CameraZoneManager : MonoBehaviour
                 break;
         }
 
-        var pt = playerCam != null ? playerCam.GetCinemachineComponent<CinemachineFramingTransposer>() : null;
+        // Copy playerCam's screen position into the active axis cam
+        var pt = playerCam != null ? playerCam.GetComponent<CinemachinePositionComposer>() : null;
         if (pt != null)
         {
-            if (zone.mode == CameraZone.ZoneMode.HorizontalOnly)
+            var srcComp = pt.Composition; // CM3: ScreenPosition is under Composition
+
+            if (zone.mode == CameraZone.ZoneMode.HorizontalOnly && horizontalCam != null)
             {
-                var ht = horizontalCam.GetCinemachineComponent<CinemachineFramingTransposer>();
-                if (ht != null) { ht.m_ScreenX = pt.m_ScreenX; ht.m_ScreenY = pt.m_ScreenY; }
+                var ht = horizontalCam.GetComponent<CinemachinePositionComposer>();
+                if (ht != null)
+                {
+                    var hc = ht.Composition;
+                    hc.ScreenPosition = srcComp.ScreenPosition;
+                    ht.Composition = hc;
+                }
             }
-            else if (zone.mode == CameraZone.ZoneMode.VerticalOnly)
+            else if (zone.mode == CameraZone.ZoneMode.VerticalOnly && verticalCam != null)
             {
-                var vt = verticalCam.GetCinemachineComponent<CinemachineFramingTransposer>();
-                if (vt != null) { vt.m_ScreenX = pt.m_ScreenX; vt.m_ScreenY = pt.m_ScreenY; }
+                var vtc = verticalCam.GetComponent<CinemachinePositionComposer>();
+                if (vtc != null)
+                {
+                    var vc = vtc.Composition;
+                    vc.ScreenPosition = srcComp.ScreenPosition;
+                    vtc.Composition = vc;
+                }
             }
         }
 
         if (zone.mode == CameraZone.ZoneMode.FreeFollow && playerCam != null)
         {
-            var t = playerCam.GetCinemachineComponent<CinemachineFramingTransposer>();
+            var t = playerCam.GetComponent<CinemachinePositionComposer>();
             if (t != null)
             {
-                if (zone.overrideTrackedOffset)
-                    t.m_TrackedObjectOffset = zone.trackedOffset;
-                else
-                    t.m_TrackedObjectOffset = defaultOffset;
+                // Tracked offset
+                t.TargetOffset = zone.overrideTrackedOffset ? zone.trackedOffset : defaultOffset;
 
-                if (zone.overrideScreenXY)
-                {
-                    t.m_ScreenX = zone.screenX;
-                    t.m_ScreenY = zone.screenY;
-                }
-                else
-                {
-                    t.m_ScreenX = defaultScreenX;
-                    t.m_ScreenY = defaultScreenY;
-                }
+                // Screen position via Composition
+                var c = t.Composition;
+                c.ScreenPosition = zone.overrideScreenXY
+                    ? new Vector2(zone.screenX, zone.screenY)
+                    : new Vector2(defaultScreenX, defaultScreenY);
+                t.Composition = c;
             }
         }
         else
@@ -749,15 +769,19 @@ public class CameraZoneManager : MonoBehaviour
             StartCoroutine(RestoreDefaultBlend(zoneBlendTime));
     }
 
+
     private void RestorePlayerCamFramingDefaults()
     {
         if (playerCam == null) return;
-        var t = playerCam.GetCinemachineComponent<CinemachineFramingTransposer>();
+        var t = playerCam.GetComponent<CinemachinePositionComposer>();
         if (t == null) return;
 
-        t.m_TrackedObjectOffset = defaultOffset;
-        t.m_ScreenX = defaultScreenX;
-        t.m_ScreenY = defaultScreenY;
+        t.TargetOffset = defaultOffset;
+
+        // CM3: ScreenPosition lives under Composition
+        var c = t.Composition;
+        c.ScreenPosition = new Vector2(defaultScreenX, defaultScreenY);
+        t.Composition = c;
     }
 
 
@@ -836,9 +860,9 @@ public class CameraZoneManager : MonoBehaviour
                     var currentPose = (Camera.main != null) ? Camera.main.transform.position : fixedTargetGoal;
                     currentPose.z = -10f;
 
-                    fixedCam.Follow = null;                
+                    fixedCam.Follow = null;
                     fixedCam.transform.position = currentPose;
-                    fixedCam.PreviousStateIsValid = false; 
+                    fixedCam.PreviousStateIsValid = false;
 
                     fixedLerpActive = true;
                 }
@@ -891,7 +915,7 @@ public class CameraZoneManager : MonoBehaviour
 
     public void SnapToZoneAtPoint(Vector2 point)
     {
-        CameraZone[] zones = FindObjectsOfType<CameraZone>();
+        CameraZone[] zones = FindObjectsByType<CameraZone>(FindObjectsSortMode.None);
         CameraZone found = null;
 
         foreach (var z in zones)
@@ -994,15 +1018,15 @@ public class CameraZoneManager : MonoBehaviour
             {
                 // Horizontal-only zone: drive the ACTIVE vcam's Follow (not the zone directly)
                 if (cz.mode == CameraZone.ZoneMode.HorizontalOnly &&
-                    horizontalCam != null && horizontalCam.Priority == 20 &&
+                    horizontalCam != null && horizontalCam.Priority.Value == 20 &&
                     horizontalCam.Follow != null)
                 {
                     Transform follow = horizontalCam.Follow;
                     Vector3 goal = new Vector3(
-                    CamSubject.position.x + cz.xBias,
-                    cz.GetCenterY() + cz.yBias,
-                    -10f
-                );
+                        CamSubject.position.x + cz.xBias,
+                        cz.GetCenterY() + cz.yBias,
+                        -10f
+                    );
                     follow.position = Vector3.SmoothDamp(
                         follow.position,
                         goal,
@@ -1013,15 +1037,15 @@ public class CameraZoneManager : MonoBehaviour
 
                 // Vertical-only zone
                 if (cz.mode == CameraZone.ZoneMode.VerticalOnly &&
-                    verticalCam != null && verticalCam.Priority == 20 &&
+                    verticalCam != null && verticalCam.Priority.Value == 20 &&
                     verticalCam.Follow != null)
                 {
                     Transform follow = verticalCam.Follow;
                     Vector3 goal = new Vector3(
-                   cz.GetFixedCenter().x + cz.xBias,
-                   CamSubject.position.y + cz.yBias,
-                   -10f
-               );
+                        cz.GetFixedCenter().x + cz.xBias,
+                        CamSubject.position.y + cz.yBias,
+                        -10f
+                    );
                     follow.position = Vector3.SmoothDamp(
                         follow.position,
                         goal,
@@ -1032,7 +1056,7 @@ public class CameraZoneManager : MonoBehaviour
 
                 if (cz != null &&
                     cz.mode == CameraZone.ZoneMode.Fixed &&
-                    fixedCam != null && fixedCam.Priority == 20)
+                    fixedCam != null && fixedCam.Priority.Value == 20)
                 {
                     // We are in Fixed; fixedCam.Follow is intentionally null.
                     if (fixedLerpActive)
@@ -1065,35 +1089,37 @@ public class CameraZoneManager : MonoBehaviour
     private void CacheCameraComponents()
     {
         if (fixedCam != null)
-            fixedConfiner = fixedCam.GetComponent<CinemachineConfiner>();
+            fixedConfiner = fixedCam.GetComponent<CinemachineConfiner2D>();
     }
 
-    private void SetConfinerEnabled(CinemachineVirtualCamera cam, bool enabled)
+    private void SetConfinerEnabled(CinemachineCamera cam, bool enabled)
     {
         if (cam == null) return;
-        var conf = cam.GetComponent<CinemachineConfiner>();
+        var conf = cam.GetComponent<CinemachineConfiner2D>();
         if (conf != null) conf.enabled = enabled;
     }
 
-
-    private void HandleFallFollow(CinemachineVirtualCamera cam, float baseYDamp, Vector2 baseOffset)
+    private void HandleFallFollow(CinemachineCamera cam, float baseYDamp, Vector2 baseOffset)
     {
-        if (cam == null || cam.Priority != 20) return;
+        if (cam == null || cam.Priority.Value != 20) return;
         if (playerRB == null) return;
-        var t = cam.GetCinemachineComponent<CinemachineFramingTransposer>();
+        var t = cam.GetComponent<CinemachinePositionComposer>();
         if (t == null) return;
 
-        bool falling = playerRB.velocity.y < fallSpeedThreshold;
+        bool falling = playerRB.linearVelocity.y < fallSpeedThreshold;
 
-        t.m_YDamping = Mathf.Lerp(t.m_YDamping, falling ? fallPanAmount : baseYDamp, Time.deltaTime / fallYPanTime);
+        var d = t.Damping;
+        d.y = Mathf.Lerp(d.y, falling ? fallPanAmount : baseYDamp, Time.deltaTime / fallYPanTime);
+        t.Damping = d;
+
         float lookY = falling ? fallOffsetY : baseOffset.y;
-        t.m_TrackedObjectOffset = Vector2.Lerp(t.m_TrackedObjectOffset, new Vector2(baseOffset.x, lookY), Time.deltaTime / fallOffsetLerpTime);
+        t.TargetOffset = Vector2.Lerp(t.TargetOffset, new Vector2(baseOffset.x, lookY), Time.deltaTime / fallOffsetLerpTime);
     }
 
     private void SetBrainBlend(float blendTime)
     {
         if (brain != null)
-            brain.m_DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Style.EaseInOut, blendTime);
+            brain.DefaultBlend = new CinemachineBlendDefinition(CinemachineBlendDefinition.Styles.EaseInOut, blendTime);
     }
 
     private IEnumerator RestoreDefaultBlend(float delay)
@@ -1102,10 +1128,10 @@ public class CameraZoneManager : MonoBehaviour
         SetBrainBlend(defaultBlendTime);
     }
 
-    private void SetPriority(CinemachineVirtualCamera cam, int priority)
+    private void SetPriority(CinemachineCamera cam, int priority)
     {
         if (cam != null)
-            cam.Priority = priority;
+            cam.Priority = new PrioritySettings { Enabled = true, Value = priority };
     }
 }
 

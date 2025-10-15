@@ -34,7 +34,7 @@ public class Wizard_Female_BattleState : EnemyState
     {
         base.Update();
 
-        enemy.anim.SetFloat("xVelocity", enemy.rb.velocity.x);
+        enemy.anim.SetFloat("xVelocity", enemy.rb.linearVelocity.x);
 
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {

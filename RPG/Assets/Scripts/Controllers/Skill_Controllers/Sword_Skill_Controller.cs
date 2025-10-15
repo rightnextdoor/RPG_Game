@@ -54,7 +54,7 @@ public class Sword_Skill_Controller : MonoBehaviour
     private void Update()
     {
         if (canRotate)
-            transform.right = rb.velocity;
+            transform.right = rb.linearVelocity;
 
         if (isReturning)
         {
@@ -80,13 +80,13 @@ public class Sword_Skill_Controller : MonoBehaviour
         freezeTimeDuration = _freezeTimeDuration;
         returnSpeed = _returnSpeed;
 
-        rb.velocity = _dir;
+        rb.linearVelocity = _dir;
         rb.gravityScale = _gravityScale;
 
         if(pierceAmount <= 0)
             anim.SetBool("Rotation", true);
 
-        spinDirection = Mathf.Clamp(rb.velocity.x, -1, 1);
+        spinDirection = Mathf.Clamp(rb.linearVelocity.x, -1, 1);
 
         Invoke("DestoryMe", 7);
     }

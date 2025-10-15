@@ -19,7 +19,7 @@ public class WizardProjectile_Controller : Explosion
         }
 
         if (canMove)
-            rb.velocity = xVelocity;
+            rb.linearVelocity = xVelocity;
     }
 
     public void SetupProjectile(float _speed, CharacterStats _myStats, float _radius, float _explosionTimer, Vector3 _playerPos, Vector3 _dir)

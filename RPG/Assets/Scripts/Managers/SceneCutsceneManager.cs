@@ -1,4 +1,3 @@
-using Cinemachine;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Playables;
@@ -8,7 +7,7 @@ using UnityEngine.Timeline;
 public class SceneCutsceneManager : MonoBehaviour
 {
     [SerializeField] private GameObject cutscenePlayerPrefab;
-    [SerializeField] private CutsceneLibrary cutsceneLibrary; 
+    [SerializeField] private CutsceneLibrary cutsceneLibrary;
 
     private LevelChanger activeChanger;
     private GameObject cutscenePlayer;
@@ -78,7 +77,7 @@ public class SceneCutsceneManager : MonoBehaviour
 
     private void FindActiveLevelChanger()
     {
-        foreach (var changer in FindObjectsOfType<LevelChanger>())
+        foreach (var changer in FindObjectsByType<LevelChanger>(FindObjectsSortMode.None))
         {
             if (changer.GetLevelConnection() == LevelConnection.ActiveConnection)
             {
@@ -87,6 +86,7 @@ public class SceneCutsceneManager : MonoBehaviour
             }
         }
     }
+
 
     private void SetCutsceneIdle(GameObject player)
     {

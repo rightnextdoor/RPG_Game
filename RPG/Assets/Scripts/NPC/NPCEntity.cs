@@ -42,12 +42,12 @@ public class NPCEntity : MonoBehaviour
     #region Velocity
     public void SetZeroVelocity()
     {
-        rb.velocity = new Vector2(0, 0);
+        rb.linearVelocity = new Vector2(0, 0);
     }
 
     public void SetVelocity(float _xVelocity, float _yVelocity)
     {
-        rb.velocity = new Vector2(_xVelocity, _yVelocity);
+        rb.linearVelocity = new Vector2(_xVelocity, _yVelocity);
         FlipController(_xVelocity);
     }
     #endregion

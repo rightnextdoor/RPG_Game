@@ -1,8 +1,6 @@
 using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Cinemachine;
 using TMPro;
+using UnityEngine;
 
 public class EntityFX : MonoBehaviour
 {
@@ -57,13 +55,13 @@ public class EntityFX : MonoBehaviour
     {
         if (_transprent)
         {
-            if(!_isBoss && !_isPlayer)
+            if (!_isBoss && !_isPlayer)
                 myHealthBar.SetActive(false);
             sr.color = Color.clear;
         }
         else
         {
-            if(!_isBoss && !_isPlayer)
+            if (!_isBoss && !_isPlayer)
                 myHealthBar.SetActive(true);
             sr.color = Color.white;
         }
@@ -120,7 +118,7 @@ public class EntityFX : MonoBehaviour
 
     public void ShockFxFor(float _seconds)
     {
-        if(shockFX != null)
+        if (shockFX != null)
             shockFX.Play();
 
         InvokeRepeating("ShockColorFx", 0, .3f);
@@ -131,7 +129,7 @@ public class EntityFX : MonoBehaviour
     {
         if (sr.color != igniteColor[0])
             sr.color = igniteColor[0];
-        else 
+        else
             sr.color = igniteColor[1];
     }
 
@@ -156,8 +154,8 @@ public class EntityFX : MonoBehaviour
         float zRotation = Random.Range(-90, 90);
         float xPosition = Random.Range(-.5f, .5f);
         float yPosition = Random.Range(-.5f, .5f);
-        
-        Vector3 hitFxRotation = new Vector3(0 ,0, zRotation); 
+
+        Vector3 hitFxRotation = new Vector3(0, 0, zRotation);
 
         GameObject hitPrefab = hitFx;
 
@@ -170,7 +168,7 @@ public class EntityFX : MonoBehaviour
 
             if (GetComponent<Entity>().facingDir == -1)
                 yRotation = 180;
-            
+
             hitFxRotation = new Vector3(0, yRotation, zRotation);
 
         }
@@ -182,5 +180,5 @@ public class EntityFX : MonoBehaviour
 
         Destroy(newHitFx, .5f);
     }
-    
+
 }

@@ -16,7 +16,7 @@ public class Tornado_Controller : Explosion
     {
 
         if (canMove)
-            rb.velocity = new Vector2(moveSpeed, rb.velocity.y);
+            rb.linearVelocity = new Vector2(moveSpeed, rb.linearVelocity.y);
     }
 
     public void SetupTornadoAttack(CharacterStats _myStats, float _moveSpeed)

@@ -63,11 +63,11 @@ public class LevelChanger : MonoBehaviour
 
         if (type == CutsceneType.FallIn)
         {
-            player.rb.velocity = new Vector2(0, -20f);
+            player.rb.linearVelocity = new Vector2(0, -20f);
         }
         else if (type == CutsceneType.JumpIn)
         {
-            player.rb.velocity = new Vector2(0, 20f);
+            player.rb.linearVelocity = new Vector2(0, 20f);
             player.rb.gravityScale = 0;
         }
 

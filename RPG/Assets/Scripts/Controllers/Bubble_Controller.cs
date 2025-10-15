@@ -27,7 +27,7 @@ public class Bubble_Controller : MonoBehaviour
         }
 
         if (canMove)
-            rb.velocity = xVelocity;
+            rb.linearVelocity = xVelocity;
     }
 
     public void SetupBubble(float _speed, CharacterStats _myStats, float _radius, float _explosionTimer, Vector3 _playerPos, Vector3 dir)

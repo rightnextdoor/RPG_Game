@@ -18,7 +18,7 @@ public class Arrow_Controller : MonoBehaviour
     private void Update()
     {
         if (canMove)
-            rb.velocity = xVelocity;
+            rb.linearVelocity = xVelocity;
     }
 
     public void SetupArrow(float _speed, CharacterStats _myStats, Vector3 _playerPos, Vector3 dir)

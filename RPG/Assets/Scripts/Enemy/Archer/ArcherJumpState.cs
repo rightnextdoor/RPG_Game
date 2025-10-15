@@ -16,7 +16,7 @@ public class ArcherJumpState : EnemyState
         base.Enter();
 
         AudioManager.instance.PlaySFX("ArcherJump", enemy.transform);
-        rb.velocity = new Vector2(enemy.jumpVelocity.x * -enemy.facingDir, enemy.jumpVelocity.y);
+        rb.linearVelocity = new Vector2(enemy.jumpVelocity.x * -enemy.facingDir, enemy.jumpVelocity.y);
         stateTimer = fallTimer;
     }
 
@@ -29,9 +29,9 @@ public class ArcherJumpState : EnemyState
     {
         base.Update();
 
-        enemy.anim.SetFloat("yVelocity", rb.velocity.y);
+        enemy.anim.SetFloat("yVelocity", rb.linearVelocity.y);
 
-        if(rb.velocity.y < 0 && enemy.IsGroundDetected())
+        if(rb.linearVelocity.y < 0 && enemy.IsGroundDetected())
             stateMachine.ChangeState(enemy.battleState);
 
         if (stateTimer < 0f)

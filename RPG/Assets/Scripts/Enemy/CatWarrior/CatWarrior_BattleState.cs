@@ -35,7 +35,7 @@ public class CatWarrior_BattleState : EnemyState
     {
         base.Update();
 
-        enemy.anim.SetFloat("xVelocity", enemy.rb.velocity.x);
+        enemy.anim.SetFloat("xVelocity", enemy.rb.linearVelocity.x);
 
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {
@@ -64,7 +64,7 @@ public class CatWarrior_BattleState : EnemyState
             else if (enemy.IsPlayerDetected().distance <= enemy.meleeAttackDistance)
                 enemy.MeleeAttack(player, enemy.attackState, enemy.evasionState, "CatWarriorAttack", false, 0);
             else
-                enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, rb.velocity.y);
+                enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, rb.linearVelocity.y);
         }
         else
         {
