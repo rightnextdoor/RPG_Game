@@ -33,8 +33,11 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
     private const float EDGE_CLEAR_FACTOR = 0.6f;
     private const float SKIN_NUDGE = 0.02f;
 
-    // keep this; we map step→crawlSense so ApplyVelocityCrawler stays unchanged
     private int crawlSense = +1;
+
+    private float zSmoothVel;
+    private const float Z_ALIGN_TIME = 0.06f;
+    private const float VEL_BLEND_HZ = 12f;
     #endregion
 
     // ---- DEBUG helpers for Surface Crawler ----
@@ -230,6 +233,8 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
     private void SurfaceCrawler()
     {
+        SmoothAlignToCurrentNormal();
+
         float speed = enemy.moveSpeed * enemy.moveSpeedMultiplier;
 
         ApplyVelocityCrawler();
@@ -239,32 +244,21 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
         if (wallHit)
         {
-#if UNITY_EDITOR
-            Debug.Log($"[Crawler][Trigger] {enemy.name} | WALL | surf={SurfaceToString(step.surface)} | step.dir={step.dir} | facingDir={enemy.facingDir} | IsFacingRight={enemy.IsFacingRight()}");
-#endif
             var next = AdvanceOnWallHit(step);
             LogCrawlerTransition("WALL", step, next);
             SetStepImmediate(next);
-            LogCrawlerState("After WALL");
             return;
         }
 
         if (!adhered)
         {
-#if UNITY_EDITOR
-            Debug.Log($"[Crawler][Trigger] {enemy.name} | EDGE | surf={SurfaceToString(step.surface)} | step.dir={step.dir} | facingDir={enemy.facingDir} | IsFacingRight={enemy.IsFacingRight()}");
-#endif
             var next = AdvanceOnEdge(step);
             LogCrawlerTransition("EDGE", step, next);
             BeginEdgeWrap(next);
 
-            if (TickEdgeWrap(speed))
-            {
-                return;
-            }
+            if (TickEdgeWrap(speed)) return;
             return;
         }
-
     }
 
     #endregion
@@ -331,11 +325,13 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
     {
         float speed = enemy.moveSpeed * enemy.moveSpeedMultiplier;
 
-        Vector2 tangent = new Vector2(currentNormal.y, -currentNormal.x);
+        // Tangent from current (possibly mid-blend) normal
+        Vector2 tangent = new Vector2(currentNormal.y, -currentNormal.x) * crawlSense;
+        Vector2 targetVel = tangent.normalized * speed;
 
-        tangent *= crawlSense;
-
-        rb.linearVelocity = tangent.normalized * speed;
+        // Exponential blend factor (frame-rate independent)
+        float alpha = 1f - Mathf.Exp(-VEL_BLEND_HZ * Time.deltaTime);
+        rb.linearVelocity = Vector2.Lerp(rb.linearVelocity, targetVel, alpha);
     }
 
     #endregion
@@ -387,8 +383,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
                         SetStepImmediate(to);
 
-                        LogCrawlerState("After EDGE-LOCK");
-
                         wrapPhase = EdgeWrapPhase.Adhered;
                     }
                     return true;
@@ -396,6 +390,7 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         }
         return false;
     }
+
 
     private Surface4 ClassifySurface(Vector2 n)
     {
@@ -446,9 +441,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         {
             bool wantRight = (step.dir > 0);
             if (enemy.IsFacingRight() != wantRight) enemy.Flip();
-#if UNITY_EDITOR
-            Debug.Log($"[Crawler][Facing] {enemy.name} | surf=Floor | step.dir={step.dir} | facingDir={enemy.facingDir} | IsFacingRight={enemy.IsFacingRight()}");
-#endif
             return;
         }
 
@@ -456,16 +448,10 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         {
             bool wantRightOnCeiling = (step.dir < 0);
             if (enemy.IsFacingRight() != wantRightOnCeiling) enemy.Flip();
-#if UNITY_EDITOR
-            Debug.Log($"[Crawler][Facing] {enemy.name} | surf=Ceiling | step.dir={step.dir} | facingDir={enemy.facingDir} | IsFacingRight={enemy.IsFacingRight()}");
-#endif
             return;
         }
-
-#if UNITY_EDITOR
-        Debug.Log($"[Crawler][Facing] {enemy.name} | surf={SurfaceToString(step.surface)} | step.dir={step.dir} | facingDir={enemy.facingDir} | IsFacingRight={enemy.IsFacingRight()}");
-#endif
     }
+
 
     private void ApplyStepCrawlSense()
     {
@@ -541,15 +527,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         float dist = Mathf.Max(0.01f, enemy.GetWallCheckDistance());
 
         hit = Physics2D.Raycast(origin, dir, dist, enemy.GetWhatIsGround());
-
-#if UNITY_EDITOR
-        if (enemy.moveMode == RegularMoveMode.SurfaceCrawler)
-        {
-            string hitName = (hit.collider != null) ? hit.collider.name : "none";
-            Debug.Log($"[Crawler][WallProbe] {enemy.name} | surf={SurfaceToString(step.surface)} dir={StepDirToString(step)} | rayDir={dir} dist={dist} | hit={hitName}");
-        }
-#endif
-
         return hit.collider != null;
     }
 
@@ -560,25 +537,8 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
     private void AlignToNormal(Vector2 normal)
     {
+
         currentNormal = (normal.sqrMagnitude > 0.0001f) ? normal.normalized : Vector2.up;
-
-        // Base Z from the surface normal (feet toward +normal)
-        float angleZ = Vector2.SignedAngle(Vector2.up, currentNormal);
-
-        // 🔧 Only tweak Z when crawling on a WALL and the enemy is moving LEFT
-        // (i.e., not facing right). Floor/Ceiling remain driven by Flip().
-        if (enemy.moveMode == RegularMoveMode.SurfaceCrawler)
-        {
-            bool onWall = step.surface == Surface4.LeftWall || step.surface == Surface4.RightWall;
-            if (onWall && !enemy.IsFacingRight())
-            {
-                angleZ += 180f; // flip feet side for the “move-left” wall case
-            }
-        }
-
-        var e = enemy.transform.eulerAngles;
-        e.z = Normalize360(angleZ);
-        enemy.transform.eulerAngles = e;
     }
 
     private static float Normalize360(float a)
@@ -588,30 +548,37 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         return a;
     }
 
+    private void SmoothAlignToCurrentNormal()
+    {
+        if (enemy.moveMode != RegularMoveMode.SurfaceCrawler) return;
+
+        // Base target Z from the desired surface normal
+        float targetZ = Vector2.SignedAngle(Vector2.up, currentNormal);
+
+        // Keep your critical wall rule: on walls and NOT facing right, rotate feet side by 180°
+        bool onWall = step.surface == Surface4.LeftWall || step.surface == Surface4.RightWall;
+        if (onWall && !enemy.IsFacingRight()) targetZ += 180f;
+
+        // SmoothDampAngle to the target Z (preserve current Y flip)
+        var e = enemy.transform.eulerAngles;
+        float smoothTime = Mathf.Max(0.0001f, Z_ALIGN_TIME);
+        e.z = Mathf.SmoothDampAngle(e.z, Normalize360(targetZ), ref zSmoothVel, smoothTime);
+        enemy.transform.eulerAngles = e;
+    }
+
     private bool LocalAdhesionProbe(out RaycastHit2D hit)
     {
         var groundT = enemy.GetGroundCheck();
         if (groundT == null) { hit = default; return false; }
 
         Vector2 origin = (Vector2)groundT.position;
-
-        // KEY CHANGE: trust the step, not transform.up
-        Vector2 dir = -SurfaceNormal(step.surface);   // into the surface we believe we’re on
+        Vector2 dir = -SurfaceNormal(step.surface);   // trust the step
 
         float dist = Mathf.Max(0.01f, enemy.GetGroundCheckDistance());
         hit = Physics2D.Raycast(origin, dir, dist, enemy.GetWhatIsGround());
-
-#if UNITY_EDITOR
-        if (enemy.moveMode == RegularMoveMode.SurfaceCrawler)
-        {
-            string hitName = (hit.collider != null) ? hit.collider.name : "none";
-            Vector2 liveDown = -(Vector2)enemy.transform.up;
-            Debug.Log($"[Crawler][Adhesion] {enemy.name} | surf={SurfaceToString(step.surface)} dir={StepDirToString(step)} | expectedRay={dir} liveRay={liveDown} dist={dist} | hit={hitName}");
-        }
-#endif
-
         return hit.collider != null;
     }
+
 
     #endregion
 
