@@ -22,7 +22,7 @@ public class Entity : MonoBehaviour
     public Transform attackCheck;
     public float attackCheckRadius = 1.2f;
     [SerializeField] protected Transform groundCheck;
-    [SerializeField] protected float groundCheackDistance = 1;
+    [SerializeField] protected float groundCheckDistance = 1;
     [SerializeField] protected Transform wallCheck;
     [SerializeField] protected float wallCheckDistance = .8f;
     [SerializeField] protected LayerMask whatIsGround;
@@ -38,7 +38,23 @@ public class Entity : MonoBehaviour
 
     protected virtual void Awake()
     {
+        SetupDefaultFacingDir(ComputeFacingFromTransform());
+    }
 
+#if UNITY_EDITOR
+    protected virtual void OnValidate()
+    {
+        if (!isActiveAndEnabled) return;
+        SetupDefaultFacingDir(ComputeFacingFromTransform());
+    }
+#endif
+
+    private int ComputeFacingFromTransform()
+    {
+        float y = transform.eulerAngles.y;
+
+        float dy = Mathf.DeltaAngle(y, 0f);
+        return (Mathf.Abs(dy) <= 90f) ? 1 : -1;
     }
 
     public virtual void SlowEntityBy(float _slowPercentage, float _slowDuration)
@@ -128,25 +144,11 @@ public class Entity : MonoBehaviour
     #endregion
 
     #region Collision
-    public Transform GetGroundCheck()
-    {
-        return groundCheck;
-    }
-
-    public Transform GetWallCheck()
-    {
-        return wallCheck;
-    }
-
-    public float GetGroundCheackDistance()
-    {
-        return groundCheackDistance;
-    }
-
-    public LayerMask GetWhatIsGround()
-    {
-        return whatIsGround;
-    }
+    public Transform GetGroundCheck() => groundCheck;
+    public Transform GetWallCheck() => wallCheck;
+    public float GetGroundCheckDistance() => groundCheckDistance;
+    public float GetWallCheckDistance() => wallCheckDistance;
+    public LayerMask GetWhatIsGround() => whatIsGround;
 
     private Vector2 OppositeX(Transform probe)
     {
@@ -156,16 +158,30 @@ public class Entity : MonoBehaviour
     }
 
 
-    public virtual bool IsGroundDetected() => Physics2D.Raycast(groundCheck.position, Vector2.down, groundCheackDistance, whatIsGround);
+    public virtual bool IsGroundDetected() => Physics2D.Raycast(groundCheck.position, Vector2.down, groundCheckDistance, whatIsGround);
     public virtual bool IsWallDetected() => Physics2D.Raycast(wallCheck.position, Vector2.right * facingDir, wallCheckDistance, whatIsGround);
-    public virtual bool IsGroundBehindDetected() => Physics2D.Raycast(OppositeX(groundCheck), Vector2.down, groundCheackDistance, whatIsGround);
+    public virtual bool IsGroundBehindDetected() => Physics2D.Raycast(OppositeX(groundCheck), Vector2.down, groundCheckDistance, whatIsGround);
     public virtual bool IsWallBehindDetected() => Physics2D.Raycast(OppositeX(wallCheck), Vector2.right * facingDir, wallCheckDistance, whatIsGround);
 
 
     protected virtual void OnDrawGizmos()
     {
-        Gizmos.DrawLine(groundCheck.position, new Vector3(groundCheck.position.x, groundCheck.position.y - groundCheackDistance));
-        Gizmos.DrawLine(wallCheck.position, new Vector3(wallCheck.position.x + wallCheckDistance * facingDir, wallCheck.position.y));
+#if UNITY_EDITOR
+        var g = GetGroundCheck();
+        var w = GetWallCheck();
+        if (g != null)
+        {
+            Vector3 start = g.position;
+            Vector3 end = start + (-transform.up) * GetGroundCheckDistance();
+            Gizmos.DrawLine(start, end);
+        }
+        if (w != null)
+        {
+            Vector3 start = w.position;
+            Vector3 end = start + (transform.right) * GetWallCheckDistance();
+            Gizmos.DrawLine(start, end);
+        }
+#endif
     }
     #endregion
 
@@ -191,9 +207,8 @@ public class Entity : MonoBehaviour
     public virtual void SetupDefaultFacingDir(int _direction)
     {
         facingDir = _direction;
-
-        if (facingDir == -1)
-            facingRight = false;
+        if (facingDir == -1) facingRight = false;
+        else if (facingDir == 1) facingRight = true;
     }
     #endregion
 

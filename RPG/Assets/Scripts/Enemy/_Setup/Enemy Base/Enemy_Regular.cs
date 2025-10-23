@@ -29,12 +29,6 @@ public class Enemy_Regular : Enemy
     [Header("Traverse Stops")]
     [SerializeField] public float traverseStopMinSeconds = 1.0f;
     [SerializeField] public float traverseStopMaxSeconds = 2.5f;
-
-    [Header("Surface crawler")]
-    [Space(6)]
-    [SerializeField] public LayerMask surfaceCrawlMask = ~0;
-    [SerializeField][Min(0.01f)] public float surfaceProbeAhead = 0.4f;
-    [SerializeField][Min(0.01f)] public float surfaceProbeDown = 0.5f;
     #endregion
 
     [Space(2)]

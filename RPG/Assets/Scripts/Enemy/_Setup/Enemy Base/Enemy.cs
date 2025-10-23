@@ -80,6 +80,7 @@ public class Enemy : Entity
     protected override void Awake()
     {
         base.Awake();
+
         stateMachine = new EnemyStateMachine();
 
         defaultMoveSpeed = moveSpeed;
@@ -453,6 +454,7 @@ public class Enemy : Entity
         base.OnDrawGizmos();
 
 #if UNITY_EDITOR
+        // Draw per-attack check gizmos (unchanged: they already use local transform of each check)
         if (attackDetails != null)
         {
             foreach (var ad in attackDetails)
@@ -463,6 +465,10 @@ public class Enemy : Entity
             }
         }
 
+        // Helper: local right scaled by facingDir
+        Vector3 fwd = transform.right;
+
+        // Ability ranges (per attack)
         if (attackDetails != null && attackDetails.Count > 0)
         {
             const float laneStepY = 0.15f;
@@ -479,23 +485,22 @@ public class Enemy : Entity
                 float maxR = Mathf.Max(minR, ad.rangeMax);
                 if (maxR <= minR) maxR = minR + stubLength;
 
-                // color per attack
                 Gizmos.color = Color.HSVToRGB((i * 0.13f) % 1f, 0.8f, 1f);
 
                 float yLane = baseYOffset + i * laneStepY;
                 Vector3 laneOrigin = transform.position + new Vector3(0f, yLane, 0f);
 
-                // segment from MIN → MAX (offset from enemy by minR)
-                Vector3 segStart = laneOrigin + new Vector3(minR * facingDir, 0f, 0f);
-                Vector3 segEnd = laneOrigin + new Vector3(maxR * facingDir, 0f, 0f);
+                Vector3 segStart = laneOrigin + fwd.normalized * minR;
+                Vector3 segEnd = laneOrigin + fwd.normalized * maxR;
                 Gizmos.DrawLine(segStart, segEnd);
 
-                // small ticks at both ends to make the segment bounds clear
-                Vector3 up = Vector3.up * endTick;
+                Vector3 up = Vector3.up * endTick; // purely visual tick
                 Gizmos.DrawLine(segStart - up, segStart + up);
                 Gizmos.DrawLine(segEnd - up, segEnd + up);
             }
         }
+
+        // Player detection distance lane
         {
             const float laneStepY = 0.15f;
             const float baseYOffset = 0.25f;
@@ -505,36 +510,34 @@ public class Enemy : Entity
             float yLaneBelow = baseYOffset - (laneStepY * 3f);
 
             Vector3 origin = transform.position + new Vector3(0f, yLaneBelow, 0f);
-            Vector3 end = origin + new Vector3(dist * facingDir, 0f, 0f);
+            Vector3 end = origin + fwd.normalized * dist;
 
             Gizmos.color = Color.yellow;
             Gizmos.DrawLine(origin, end);
 
-            // small tick at the end
             Vector3 up = Vector3.up * endTick;
             Gizmos.DrawLine(end - up, end + up);
         }
 
+        // Evasion trigger distance lane
         {
-            const float endTick = 0.03f;
-
             const float laneStepY = 0.15f;
             const float baseYOffset = 0.25f;
+            const float endTick = 0.03f;
 
             float dist = Mathf.Max(0f, evasionDistance);
-            // start one more lane lower than playerDistance
             float yLaneBelow = (baseYOffset - (laneStepY * 5f));
             Vector3 origin = transform.position + new Vector3(0f, yLaneBelow, 0f);
-            Vector3 end = origin + new Vector3(dist * facingDir, 0f, 0f);
+            Vector3 end = origin + fwd.normalized * dist;
 
             Gizmos.color = Color.green;
             Gizmos.DrawLine(origin, end);
 
-            // small tick at the end
             Vector3 up = Vector3.up * endTick;
             Gizmos.DrawLine(end - up, end + up);
         }
 
+        // Evade range band
         {
             const float laneStepY = 0.15f;
             const float baseYOffset = 0.25f;
@@ -548,8 +551,8 @@ public class Enemy : Entity
             float yLaneBelow = baseYOffset - (laneStepY * 7f);
             Vector3 laneOrigin = transform.position + new Vector3(0f, yLaneBelow, 0f);
 
-            Vector3 segStart = laneOrigin + new Vector3(minR * facingDir, 0f, 0f);
-            Vector3 segEnd = laneOrigin + new Vector3(maxR * facingDir, 0f, 0f);
+            Vector3 segStart = laneOrigin + fwd.normalized * minR;
+            Vector3 segEnd = laneOrigin + fwd.normalized * maxR;
 
             Gizmos.color = Color.red;
             Gizmos.DrawLine(segStart, segEnd);
@@ -558,9 +561,9 @@ public class Enemy : Entity
             Gizmos.DrawLine(segStart - up, segStart + up);
             Gizmos.DrawLine(segEnd - up, segEnd + up);
         }
-
 #endif
     }
+
 
 
 
