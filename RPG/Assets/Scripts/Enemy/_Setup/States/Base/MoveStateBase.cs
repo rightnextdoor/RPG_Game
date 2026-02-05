@@ -177,7 +177,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
     {
         SmoothAlignToCurrentNormal();
 
-
         ApplyVelocityCrawler();
 
         bool wallHit = LocalWallProbe(out var _);
@@ -266,6 +265,8 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
     #region Surface Crawler Helpers
 
+    #region Suface logic
+
     private Surface4 ClassifySurface(Vector2 n)
     {
         Vector2 nn = (n.sqrMagnitude > 0.0001f) ? n.normalized : Vector2.up;
@@ -308,7 +309,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
         ApplyStepCrawlSense();
     }
-
     private void EnsureFacingMatchesStep()
     {
         if (step.surface == Surface4.Floor)
@@ -325,7 +325,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
             return;
         }
     }
-
     private void ApplyStepCrawlSense()
     {
         switch (step.surface)
@@ -337,6 +336,9 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         }
     }
 
+    #endregion
+
+    #region Wall logic
     private CrawlStep AdvanceOnWallHit(CrawlStep s)
     {
         switch (s.surface)
@@ -371,20 +373,11 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         hit = Physics2D.Raycast(origin, dir, dist, enemy.GetWhatIsGround());
         return hit.collider != null;
     }
+    
 
+    #endregion
 
-    private void AlignToNormal(Vector2 normal)
-    {
-        currentNormal = (normal.sqrMagnitude > 0.0001f) ? normal.normalized : Vector2.up;
-    }
-
-    private static float Normalize360(float a)
-    {
-        a %= 360f;
-        if (a < 0f) a += 360f;
-        return a;
-    }
-
+    #region Smooth logic
 
     private void SmoothAlignToCurrentNormal()
     {
@@ -405,11 +398,23 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         enemy.transform.eulerAngles = e;
     }
 
+    #endregion
 
 
     #endregion
 
     #region Helper Methods
+    private void AlignToNormal(Vector2 normal)
+    {
+        currentNormal = (normal.sqrMagnitude > 0.0001f) ? normal.normalized : Vector2.up;
+    }
+
+    private static float Normalize360(float a)
+    {
+        a %= 360f;
+        if (a < 0f) a += 360f;
+        return a;
+    }
     private void TryRandomizeFacingOnEnter()
     {
         if (enemy.boundaryTouchedOnMove)
