@@ -42,15 +42,10 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
     private bool edgeWrapActive;
     private EdgeWrapPhase edgeWrapPhase;
 
-    private CrawlStep edgeFromStep;
     private CrawlStep edgeNextStep;
 
     private float edgeTargetZ;
     private float edgeZVel;
-
-    private Vector2 edgeClearDir;
-    private float edgeClearTimer;
-    private float edgeHitIgnoreTimer;
 
     private bool edgeAttachHasTarget;
     private Vector2 edgeAttachTargetPos;
@@ -59,14 +54,14 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
     private Bounds edgeAttachSurfaceBounds;
     private bool edgeAttachHasSurfaceBounds;
 
+    private Vector2 edgeArcStartCenterOffset;
+    private Vector2 edgeArcRbToCenterOffset;
+
     private const float EDGE_ATTACH_MIN_OVERLAP = 0.70f;
 
-
     private Vector2 edgeArcPivot;
-    private Vector2 edgeArcStartOffset;
     private float edgeArcT;
     private float edgeArcDeltaZ;
-
 
     private const float EDGE_CLEAR_TIME = 0.10f;
     private const float EDGE_ATTACH_CAST_EXTRA = 0.15f;
@@ -106,7 +101,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
             EnsureFacingMatchesStep();
 
             edgeWrapActive = false;
-            edgeClearTimer = 0f;
             edgeZVel = 0f;
             edgeTargetZ = 0f;
 
@@ -180,7 +174,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
             rb.gravityScale = savedGravity;
             currentNormal = Vector2.up;
             edgeWrapActive = false;
-            edgeClearTimer = 0f;
         }
     }
 
@@ -229,12 +222,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         SmoothAlignToCurrentNormal();
 
         ApplyVelocityCrawler();
-
-        if (edgeHitIgnoreTimer > 0f)
-        {
-            edgeHitIgnoreTimer -= Time.deltaTime;
-            return;
-        }
 
         bool wallHit = LocalWallProbe(out var _);
         if (wallHit)
@@ -458,8 +445,15 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
         Bounds b = col.bounds;
 
-        Vector2 forward = StepForward(step).normalized;
-        Vector2 down = -currentNormal.normalized;
+        Vector2 forward = new Vector2(currentNormal.y, -currentNormal.x) * crawlSense;
+        if (forward.sqrMagnitude < 0.0001f)
+            forward = StepForward(step);
+        forward = forward.normalized;
+
+        Vector2 down;
+        if (step.surface == Surface4.RightWall) down = Vector2.left;
+        else if (step.surface == Surface4.LeftWall) down = Vector2.right;
+        else down = -currentNormal.normalized;
 
         float ahead = Vector2.Dot(b.extents, new Vector2(Mathf.Abs(forward.x), Mathf.Abs(forward.y)));
         ahead = Mathf.Max(0.05f, ahead);
@@ -473,8 +467,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         return hit.collider == null;
     }
 
-
-
     private void BeginEdgeWrap(CrawlStep from)
     {
         edgeWrapActive = true;
@@ -485,7 +477,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
         edgeWrapPhase = EdgeWrapPhase.ClearLip;
 
-        edgeFromStep = from;
         ResolveEdgeRule(from, out edgeNextStep, out edgeTargetZ, out edgeArcDeltaZ);
 
         edgeArcT = 0f;
@@ -499,19 +490,29 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
             Vector2 forward = StepForward(from).normalized;
             Vector2 around = (-SurfaceNormal(from.surface)).normalized;
 
-            float forwardExtent = Vector2.Dot(b.extents, new Vector2(Mathf.Abs(forward.x), Mathf.Abs(forward.y)));
-            float aroundExtent = Vector2.Dot(b.extents, new Vector2(Mathf.Abs(around.x), Mathf.Abs(around.y)));
+            float forwardExtent = Vector2.Dot(
+                b.extents,
+                new Vector2(Mathf.Abs(forward.x), Mathf.Abs(forward.y))
+            );
+            float aroundExtent = Vector2.Dot(
+                b.extents,
+                new Vector2(Mathf.Abs(around.x), Mathf.Abs(around.y))
+            );
 
             forwardExtent = Mathf.Max(0.05f, forwardExtent);
             aroundExtent = Mathf.Max(0.05f, aroundExtent);
 
             edgeArcPivot = (Vector2)b.center + forward * forwardExtent + around * aroundExtent;
-            edgeArcStartOffset = (Vector2)rb.position - edgeArcPivot;
+
+            edgeArcRbToCenterOffset = (Vector2)rb.position - (Vector2)b.center;
+            edgeArcStartCenterOffset = (Vector2)b.center - edgeArcPivot;
         }
         else
         {
             edgeArcPivot = rb.position;
-            edgeArcStartOffset = Vector2.zero;
+
+            edgeArcRbToCenterOffset = Vector2.zero;
+            edgeArcStartCenterOffset = Vector2.zero;
         }
 
         rb.linearVelocity = Vector2.zero;
@@ -538,7 +539,9 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
     private void EdgeWrap_ClearLip()
     {
         float inv = (EDGE_CLEAR_TIME > 0.0001f) ? (1f / EDGE_CLEAR_TIME) : 1f;
-        edgeArcT = Mathf.Clamp01(edgeArcT + Time.deltaTime * inv);
+
+        float dt = Time.deltaTime;
+        edgeArcT = Mathf.Clamp01(edgeArcT + dt * inv);
 
         float turnZ = edgeArcDeltaZ * edgeArcT;
 
@@ -546,13 +549,17 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         float cos = Mathf.Cos(rad);
         float sin = Mathf.Sin(rad);
 
-        Vector2 o = edgeArcStartOffset;
+        Vector2 o = edgeArcStartCenterOffset;
+
         Vector2 rotated = new Vector2(
             o.x * cos - o.y * sin,
             o.x * sin + o.y * cos
         );
 
-        rb.position = edgeArcPivot + rotated;
+        Vector2 newCenterPos = edgeArcPivot + rotated;
+
+        Vector2 newPos = newCenterPos + edgeArcRbToCenterOffset;
+        rb.position = newPos;
 
         if (edgeArcT >= 1f)
         {
@@ -582,8 +589,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         SetStepImmediate(edgeNextStep);
 
         edgeWrapActive = false;
-
-        edgeHitIgnoreTimer = .8f;
     }
 
 
@@ -718,13 +723,13 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
             case Surface4.RightWall:
                 if (from.dir < 0)
                 {
-                    next = new CrawlStep(Surface4.Ceiling, +1);
+                    next = new CrawlStep(Surface4.Ceiling, -1);
                     targetZ = 180f;
                     arcDeltaZ = +90f;
                 }
                 else
                 {
-                    next = new CrawlStep(Surface4.Floor, +1);
+                    next = new CrawlStep(Surface4.Floor, -1);
                     targetZ = 0f;
                     arcDeltaZ = -90f;
                 }
@@ -735,26 +740,26 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
                 {
                     next = new CrawlStep(Surface4.RightWall, +1);
                     targetZ = 90f;
-                    arcDeltaZ = -90f;
+                    arcDeltaZ = +90f;
                 }
                 else
                 {
                     next = new CrawlStep(Surface4.LeftWall, +1);
                     targetZ = 90f;
-                    arcDeltaZ = +90f;
+                    arcDeltaZ = -90f;
                 }
                 return;
 
             case Surface4.LeftWall:
                 if (from.dir > 0)
                 {
-                    next = new CrawlStep(Surface4.Floor, -1);
+                    next = new CrawlStep(Surface4.Floor, +1);
                     targetZ = 0f;
                     arcDeltaZ = +90f;
                 }
                 else
                 {
-                    next = new CrawlStep(Surface4.Ceiling, -1);
+                    next = new CrawlStep(Surface4.Ceiling, +1);
                     targetZ = 180f;
                     arcDeltaZ = -90f;
                 }
@@ -810,16 +815,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
     private void SmoothAlignWall()
     {
-        //float targetZ = Vector2.SignedAngle(Vector2.up, currentNormal);
-
-        //bool onWall = step.surface == Surface4.LeftWall || step.surface == Surface4.RightWall;
-        //if (onWall && !enemy.IsFacingRight()) targetZ += 180f;
-
-        //var e = enemy.transform.eulerAngles;
-        //float smoothTime = Mathf.Max(0.0001f, Z_ALIGN_TIME);
-        //e.z = Mathf.SmoothDampAngle(e.z, Normalize360(targetZ), ref zSmoothVel, smoothTime);
-        //enemy.transform.eulerAngles = e;
-
         var e = enemy.transform.eulerAngles;
 
         float smoothTime = Mathf.Max(0.0001f, Z_ALIGN_TIME);
