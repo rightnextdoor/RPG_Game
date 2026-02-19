@@ -66,6 +66,10 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
     private const float EDGE_CLEAR_TIME = 0.10f;
     private const float EDGE_ATTACH_CAST_EXTRA = 0.15f;
     private const float EDGE_Z_ALIGN_TIME = 0.05f;
+
+    private float edgePadding;
+    private float edgeShift;
+
     #endregion
 
     public MoveStateBase(
@@ -103,6 +107,9 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
             edgeWrapActive = false;
             edgeZVel = 0f;
             edgeTargetZ = 0f;
+
+            edgePadding = enemy.edgePadding;
+            edgeShift = enemy.edgeShift;
 
             return;
         }
@@ -467,6 +474,24 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         return hit.collider == null;
     }
 
+    private void UpdateEdgeWrap()
+    {
+        switch (edgeWrapPhase)
+        {
+            case EdgeWrapPhase.ClearLip:
+                EdgeWrap_ClearLip();
+                break;
+
+            case EdgeWrapPhase.Attach:
+                EdgeWrap_Attach();
+                break;
+
+            case EdgeWrapPhase.Confirm:
+                EdgeWrap_Confirm();
+                break;
+        }
+    }
+
     private void BeginEdgeWrap(CrawlStep from)
     {
         edgeWrapActive = true;
@@ -502,6 +527,10 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
             forwardExtent = Mathf.Max(0.05f, forwardExtent);
             aroundExtent = Mathf.Max(0.05f, aroundExtent);
 
+            float padMul = 1f + edgePadding;
+            forwardExtent *= padMul;
+            aroundExtent *= padMul;
+
             edgeArcPivot = (Vector2)b.center + forward * forwardExtent + around * aroundExtent;
 
             edgeArcRbToCenterOffset = (Vector2)rb.position - (Vector2)b.center;
@@ -516,24 +545,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         }
 
         rb.linearVelocity = Vector2.zero;
-    }
-
-    private void UpdateEdgeWrap()
-    {
-        switch (edgeWrapPhase)
-        {
-            case EdgeWrapPhase.ClearLip:
-                EdgeWrap_ClearLip();
-                break;
-
-            case EdgeWrapPhase.Attach:
-                EdgeWrap_Attach();
-                break;
-
-            case EdgeWrapPhase.Confirm:
-                EdgeWrap_Confirm();
-                break;
-        }
     }
 
     private void EdgeWrap_ClearLip()
@@ -557,8 +568,17 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         );
 
         Vector2 newCenterPos = edgeArcPivot + rotated;
-
         Vector2 newPos = newCenterPos + edgeArcRbToCenterOffset;
+
+        if (edgeNextStep.surface == Surface4.Floor || edgeNextStep.surface == Surface4.Ceiling)
+        {
+            Vector2 nextForward = StepForward(edgeNextStep).normalized;
+
+            // Smoothly ramp shift from 0 → edgeShift during the arc
+            float shiftT = Mathf.SmoothStep(0f, 1f, edgeArcT);
+            newPos += nextForward * (edgeShift * shiftT);
+        }
+
         rb.position = newPos;
 
         if (edgeArcT >= 1f)
@@ -566,6 +586,7 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
             edgeWrapPhase = EdgeWrapPhase.Attach;
         }
     }
+
 
     private void EdgeWrap_Attach()
     {
@@ -583,14 +604,12 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         rb.position += advance * step;
     }
 
-
     private void EdgeWrap_Confirm()
     {
         SetStepImmediate(edgeNextStep);
 
         edgeWrapActive = false;
     }
-
 
     private bool IsAdheredToNormal(Vector2 normal)
     {
