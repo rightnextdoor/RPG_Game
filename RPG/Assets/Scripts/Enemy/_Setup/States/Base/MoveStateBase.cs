@@ -63,7 +63,7 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
     private float edgeArcT;
     private float edgeArcDeltaZ;
 
-    private const float EDGE_CLEAR_TIME = 0.10f;
+    private const float EDGE_CLEAR_TIME = 0.14f;
     private const float EDGE_ATTACH_CAST_EXTRA = 0.15f;
     private const float EDGE_Z_ALIGN_TIME = 0.05f;
 
@@ -492,6 +492,8 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         }
     }
 
+    private float edgeArcStartZ;
+
     private void BeginEdgeWrap(CrawlStep from)
     {
         edgeWrapActive = true;
@@ -574,7 +576,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         {
             Vector2 nextForward = StepForward(edgeNextStep).normalized;
 
-            // Smoothly ramp shift from 0 → edgeShift during the arc
             float shiftT = Mathf.SmoothStep(0f, 1f, edgeArcT);
             newPos += nextForward * (edgeShift * shiftT);
         }
@@ -586,7 +587,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
             edgeWrapPhase = EdgeWrapPhase.Attach;
         }
     }
-
 
     private void EdgeWrap_Attach()
     {
