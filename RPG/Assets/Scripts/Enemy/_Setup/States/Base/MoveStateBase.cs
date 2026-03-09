@@ -44,6 +44,15 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
     private const float EDGE_ATTACH_CAST_EXTRA = 0.15f;
 
+    private enum EdgeWrapPhase { None, RotateAtFeet, NudgeAndOffset, Confirm }
+    private EdgeWrapPhase edgeWrapPhase = EdgeWrapPhase.None;
+
+    private CrawlStep edgeWrapFromStep;
+    private float edgeWrapWidth;
+    private Vector2 edgeWrapFeetLocal;
+    private Vector2 edgeWrapFeetWorldPinned;
+    private CapsuleCollider2D edgeWrapCap;
+
     #endregion
 
     public MoveStateBase(
@@ -79,6 +88,7 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
             EnsureFacingMatchesStep();
             edgeTargetZ = 0f;
             edgeWrapActive = false;
+            edgeWrapPhase = EdgeWrapPhase.None;
 
             return;
         }
@@ -150,6 +160,7 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
             rb.gravityScale = savedGravity;
             currentNormal = Vector2.up;
             edgeWrapActive = false;
+            edgeWrapPhase = EdgeWrapPhase.None;
         }
     }
 
@@ -190,6 +201,7 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
     {
         if (edgeWrapActive)
         {
+            UpdateEdgeWrap();
             return;
         }
 
@@ -211,8 +223,8 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         bool edgeHit = LocalEdgeProbe();
         if (edgeHit)
         {
-
-            DoEdgeOffsetWrap(step);          
+            DoEdgeOffsetWrap(step);
+            UpdateEdgeWrap();
             return;
         }
     }
@@ -435,21 +447,57 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         return hit.collider == null;
     }
 
+    private void UpdateEdgeWrap()
+    {
+        switch (edgeWrapPhase)
+        {
+            case EdgeWrapPhase.RotateAtFeet:
+                if (edgeWrapCap == null)
+                {
+                    edgeWrapActive = false;
+                    edgeWrapPhase = EdgeWrapPhase.None;
+                    return;
+                }
+
+                Wrap_RotateAtFeet(edgeWrapCap, edgeWrapFeetLocal, edgeWrapFeetWorldPinned);
+                edgeWrapPhase = EdgeWrapPhase.NudgeAndOffset;
+                break;
+
+            case EdgeWrapPhase.NudgeAndOffset:
+                Wrap_NudgeAndOffset(edgeWrapFromStep, edgeWrapWidth, edgeWrapFeetLocal);
+                edgeWrapPhase = EdgeWrapPhase.Confirm;
+                break;
+
+            case EdgeWrapPhase.Confirm:
+                Wrap_Confirm();
+                edgeWrapPhase = EdgeWrapPhase.None;
+                break;
+
+            default:
+                edgeWrapActive = false;
+                edgeWrapPhase = EdgeWrapPhase.None;
+                break;
+        }
+    }
+
     private void DoEdgeOffsetWrap(CrawlStep from)
     {
         edgeWrapActive = true;
+        edgeWrapPhase = EdgeWrapPhase.RotateAtFeet;
         rb.linearVelocity = Vector2.zero;
 
-        var cap = enemy.GetComponent<CapsuleCollider2D>();
-        if (cap == null)
+        edgeWrapCap = enemy.GetComponent<CapsuleCollider2D>();
+        if (edgeWrapCap == null)
         {
             edgeWrapActive = false;
+            edgeWrapPhase = EdgeWrapPhase.None;
             return;
         }
 
         Physics2D.SyncTransforms();
 
-        float width = Mathf.Max(0.05f, cap.bounds.size.x);
+        edgeWrapFromStep = from;
+        edgeWrapWidth = Mathf.Max(0.05f, edgeWrapCap.bounds.size.x);
 
         ResolveEdgeRule(from, out edgeNextStep, out edgeTargetZ, out _);
 
@@ -457,14 +505,8 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         Vector2 moveForwardWorld = StepForward(from).normalized;
         Vector2 feetDirWorld = (enemyDownWorld + moveForwardWorld).normalized;
 
-        Vector2 feetLocal = CapsuleSupportPointLocal(cap, feetDirWorld);
-        Vector2 feetWorldPinned = cap.transform.TransformPoint(feetLocal);
-
-        Wrap_RotateAtFeet(cap, feetLocal, feetWorldPinned);
-
-        Wrap_NudgeAndOffset(from, width, feetLocal);
-
-        Wrap_Confirm();
+        edgeWrapFeetLocal = CapsuleSupportPointLocal(edgeWrapCap, feetDirWorld);
+        edgeWrapFeetWorldPinned = edgeWrapCap.transform.TransformPoint(edgeWrapFeetLocal);
     }
 
     private void Wrap_RotateAtFeet(CapsuleCollider2D cap, Vector2 feetLocal, Vector2 feetWorldPinned)
