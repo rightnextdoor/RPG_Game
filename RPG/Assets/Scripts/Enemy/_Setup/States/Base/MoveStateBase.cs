@@ -413,30 +413,41 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         switch (s.surface)
         {
             case Surface4.Floor:
-                return (s.dir > 0) ? new CrawlStep(Surface4.RightWall, +1)
-                                   : new CrawlStep(Surface4.LeftWall, +1);
-            case Surface4.Ceiling:
-                return (s.dir > 0) ? new CrawlStep(Surface4.RightWall, -1)
-                                   : new CrawlStep(Surface4.LeftWall, -1);
+                return (s.dir > 0)
+                    ? new CrawlStep(Surface4.LeftWall, +1)
+                    : new CrawlStep(Surface4.RightWall, +1);
 
-            case Surface4.RightWall:
-                return (s.dir > 0) ? new CrawlStep(Surface4.Ceiling, -1)
-                                   : new CrawlStep(Surface4.Floor, -1);
+            case Surface4.Ceiling:
+                return (s.dir > 0)
+                    ? new CrawlStep(Surface4.LeftWall, -1)
+                    : new CrawlStep(Surface4.RightWall, -1);
 
             case Surface4.LeftWall:
-                return (s.dir > 0) ? new CrawlStep(Surface4.Ceiling, +1)
-                                   : new CrawlStep(Surface4.Floor, +1);
+                return (s.dir > 0)
+                    ? new CrawlStep(Surface4.Ceiling, -1)
+                    : new CrawlStep(Surface4.Floor, -1);
+
+            case Surface4.RightWall:
+                return (s.dir > 0)
+                    ? new CrawlStep(Surface4.Ceiling, +1)
+                    : new CrawlStep(Surface4.Floor, +1);
         }
+
         return s;
     }
 
     private bool LocalWallProbe(out RaycastHit2D hit)
     {
         var wallCheck = enemy.GetWallCheck();
-        if (wallCheck == null) { hit = default; return false; }
+        if (wallCheck == null)
+        {
+            hit = default;
+            return false;
+        }
 
-        Vector2 origin = (Vector2)wallCheck.position;
-        Vector2 direction = StepForward(step);
+        Vector2 origin = wallCheck.position;
+        Vector2 direction = StepForward(step).normalized;
+
         float distance = Mathf.Max(0.01f, enemy.GetWallCheckDistance());
 
         hit = Physics2D.Raycast(origin, direction, distance, enemy.GetWhatIsGround());
@@ -866,7 +877,14 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
     private float ComputeWallTargetZ()
     {
-        float targetZ = Vector2.SignedAngle(Vector2.up, currentNormal);
+        Vector2 wallNormalForRotation = currentNormal;
+
+        if (step.surface == Surface4.RightWall)
+            wallNormalForRotation = SurfaceNormal(Surface4.LeftWall);
+        else if (step.surface == Surface4.LeftWall)
+            wallNormalForRotation = SurfaceNormal(Surface4.RightWall);
+
+        float targetZ = Vector2.SignedAngle(Vector2.up, wallNormalForRotation);
 
         bool onWall = step.surface == Surface4.LeftWall || step.surface == Surface4.RightWall;
         if (onWall && !enemy.IsFacingRight())
