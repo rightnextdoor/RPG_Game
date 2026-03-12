@@ -30,9 +30,6 @@ public class Enemy_Regular : Enemy
     [SerializeField] public float traverseStopMinSeconds = 1.0f;
     [SerializeField] public float traverseStopMaxSeconds = 2.5f;
 
-    [Header("Edge wrap")]
-    [SerializeField] public float edgePadding = 0.19f;
-    [SerializeField] public float edgeShift = 1.05f;
     #endregion
 
     [Space(2)]
