@@ -225,7 +225,6 @@ public class Enemy_Skeleton : Enemy_Regular
             GetComponentInChildren<UI_HealthBar>().HidHealthBar();
         }
 
-        stateMachine.ChangeState(deadState);
         Destroy(gameObject, 2f);
     }
 
