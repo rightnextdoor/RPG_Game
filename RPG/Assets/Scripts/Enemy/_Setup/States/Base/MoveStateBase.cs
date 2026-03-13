@@ -10,6 +10,7 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
     private bool needsPatrolReturn;
 
     #region Surface crawler info
+
     private enum Surface4 { Floor, RightWall, Ceiling, LeftWall }
 
     private struct CrawlStep
@@ -20,94 +21,63 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
     }
 
     private CrawlStep step;
-    private Surface4 pendingSurface;
-    private int pendingDir;
-
-    private enum EdgeWrapPhase { ClearLip, EdgeClear, Attach, Confirm }
-    private EdgeWrapPhase wrapPhase = EdgeWrapPhase.ClearLip;
 
     private Vector2 currentNormal = Vector2.up;
     private float savedGravity;
-    private float wrapRemaining;
 
-    // --- Edge tuning
-    private const float EDGE_CLEAR_FACTOR = 0.12f;
-    private const float EDGE_CLEAR_PADDING = 0f;
-    private const float EDGE_ROTATE_EPSILON = 2f;
-    private const float WALL_EDGE_CLEAR_MULT = 1f;
-    private const float SKIN_NUDGE = 0.02f;
-    private const float POST_CONFIRM_DEFER_FRAMES = .5f;
-    private bool suspendChecksUntilLock = false;
-    private float postConfirmDeferFrames = 0;
     private int crawlSense = +1;
 
     private float zSmoothVel;
     private const float Z_ALIGN_TIME = 0.06f;
     private const float VEL_BLEND_HZ = 12f;
+
+    private bool wallAlignActive;
+    private float wallAlignTargetZ;
+    private const float WALL_ALIGN_EPS_DEG = 0.75f;
+
+    private bool edgeWrapActive;
+
     #endregion
 
-    // ---- DEBUG helpers for Surface Crawler ----
-    private bool didLogEdgeRotate;
-    private bool didLogEdgeRotateOverride;
-    private string SurfaceToString(Surface4 s)
-    {
-        switch (s)
-        {
-            case Surface4.Floor: return "Floor";
-            case Surface4.Ceiling: return "Ceiling";
-            case Surface4.RightWall: return "Right Wall";
-            case Surface4.LeftWall: return "Left Wall";
-        }
-        return "Unknown";
-    }
+    #region Edge wrap info
 
-    private string StepDirToString(CrawlStep s)
-    {
-        switch (s.surface)
-        {
-            case Surface4.Floor: return (s.dir > 0) ? "Right" : "Left";
-            case Surface4.Ceiling: return (s.dir > 0) ? "Right" : "Left";
-            case Surface4.RightWall: return (s.dir > 0) ? "Up" : "Down";
-            case Surface4.LeftWall: return (s.dir > 0) ? "Up" : "Down";
-        }
-        return "?";
-    }
+    private CrawlStep edgeNextStep;
+    private float edgeTargetZ;
 
-    private string FeetForSurface(Surface4 s)
-    {
-        // "Feet must point into the surface"
-        switch (s)
-        {
-            case Surface4.Floor: return "Down";
-            case Surface4.Ceiling: return "Up";
-            case Surface4.RightWall: return "Left";
-            case Surface4.LeftWall: return "Right";
-        }
-        return "?";
-    }
+    private const float EDGE_ATTACH_CAST_EXTRA = 0.15f;
 
-    private void LogCrawlerState(string prefix)
-    {
-        Debug.Log($"[Crawler] {enemy.name}: {prefix} | on {SurfaceToString(step.surface)} moving {StepDirToString(step)}");
-    }
+    private enum EdgeWrapPhase { None, RotateAtFeet, NudgeClear, OffsetToNextSurface, Confirm }
+    private EdgeWrapPhase edgeWrapPhase = EdgeWrapPhase.None;
 
-    private void LogCrawlerTransition(string eventType, CrawlStep from, CrawlStep to)
-    {
-        Debug.Log(
-            $"[Crawler] {enemy.name}: {eventType} -> " +
-            $"FROM [{SurfaceToString(from.surface)} {StepDirToString(from)}] " +
-            $"TO   [{SurfaceToString(to.surface)} {StepDirToString(to)}]"
-        );
-    }
+    private CrawlStep edgeWrapFromStep;
+    private float edgeWrapWidth;
+    private Vector2 edgeWrapFeetLocal;
+    private Vector2 edgeWrapFeetWorldPinned;
+    private CapsuleCollider2D edgeWrapCap;
 
-    // --- Single-fire log flags for this wrap
-    private bool didLogEdgeHit, didLogAttach;
+    private Vector2 edgeRotateStartPos;
+    private Vector2 edgeRotateTargetPos;
+    private float edgeRotateStartZ;
+    private float edgeRotateTargetZ;
+    private float edgeRotateMoveSpeed;
+    private float edgeRotateTurnSpeed;
 
-    // --- Attach pose / cooldown flags
-    private bool inAttachPose = false;
+    private Vector2 edgeOffsetStartPos;
+    private Vector2 edgeOffsetTargetPos;
+    private float edgeOffsetMoveSpeed;
 
-    // --- Cache main collider for width projection
-    private Collider2D mainCol;
+    private float edgeNudgeMoveSpeed;
+
+    #region Edge debug freeze
+
+    // Freeze for debugging the rotation of the enemy.
+    private bool edgeFreezeActive;
+    private bool edgeFreezeEnabled = false;
+    private Surface4 edgeFreezeSurface = Surface4.Floor;
+
+    #endregion
+
+    #endregion
 
     public MoveStateBase(
         TEnemy enemyBase,
@@ -127,10 +97,7 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
         if (enemy.moveMode == RegularMoveMode.SurfaceCrawler)
         {
-            if (mainCol == null) mainCol = enemy.GetComponent<Collider2D>();
-
             needsPatrolReturn = false;
-            didLogEdgeRotate = didLogEdgeRotateOverride = false;
             savedGravity = rb.gravityScale;
             rb.gravityScale = 0f;
 
@@ -138,25 +105,14 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
             TryRandomizeFacingOnEnter();
 
-            if (LocalAdhesionProbe(out var hit))
-                AlignToSurface(hit);
-            else
-                AlignToNormal(currentNormal);
+            AlignToNormal(currentNormal);
 
             step = new CrawlStep(ClassifySurface(currentNormal), (enemy.facingDir >= 0) ? +1 : -1);
             ApplyStepCrawlSense();
-
             EnsureFacingMatchesStep();
+            edgeTargetZ = 0f;
+            ResetEdgeWrapState();
 
-            LogCrawlerState("Enter");
-
-            wrapPhase = EdgeWrapPhase.ClearLip;
-            wrapRemaining = 0f;
-            postConfirmDeferFrames = 0;
-
-            inAttachPose = false;
-            suspendChecksUntilLock = false;
-            didLogEdgeHit = didLogAttach = false;
             return;
         }
 
@@ -176,14 +132,13 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
         if (enemy.moveMode == RegularMoveMode.TraverseNoStops)
         {
-            float a = Mathf.Max(0f, enemy.traverseStopMinSeconds);
-            float b = Mathf.Max(a, enemy.traverseStopMaxSeconds);
-            traverseStopTimer = (b > 0f) ? Random.Range(a, b) : 0f;
+            float minStopSeconds = Mathf.Max(0f, enemy.traverseStopMinSeconds);
+            float maxStopSeconds = Mathf.Max(minStopSeconds, enemy.traverseStopMaxSeconds);
+            traverseStopTimer = (maxStopSeconds > 0f) ? Random.Range(minStopSeconds, maxStopSeconds) : 0f;
         }
 
         ApplyVelocity();
     }
-
 
     public override void Update()
     {
@@ -227,19 +182,11 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         {
             rb.gravityScale = savedGravity;
             currentNormal = Vector2.up;
-
-            wrapPhase = EdgeWrapPhase.ClearLip;
-            wrapRemaining = 0f;
-            postConfirmDeferFrames = 0;
-
-            inAttachPose = false;
-            suspendChecksUntilLock = false;
-            didLogEdgeHit = didLogAttach = false;
-            didLogEdgeRotate = didLogEdgeRotateOverride = false;
+            ResetEdgeWrapState();
         }
     }
 
-    #region Modes Methods
+    #region Mode methods
 
     private void PatrolArea()
     {
@@ -274,94 +221,68 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
     private void SurfaceCrawler()
     {
-        SmoothAlignToCurrentNormal();
-
-        float speed = enemy.moveSpeed * enemy.moveSpeedMultiplier;
-
-        if (TickEdgeWrap(speed))
-            return;
-
-        if (suspendChecksUntilLock)
+        if (edgeFreezeActive)
         {
-            if (postConfirmDeferFrames > 0f)
-            {
-                postConfirmDeferFrames -= Time.deltaTime;
-                ApplyVelocityCrawler();
-                return;
-            }
-
-            if (postConfirmDeferFrames <= 0f)
-            {
-                bool confirmHit = LocalAdhesionProbeConfirm(out var _);
-                if (confirmHit)
-                {
-                    suspendChecksUntilLock = false;
-                    Debug.Log($"[Crawler] {enemy.name}: CHECKS-RESUME wrap={wrapPhase} confirmHit=True");
-                }
-                else
-                {
-                    // stay suspended one more frame; keep gliding along the new surface
-                    Debug.Log($"[Crawler] {enemy.name}: CHECKS-RESUME WAIT wrap={wrapPhase} confirmHit=False");
-                    ApplyVelocityCrawler();
-                    return;
-                }
-
-                ApplyVelocityCrawler();
-                return;
-            }
+            rb.linearVelocity = Vector2.zero;
+            return;
         }
 
+        if (edgeWrapActive)
+        {
+            UpdateEdgeWrap();
+            return;
+        }
+
+        SmoothAlignToCurrentNormal();
         ApplyVelocityCrawler();
 
-        bool edgeCheck = LocalAdhesionProbe(out var hitDown);
-        Debug.Log($"[Crawler] {enemy.name}: edgeCheck={edgeCheck} phase={wrapPhase} suspend={suspendChecksUntilLock} defer={postConfirmDeferFrames:F3} surface={SurfaceToString(step.surface)} dir={StepDirToString(step)}");
-
-        bool wallHit = edgeCheck && LocalWallProbe(out var _);
-
+        bool wallHit = LocalWallProbe(out var _);
         if (wallHit)
         {
-            var next = AdvanceOnWallHit(step);
-            SetStepImmediate(next);
+            var nextStep = AdvanceOnWallHit(step);
+            SetStepImmediate(nextStep);
+            BeginWallAlign();
             return;
         }
 
-        if (!edgeCheck)
+        if (wallAlignActive)
+            return;
+
+        bool edgeHit = LocalEdgeProbe();
+        if (edgeHit)
         {
-            if (LocalAdhesionProbeConfirm(out var _)) { ApplyVelocityCrawler(); return; }
-
-            var next = AdvanceOnEdge(step);
-            BeginEdgeWrap(next);
-
-            if (TickEdgeWrap(speed)) return;
+            DoEdgeOffsetWrap(step);
+            UpdateEdgeWrap();
             return;
         }
     }
 
     #endregion
 
-    #region Patrol Boundary
+    #region Patrol boundary
+
     private bool ReturnToPatrolCenterIfOutside()
     {
-        float x = enemy.transform.position.x;
-        if (!IsOutsidePatrolX(x))
+        float currentX = enemy.transform.position.x;
+        if (!IsOutsidePatrolX(currentX))
             return false;
 
-        int desiredDir = (enemy.patrolCenter.x - x) >= 0f ? +1 : -1;
+        int desiredDir = (enemy.patrolCenter.x - currentX) >= 0f ? +1 : -1;
         if (enemy.facingDir != desiredDir)
             enemy.Flip();
 
         ApplyVelocity();
 
         const float centerSnapEpsilon = 0.1f;
-        return Mathf.Abs(enemy.patrolCenter.x - x) > centerSnapEpsilon;
+        return Mathf.Abs(enemy.patrolCenter.x - currentX) > centerSnapEpsilon;
     }
 
     private bool IsBoundaryAheadInFacingDir()
     {
-        float x = enemy.transform.position.x;
+        float currentX = enemy.transform.position.x;
 
-        return (enemy.facingDir > 0 && x >= enemy.patrolRightX)
-            || (enemy.facingDir < 0 && x <= enemy.patrolLeftX);
+        return (enemy.facingDir > 0 && currentX >= enemy.patrolRightX)
+            || (enemy.facingDir < 0 && currentX <= enemy.patrolLeftX);
     }
 
     private bool IsOutsidePatrolX(float x) => x < enemy.patrolLeftX || x > enemy.patrolRightX;
@@ -393,8 +314,8 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
             return;
         }
 
-        float vx = enemy.moveSpeed * enemy.moveSpeedMultiplier * enemy.facingDir;
-        enemy.SetVelocity(vx, rb.linearVelocity.y);
+        float xVelocity = enemy.moveSpeed * enemy.moveSpeedMultiplier * enemy.facingDir;
+        enemy.SetVelocity(xVelocity, rb.linearVelocity.y);
     }
 
     private void ApplyVelocityCrawler()
@@ -402,191 +323,24 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         float speed = enemy.moveSpeed * enemy.moveSpeedMultiplier;
 
         Vector2 tangent = new Vector2(currentNormal.y, -currentNormal.x) * crawlSense;
-        Vector2 targetVel = tangent.normalized * speed;
+        Vector2 targetVelocity = tangent.normalized * speed;
 
         float alpha = 1f - Mathf.Exp(-VEL_BLEND_HZ * Time.deltaTime);
-        rb.linearVelocity = Vector2.Lerp(rb.linearVelocity, targetVel, alpha);
+        rb.linearVelocity = Vector2.Lerp(rb.linearVelocity, targetVelocity, alpha);
     }
-
 
     #endregion
 
-    #region Surface Crawler Helpers
+    #region Surface crawler helpers
 
-    private float ComputeColliderWidthAlong(Vector2 tangent)
+    #region Surface logic
+
+    private Surface4 ClassifySurface(Vector2 normal)
     {
-        if (mainCol == null) return Mathf.Max(0.01f, enemy.GetWallCheckDistance());
-        Vector2 t = tangent.normalized;
-        Bounds b = mainCol.bounds;
-        // Project AABB size onto the tangent (support-mapped)
-        float proj =
-            Mathf.Abs(Vector2.Dot(t, Vector2.right)) * b.size.x +
-            Mathf.Abs(Vector2.Dot(t, Vector2.up)) * b.size.y;
-        return Mathf.Max(0.01f, proj);
-    }
-
-    private float ComputeColliderExtentAlong(Vector2 axis)
-    {
-        if (mainCol == null) return Mathf.Max(0.01f, enemy.GetGroundCheckDistance());
-        Vector2 a = axis.normalized;
-        Bounds b = mainCol.bounds;
-        float proj =
-            Mathf.Abs(Vector2.Dot(a, Vector2.right)) * b.size.x +
-            Mathf.Abs(Vector2.Dot(a, Vector2.up)) * b.size.y;
-        return Mathf.Max(0.01f, proj * 0.5f); // half-extent
-    }
-
-    private void BeginEdgeWrap(CrawlStep target)
-    {
-        pendingSurface = target.surface;
-        pendingDir = target.dir;
-
-        // UNIFORM clear distance across Floor/Wall/Ceiling
-        float cornerSpan = ComputeColliderCornerClearance();
-        wrapRemaining = cornerSpan * EDGE_CLEAR_FACTOR + EDGE_CLEAR_PADDING;
-
-        if (step.surface == Surface4.LeftWall || step.surface == Surface4.RightWall)
-            wrapRemaining *= WALL_EDGE_CLEAR_MULT;
-
-        wrapPhase = EdgeWrapPhase.EdgeClear;
-        inAttachPose = false;
-        didLogAttach = false;
-        suspendChecksUntilLock = true;
-        // leave postConfirmDeferFrames untouched here (only set on CONFIRM)
-        didLogEdgeRotate = didLogEdgeRotateOverride = false;
-    }
-
-    private float ComputeColliderCornerClearance()
-    {
-        if (mainCol == null) return Mathf.Max(0.01f, enemy.GetGroundCheckDistance());
-        Bounds b = mainCol.bounds;
-        float halfDiag = 0.5f * Mathf.Sqrt(b.size.x * b.size.x + b.size.y * b.size.y);
-        return Mathf.Max(0.01f, 2f * halfDiag);
-    }
-
-    private bool TickEdgeWrap(float speed)
-    {
-        switch (wrapPhase)
-        {
-            case EdgeWrapPhase.EdgeClear:
-                {
-                    // Move along the CURRENT surface just enough to clear the lip — no velocity drops.
-                    Vector2 curTangent = StepForward(step);
-                    Vector2 pendingTangent = StepForward(new CrawlStep(pendingSurface, pendingDir));
-                    float stepThis = Mathf.Min(wrapRemaining, speed * Time.deltaTime);
-
-                    // Anticipatory blend: start steering velocity toward the NEXT surface
-                    // in the last few centimeters of the clear so there’s no “rotate → pause → move”.
-                    // (no new constants; small inline window that feels natural)
-                    float anticipatoryWindow = 0.06f;                 // ~6cm world space
-                    float t = 1f - Mathf.Clamp01(wrapRemaining / Mathf.Max(anticipatoryWindow, 0.0001f));
-
-                    Vector2 blendedTangent = Vector2.Lerp(curTangent, pendingTangent, t).normalized;
-                    Vector2 targetVel = blendedTangent * speed;
-                    float alpha = 1f - Mathf.Exp(-VEL_BLEND_HZ * Time.deltaTime);
-                    rb.linearVelocity = Vector2.Lerp(rb.linearVelocity, targetVel, alpha);
-
-                    // Position still advances along the CURRENT surface so we truly clear the lip.
-                    enemy.transform.position += (Vector3)(curTangent * stepThis);
-                    wrapRemaining -= stepThis;
-
-                    if (wrapRemaining > 0f) return true;
-
-                    // Tiny lateral nudge only for walls so we've fully cleared the lip
-                    if (step.surface == Surface4.RightWall || step.surface == Surface4.LeftWall)
-                    {
-                        Vector2 awayFromWall = -SurfaceNormal(step.surface);
-                        enemy.transform.position += (Vector3)(awayFromWall * (SKIN_NUDGE + 0.01f));
-                    }
-
-                    // Enter ATTACH pose: feet aim into the pending surface; checks remain OFF
-                    inAttachPose = true;
-                    wrapPhase = EdgeWrapPhase.Attach;
-                    return true;
-                }
-
-            case EdgeWrapPhase.Attach:
-                {
-                    // Glide ALONG the PENDING surface while rotation progresses.
-                    Vector2 pendingTangent = StepForward(new CrawlStep(pendingSurface, pendingDir));
-                    Vector2 targetVel = pendingTangent.normalized * speed;
-                    float alpha = 1f - Mathf.Exp(-VEL_BLEND_HZ * Time.deltaTime);
-                    rb.linearVelocity = Vector2.Lerp(rb.linearVelocity, targetVel, alpha);
-
-                    // Lock when adhesion ray INTO the pending surface hits.
-                    if (LocalAdhesionProbeAgainst(pendingSurface, out var hitDown))
-                    {
-                        AlignToSurface(hitDown);
-
-                        // Small inward bias to avoid hovering at threshold
-                        enemy.transform.position += (Vector3)((-hitDown.normal).normalized * SKIN_NUDGE);
-
-                        // Remove any outward-normal velocity so we don't bounce off the corner
-                        {
-                            Vector2 n = hitDown.normal.normalized;
-                            Vector2 v = rb.linearVelocity;
-                            float vN = Vector2.Dot(v, n);
-                            if (vN > 0f) v -= vN * n;
-                            rb.linearVelocity = v;
-                        }
-
-                        // Commit the new step (now "step" is the pending surface+dir)
-                        var to = new CrawlStep(pendingSurface, pendingDir);
-                        SetStepImmediate(to);
-
-                        inAttachPose = false;
-                        wrapPhase = EdgeWrapPhase.Confirm;
-                        suspendChecksUntilLock = true;
-                        {
-                            Vector2 tan = StepForward(step).normalized; // uses the now-committed step
-                            float vT = Vector2.Dot(rb.linearVelocity, tan);
-                            if (vT < speed * 0.98f) rb.linearVelocity = tan * speed;
-                        }
-                    }
-                    return true;
-                }
-
-            case EdgeWrapPhase.Confirm:
-                {
-                    // While rotation finishes, keep moving along the NEW surface smoothly.
-                    Vector2 tangentNow = StepForward(step);
-                    Vector2 targetVel = tangentNow.normalized * speed;
-                    float alpha = 1f - Mathf.Exp(-VEL_BLEND_HZ * Time.deltaTime);
-                    rb.linearVelocity = Vector2.Lerp(rb.linearVelocity, targetVel, alpha);
-
-                    // Don’t confirm until the attach rotation has settled.
-                    if (!IsEdgeRotationSettled())
-                        return true;
-
-                    // Single confirm ray INTO the current (new) surface.
-                    if (LocalAdhesionProbeConfirm(out var _))
-                    {
-                        // Finish wrap and start your short defer window
-                        wrapPhase = EdgeWrapPhase.ClearLip;
-                        suspendChecksUntilLock = true;
-                        postConfirmDeferFrames = POST_CONFIRM_DEFER_FRAMES;
-
-                        {
-                            Vector2 tan = StepForward(step).normalized;
-                            float vT = Vector2.Dot(rb.linearVelocity, tan);
-                            if (vT < speed * 0.98f) rb.linearVelocity = tan * speed;
-                        }
-                        return false; // allow SurfaceCrawler() to continue this frame (no pause)
-                    }
-
-                    return true;
-                }
-        }
-        return false;
-    }
-
-
-    private Surface4 ClassifySurface(Vector2 n)
-    {
-        Vector2 nn = (n.sqrMagnitude > 0.0001f) ? n.normalized : Vector2.up;
-        if (nn.y > +0.7071f) return Surface4.Floor;
-        if (nn.y < -0.7071f) return Surface4.Ceiling;
-        return (nn.x < 0f) ? Surface4.RightWall : Surface4.LeftWall; // outward normal left→right wall
+        Vector2 normalizedNormal = (normal.sqrMagnitude > 0.0001f) ? normal.normalized : Vector2.up;
+        if (normalizedNormal.y > +0.7071f) return Surface4.Floor;
+        if (normalizedNormal.y < -0.7071f) return Surface4.Ceiling;
+        return (normalizedNormal.x < 0f) ? Surface4.RightWall : Surface4.LeftWall;
     }
 
     private Vector2 SurfaceNormal(Surface4 s)
@@ -618,9 +372,7 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         step = next;
 
         AlignToNormal(SurfaceNormal(step.surface));
-
         EnsureFacingMatchesStep();
-
         ApplyStepCrawlSense();
     }
 
@@ -641,23 +393,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         }
     }
 
-    private void EnsureFacingFor(Surface4 surface, int dir)
-    {
-        if (surface == Surface4.Floor)
-        {
-            bool wantRight = (dir > 0);
-            if (enemy.IsFacingRight() != wantRight) enemy.Flip();
-            return;
-        }
-
-        if (surface == Surface4.Ceiling)
-        {
-            bool wantRightOnCeiling = (dir < 0);
-            if (enemy.IsFacingRight() != wantRightOnCeiling) enemy.Flip();
-            return;
-        }
-    }
-
     private void ApplyStepCrawlSense()
     {
         switch (step.surface)
@@ -669,73 +404,527 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         }
     }
 
+    #endregion
+
+    #region Wall logic
+
     private CrawlStep AdvanceOnWallHit(CrawlStep s)
     {
         switch (s.surface)
         {
-            // Floor → Wall (climb UP)
             case Surface4.Floor:
-                return (s.dir > 0) ? new CrawlStep(Surface4.RightWall, +1)   // Floor Right  → RightWall Up
-                                   : new CrawlStep(Surface4.LeftWall, +1);  // Floor Left   → LeftWall  Up
-
-            // Ceiling → Wall (climb DOWN)
-            case Surface4.Ceiling:
-                return (s.dir > 0) ? new CrawlStep(Surface4.RightWall, -1)   // Ceiling Right → RightWall Down
-                                   : new CrawlStep(Surface4.LeftWall, -1);  // Ceiling Left  → LeftWall  Down
-
-            // Wall → Cap (floor/ceiling) by vertical
-            case Surface4.RightWall:
-                return (s.dir > 0) ? new CrawlStep(Surface4.Ceiling, -1)     // RightWall Up   → Ceiling Left
-                                   : new CrawlStep(Surface4.Floor, -1);     // RightWall Down → Floor   Left
-
-            case Surface4.LeftWall:
-                return (s.dir > 0) ? new CrawlStep(Surface4.Ceiling, +1)     // LeftWall Up    → Ceiling Right
-                                   : new CrawlStep(Surface4.Floor, +1);     // LeftWall Down  → Floor   Right
-        }
-        return s;
-    }
-
-    // EDGE (GROUND) RULES (adhesion lost)
-    private CrawlStep AdvanceOnEdge(CrawlStep s)
-    {
-        switch (s.surface)
-        {
-            case Surface4.Floor:
-                return (s.dir > 0) ? new CrawlStep(Surface4.RightWall, -1)
-                                   : new CrawlStep(Surface4.LeftWall, -1);
+                return (s.dir > 0)
+                    ? new CrawlStep(Surface4.LeftWall, +1)
+                    : new CrawlStep(Surface4.RightWall, +1);
 
             case Surface4.Ceiling:
-                return (s.dir > 0) ? new CrawlStep(Surface4.RightWall, +1)
-                                   : new CrawlStep(Surface4.LeftWall, +1);
-
-            case Surface4.RightWall:
-                return (s.dir > 0) ? new CrawlStep(Surface4.Floor, -1)
-                                   : new CrawlStep(Surface4.Ceiling, -1);
+                return (s.dir > 0)
+                    ? new CrawlStep(Surface4.LeftWall, -1)
+                    : new CrawlStep(Surface4.RightWall, -1);
 
             case Surface4.LeftWall:
-                return (s.dir > 0) ? new CrawlStep(Surface4.Floor, +1)
-                                   : new CrawlStep(Surface4.Ceiling, +1);
+                return (s.dir > 0)
+                    ? new CrawlStep(Surface4.Ceiling, -1)
+                    : new CrawlStep(Surface4.Floor, -1);
+
+            case Surface4.RightWall:
+                return (s.dir > 0)
+                    ? new CrawlStep(Surface4.Ceiling, +1)
+                    : new CrawlStep(Surface4.Floor, +1);
         }
+
         return s;
     }
 
     private bool LocalWallProbe(out RaycastHit2D hit)
     {
-        var wallT = enemy.GetWallCheck();
-        if (wallT == null) { hit = default; return false; }
+        var wallCheck = enemy.GetWallCheck();
+        if (wallCheck == null)
+        {
+            hit = default;
+            return false;
+        }
 
-        Vector2 origin = (Vector2)wallT.position;
-        Vector2 dir = StepForward(step);
-        float dist = Mathf.Max(0.01f, enemy.GetWallCheckDistance());
+        Vector2 origin = wallCheck.position;
+        Vector2 direction = StepForward(step).normalized;
 
-        hit = Physics2D.Raycast(origin, dir, dist, enemy.GetWhatIsGround());
+        float distance = Mathf.Max(0.01f, enemy.GetWallCheckDistance());
+
+        hit = Physics2D.Raycast(origin, direction, distance, enemy.GetWhatIsGround());
         return hit.collider != null;
     }
 
-    private void AlignToSurface(RaycastHit2D hit)
+    #endregion
+
+    #region Edge logic
+
+    #region Edge probe / flow
+    private bool LocalEdgeProbe()
     {
-        AlignToNormal((hit.normal.sqrMagnitude > 0.0001f) ? hit.normal.normalized : Vector2.up);
+        if (edgeWrapActive) return false;
+
+        Collider2D collider = enemy.GetComponent<Collider2D>();
+        if (collider == null) return false;
+
+        Bounds colliderBounds = collider.bounds;
+
+        Vector2 forward = new Vector2(currentNormal.y, -currentNormal.x) * crawlSense;
+        if (forward.sqrMagnitude < 0.0001f)
+            forward = StepForward(step);
+        forward = forward.normalized;
+
+        Vector2 down;
+        if (step.surface == Surface4.RightWall) down = Vector2.left;
+        else if (step.surface == Surface4.LeftWall) down = Vector2.right;
+        else down = -currentNormal.normalized;
+
+        float ahead = Vector2.Dot(colliderBounds.extents, new Vector2(Mathf.Abs(forward.x), Mathf.Abs(forward.y)));
+        ahead = Mathf.Max(0.05f, ahead);
+
+        float downDistance = Vector2.Dot(colliderBounds.extents, new Vector2(Mathf.Abs(down.x), Mathf.Abs(down.y)));
+        downDistance = Mathf.Max(0.10f, downDistance + EDGE_ATTACH_CAST_EXTRA);
+
+        Vector2 origin = (Vector2)colliderBounds.center + forward * ahead;
+
+        RaycastHit2D hit = Physics2D.Raycast(origin, down, downDistance, enemy.GetWhatIsGround());
+        return hit.collider == null;
     }
+    private void UpdateEdgeWrap()
+    {
+        switch (edgeWrapPhase)
+        {
+            case EdgeWrapPhase.RotateAtFeet:
+                UpdateRotateAtFeetPhase();
+                break;
+
+            case EdgeWrapPhase.NudgeClear:
+                UpdateNudgeClearPhase();
+                break;
+
+            case EdgeWrapPhase.OffsetToNextSurface:
+                UpdateOffsetToNextSurfacePhase();
+                break;
+
+            case EdgeWrapPhase.Confirm:
+                Wrap_Confirm();
+                edgeWrapPhase = EdgeWrapPhase.None;
+                break;
+
+            default:
+                ResetEdgeWrapState();
+                break;
+        }
+    }
+    private void DoEdgeOffsetWrap(CrawlStep from)
+    {
+        edgeWrapActive = true;
+        edgeWrapPhase = EdgeWrapPhase.RotateAtFeet;
+        rb.linearVelocity = Vector2.zero;
+
+        edgeWrapCap = enemy.GetComponent<CapsuleCollider2D>();
+        if (edgeWrapCap == null)
+        {
+            ResetEdgeWrapState();
+            return;
+        }
+
+        Physics2D.SyncTransforms();
+
+        edgeWrapFromStep = from;
+        edgeWrapWidth = Mathf.Max(0.05f, edgeWrapCap.bounds.size.x);
+
+        ResolveEdgeRule(from, out edgeNextStep, out edgeTargetZ, out _);
+
+        Vector2 enemyDownWorld = -((Vector2)enemy.transform.up);
+        Vector2 moveForwardWorld = StepForward(from).normalized;
+        Vector2 feetDirWorld = (enemyDownWorld + moveForwardWorld).normalized;
+
+        edgeWrapFeetLocal = CapsuleSupportPointLocal(edgeWrapCap, feetDirWorld);
+        edgeWrapFeetWorldPinned = edgeWrapCap.transform.TransformPoint(edgeWrapFeetLocal);
+
+        edgeRotateStartPos = rb.position;
+        edgeRotateStartZ = Normalize360(enemy.transform.eulerAngles.z);
+
+        SaveTransformState(out Vector2 savedPosition, out float savedZ);
+
+        Wrap_RotateAtFeet(edgeWrapCap, edgeWrapFeetLocal, edgeWrapFeetWorldPinned);
+
+        edgeRotateTargetPos = rb.position;
+        edgeRotateTargetZ = Normalize360(edgeTargetZ);
+
+        RestoreTransformState(savedPosition, savedZ);
+
+        float speed = Mathf.Max(0.01f, enemy.moveSpeed * enemy.moveSpeedMultiplier);
+        float distance = Vector2.Distance(edgeRotateStartPos, edgeRotateTargetPos);
+        float angleDelta = Mathf.Abs(Mathf.DeltaAngle(edgeRotateStartZ, edgeRotateTargetZ));
+
+        float rotateSpeedMult = 2f;
+        float rotateDuration = Mathf.Max(0.02f, distance / (speed * rotateSpeedMult));
+
+        edgeRotateMoveSpeed = distance / rotateDuration;
+        edgeRotateTurnSpeed = angleDelta / rotateDuration;
+        edgeNudgeMoveSpeed = 0f;
+    }
+
+    #endregion
+
+    #region Rotate phase
+    private void UpdateRotateAtFeetPhase()
+    {
+        if (edgeWrapCap == null)
+        {
+            ResetEdgeWrapState();
+            return;
+        }
+
+        rb.linearVelocity = Vector2.zero;
+
+        float moveStep = edgeRotateMoveSpeed * Time.deltaTime;
+        rb.position = Vector2.MoveTowards(rb.position, edgeRotateTargetPos, moveStep);
+
+        var eulerAngles = enemy.transform.eulerAngles;
+        eulerAngles.z = Normalize360(Mathf.MoveTowardsAngle(eulerAngles.z, edgeRotateTargetZ, edgeRotateTurnSpeed * Time.deltaTime));
+        enemy.transform.eulerAngles = eulerAngles;
+        Physics2D.SyncTransforms();
+
+        bool posDone = ((Vector2)rb.position - edgeRotateTargetPos).sqrMagnitude <= 0.000001f;
+        bool rotDone = Mathf.Abs(Mathf.DeltaAngle(enemy.transform.eulerAngles.z, edgeRotateTargetZ)) <= 0.1f;
+
+        if (posDone && rotDone)
+        {
+            rb.position = edgeRotateTargetPos;
+
+            eulerAngles = enemy.transform.eulerAngles;
+            eulerAngles.z = Normalize360(edgeRotateTargetZ);
+            enemy.transform.eulerAngles = eulerAngles;
+            Physics2D.SyncTransforms();
+
+            edgeWrapPhase = EdgeWrapPhase.NudgeClear;
+        }
+    }
+    private void Wrap_RotateAtFeet(CapsuleCollider2D cap, Vector2 feetLocal, Vector2 feetWorldPinned)
+    {
+        Vector2 rbPosBefore = rb.position;
+        float zBefore = enemy.transform.eulerAngles.z;
+
+        var eulerAngles = enemy.transform.eulerAngles;
+        eulerAngles.z = Normalize360(edgeTargetZ);
+        enemy.transform.eulerAngles = eulerAngles;
+        Physics2D.SyncTransforms();
+
+        Vector2 feetWorldAfterRotate = cap.transform.TransformPoint(feetLocal);
+        Vector2 delta = feetWorldPinned - feetWorldAfterRotate;
+
+        rb.position = rb.position + delta;
+        Physics2D.SyncTransforms();
+    }
+    #endregion
+
+    #region Nudge phase
+    private void UpdateNudgeClearPhase()
+    {
+        rb.linearVelocity = Vector2.zero;
+
+        if (edgeNudgeMoveSpeed <= 0f)
+        {
+            float nudgeSpeedMult = 3.5f;
+            edgeNudgeMoveSpeed = Mathf.Max(0.01f, enemy.moveSpeed * enemy.moveSpeedMultiplier * nudgeSpeedMult);
+        }
+
+        bool stillBlocked = IsNudgeProbeBlocked(edgeWrapFromStep, edgeWrapWidth);
+
+        if (!stillBlocked)
+        {
+            if (edgeFreezeEnabled && edgeWrapFromStep.surface == edgeFreezeSurface)
+            {
+                edgeFreezeActive = true;
+                return;
+            }
+
+            edgeOffsetStartPos = rb.position;
+
+            SaveTransformState(out Vector2 savedPosition, out float savedZ);
+
+            ApplyOffsetHalfStepOnNextSurface(edgeWrapFromStep, edgeWrapWidth);
+            edgeOffsetTargetPos = rb.position;
+
+            RestoreTransformState(savedPosition, savedZ);
+
+            float offsetSpeed = Mathf.Max(0.01f, enemy.moveSpeed * enemy.moveSpeedMultiplier);
+            float offsetDistance = Vector2.Distance(edgeOffsetStartPos, edgeOffsetTargetPos);
+            float offsetDuration = Mathf.Max(0.02f, offsetDistance / offsetSpeed);
+            edgeOffsetMoveSpeed = offsetDistance / offsetDuration;
+
+            edgeWrapPhase = EdgeWrapPhase.OffsetToNextSurface;
+            return;
+        }
+
+        Vector2 moveDir = StepForward(edgeWrapFromStep).normalized;
+        if (moveDir.sqrMagnitude < 0.0001f)
+            moveDir = GetEnemyWrapMoveDir();
+
+        float moveStep = edgeNudgeMoveSpeed * Time.deltaTime;
+        rb.position += moveDir * moveStep;
+        Physics2D.SyncTransforms();
+    }
+    private bool IsNudgeProbeBlocked(CrawlStep from, float width)
+    {
+        var cap = enemy.GetComponent<CapsuleCollider2D>();
+        if (cap == null)
+            return false;
+
+        Vector2 feetDir = -((Vector2)enemy.transform.up);
+        if (feetDir.sqrMagnitude < 0.0001f)
+            feetDir = Vector2.down;
+        feetDir.Normalize();
+
+        Vector2 moveDir = (Vector2)enemy.transform.right;
+        if (moveDir.sqrMagnitude < 0.0001f)
+            moveDir = GetEnemyWrapMoveDir();
+        moveDir.Normalize();
+
+        float skin = Mathf.Max(0.0005f, Physics2D.defaultContactOffset);
+        float rayLength = width;
+
+        Vector2 currentFeetLocal = CapsuleSupportPointLocal(cap, feetDir);
+        Vector2 probeWorld = cap.transform.TransformPoint(currentFeetLocal);
+
+        Vector2 rayOrigin = probeWorld + moveDir * skin;
+        RaycastHit2D hit = Physics2D.Raycast(rayOrigin, moveDir, rayLength, enemy.GetWhatIsGround());
+
+        return hit.collider != null;
+    }
+
+    #endregion
+
+    #region Offset phase
+    private void UpdateOffsetToNextSurfacePhase()
+    {
+        rb.linearVelocity = Vector2.zero;
+
+        float moveStep = edgeOffsetMoveSpeed * Time.deltaTime;
+        rb.position = Vector2.MoveTowards(rb.position, edgeOffsetTargetPos, moveStep);
+        Physics2D.SyncTransforms();
+
+        bool posDone = ((Vector2)rb.position - edgeOffsetTargetPos).sqrMagnitude <= 0.000001f;
+        if (!posDone)
+            return;
+
+        rb.position = edgeOffsetTargetPos;
+        Physics2D.SyncTransforms();
+
+        edgeWrapPhase = EdgeWrapPhase.Confirm;
+    }
+    private void ApplyOffsetHalfStepOnNextSurface(CrawlStep from, float width)
+    {
+        Vector2 offsetDirection = StepForward(edgeNextStep).normalized;
+        rb.position = rb.position + offsetDirection * (width * 0.5f);
+        Physics2D.SyncTransforms();
+    }
+
+    #endregion
+
+    #region Confirm phase
+    private void Wrap_Confirm()
+    {
+        SetStepImmediate(edgeNextStep);
+        edgeWrapActive = false;
+    }
+
+    #endregion
+
+    #region Edge helper methods
+    private void SaveTransformState(out Vector2 position, out float zRotation)
+    {
+        position = rb.position;
+        zRotation = enemy.transform.eulerAngles.z;
+    }
+
+    private void RestoreTransformState(Vector2 position, float zRotation)
+    {
+        rb.position = position;
+
+        var eulerAngles = enemy.transform.eulerAngles;
+        eulerAngles.z = zRotation;
+        enemy.transform.eulerAngles = eulerAngles;
+
+        Physics2D.SyncTransforms();
+    }
+
+    private Vector2 GetEnemyWrapMoveDir()
+    {
+        Vector2 direction = enemy.IsFacingRight()
+            ? (Vector2)enemy.transform.right
+            : -(Vector2)enemy.transform.right;
+
+        if (direction.sqrMagnitude < 0.0001f)
+            direction = StepForward(edgeWrapFromStep);
+
+        return direction.normalized;
+    }
+
+    private void ResetEdgeWrapState()
+    {
+        edgeWrapActive = false;
+        edgeWrapPhase = EdgeWrapPhase.None;
+        edgeFreezeActive = false;
+    }
+
+    private static Vector2 CapsuleSupportPointLocal(CapsuleCollider2D cap, Vector2 worldDir)
+    {
+        if (worldDir.sqrMagnitude < 0.0001f)
+            worldDir = Vector2.down;
+
+        worldDir.Normalize();
+
+        Bounds colliderBounds = cap.bounds;
+        Vector2 center = colliderBounds.center;
+
+        float reach = Mathf.Max(colliderBounds.size.x, colliderBounds.size.y) * 2f;
+        Vector2 farPoint = center + worldDir * reach;
+
+        Vector2 supportWorld = cap.ClosestPoint(farPoint);
+
+        return cap.transform.InverseTransformPoint(supportWorld);
+    }
+
+    private void ResolveEdgeRule(CrawlStep from, out CrawlStep next, out float targetZ, out float arcDeltaZ)
+    {
+        switch (from.surface)
+        {
+            case Surface4.Floor:
+                if (from.dir > 0)
+                {
+                    next = new CrawlStep(Surface4.RightWall, -1);
+                    targetZ = 270f;
+                    arcDeltaZ = -90f;
+                }
+                else
+                {
+                    next = new CrawlStep(Surface4.LeftWall, -1);
+                    targetZ = 270f;
+                    arcDeltaZ = +90f;
+                }
+                return;
+
+            case Surface4.RightWall:
+                if (from.dir < 0)
+                {
+                    next = new CrawlStep(Surface4.Ceiling, -1);
+                    targetZ = 180f;
+                    arcDeltaZ = +90f;
+                }
+                else
+                {
+                    next = new CrawlStep(Surface4.Floor, -1);
+                    targetZ = 0f;
+                    arcDeltaZ = -90f;
+                }
+                return;
+
+            case Surface4.Ceiling:
+                if (from.dir > 0)
+                {
+                    next = new CrawlStep(Surface4.RightWall, +1);
+                    targetZ = 90f;
+                    arcDeltaZ = +90f;
+                }
+                else
+                {
+                    next = new CrawlStep(Surface4.LeftWall, +1);
+                    targetZ = 90f;
+                    arcDeltaZ = -90f;
+                }
+                return;
+
+            case Surface4.LeftWall:
+                if (from.dir > 0)
+                {
+                    next = new CrawlStep(Surface4.Floor, +1);
+                    targetZ = 0f;
+                    arcDeltaZ = +90f;
+                }
+                else
+                {
+                    next = new CrawlStep(Surface4.Ceiling, +1);
+                    targetZ = 180f;
+                    arcDeltaZ = -90f;
+                }
+                return;
+        }
+
+        next = from;
+        targetZ = Vector2.SignedAngle(Vector2.up, currentNormal);
+        arcDeltaZ = -90f;
+    }
+
+    #endregion
+
+    #endregion
+
+    #region Alignment logic
+
+    private void SmoothAlignToCurrentNormal()
+    {
+        if (enemy.moveMode != RegularMoveMode.SurfaceCrawler) return;
+
+        if (wallAlignActive)
+        {
+            SmoothAlignWall();
+            return;
+        }
+    }
+
+    private float ComputeWallTargetZ()
+    {
+        Vector2 wallNormalForRotation = currentNormal;
+
+        if (step.surface == Surface4.RightWall)
+            wallNormalForRotation = SurfaceNormal(Surface4.LeftWall);
+        else if (step.surface == Surface4.LeftWall)
+            wallNormalForRotation = SurfaceNormal(Surface4.RightWall);
+
+        float targetZ = Vector2.SignedAngle(Vector2.up, wallNormalForRotation);
+
+        bool onWall = step.surface == Surface4.LeftWall || step.surface == Surface4.RightWall;
+        if (onWall && !enemy.IsFacingRight())
+            targetZ += 180f;
+
+        return Normalize360(targetZ);
+    }
+
+    private void BeginWallAlign()
+    {
+        wallAlignActive = true;
+        wallAlignTargetZ = ComputeWallTargetZ();
+
+        zSmoothVel = 0f;
+    }
+
+    private void SmoothAlignWall()
+    {
+        var eulerAngles = enemy.transform.eulerAngles;
+
+        float smoothTime = Mathf.Max(0.0001f, Z_ALIGN_TIME);
+        eulerAngles.z = Mathf.SmoothDampAngle(eulerAngles.z, wallAlignTargetZ, ref zSmoothVel, smoothTime);
+        enemy.transform.eulerAngles = eulerAngles;
+
+        float remaining = Mathf.Abs(Mathf.DeltaAngle(eulerAngles.z, wallAlignTargetZ));
+        if (remaining <= WALL_ALIGN_EPS_DEG)
+        {
+            eulerAngles.z = wallAlignTargetZ;
+            enemy.transform.eulerAngles = eulerAngles;
+
+            wallAlignActive = false;
+            zSmoothVel = 0f;
+        }
+    }
+
+    #endregion
+
+    #endregion
+
+    #region General helpers
 
     private void AlignToNormal(Vector2 normal)
     {
@@ -749,166 +938,6 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         return a;
     }
 
-    private bool IsEdgeRotationSettled()
-    {
-        Surface4 s = inAttachPose ? pendingSurface : step.surface;
-
-        float targetZ = EdgeAttachTargetZForSurface(s);
-        float actualZ = Normalize360(enemy.transform.eulerAngles.z);
-        float delta = Mathf.Abs(Mathf.DeltaAngle(actualZ, targetZ));
-
-        return delta <= EDGE_ROTATE_EPSILON && Mathf.Abs(zSmoothVel) < 0.01f;
-    }
-
-
-    private void SmoothAlignToCurrentNormal()
-    {
-        if (enemy.moveMode != RegularMoveMode.SurfaceCrawler) return;
-
-        if (suspendChecksUntilLock)
-            SmoothAlignEdge();
-        else
-            SmoothAlignWall();
-    }
-
-    private void SmoothAlignWall()
-    {
-        // Base target Z from the desired surface normal
-        float targetZ = Vector2.SignedAngle(Vector2.up, currentNormal);
-
-        // On walls and NOT facing right, rotate feet-side by 180°
-        bool onWall = step.surface == Surface4.LeftWall || step.surface == Surface4.RightWall;
-        if (onWall && !enemy.IsFacingRight()) targetZ += 180f;
-
-        // SmoothDampAngle to the target Z
-        var e = enemy.transform.eulerAngles;
-        float smoothTime = Mathf.Max(0.0001f, Z_ALIGN_TIME);
-        e.z = Mathf.SmoothDampAngle(e.z, Normalize360(targetZ), ref zSmoothVel, smoothTime);
-        enemy.transform.eulerAngles = e;
-    }
-
-
-    // ADD: EDGE logic (feet point INTO pending/current edge surface, with feet-pivot)
-    private void SmoothAlignEdge()
-    {
-        // Target Z from the edge attach table
-        Surface4 s = inAttachPose ? pendingSurface : step.surface;
-        float targetZ = EdgeAttachTargetZForSurface(s);
-
-        // Smooth toward attach angle
-        var e = enemy.transform.eulerAngles;
-        float smoothTime = Mathf.Max(0.0001f, Z_ALIGN_TIME);
-        float prevZ = Normalize360(e.z);
-        float nextZ = Mathf.SmoothDampAngle(prevZ, Normalize360(targetZ), ref zSmoothVel, smoothTime);
-        float dZ = Mathf.DeltaAngle(prevZ, nextZ);
-
-        e.z = Normalize360(prevZ + dZ);
-        enemy.transform.eulerAngles = e;
-
-        // Feet-pivot so the body doesn’t clip while rotating (edge only)
-        var groundT = enemy.GetGroundCheck();
-        if (groundT != null)
-        {
-            Vector3 pivot = groundT.position;
-            Vector3 off = enemy.transform.position - pivot;
-            enemy.transform.position = pivot + (Quaternion.Euler(0f, 0f, dZ) * off);
-        }
-
-        // Keep existing one-shot edge rotate log (edge only)
-        if (!didLogEdgeRotate)
-        {
-            float actualZ = Normalize360(enemy.transform.eulerAngles.z);
-            string phase = wrapPhase.ToString();
-            string src = inAttachPose ? "AttachFeet(pending)" : "EdgeFeet(current)";
-            string facing = enemy.IsFacingRight() ? "Right" : "Left";
-            Debug.Log($"[Crawler] {enemy.name}: EDGE-ROTATE | phase={phase} src={src} " +
-                      $"targetZ={Normalize360(targetZ):F1} actualZ={actualZ:F1} facing={facing} " +
-                      $"pending={SurfaceToString(pendingSurface)} step=[{SurfaceToString(step.surface)} {StepDirToString(step)}]");
-            didLogEdgeRotate = true;
-        }
-    }
-
-
-    private float EdgeAttachTargetZForSurface(Surface4 s)
-    {
-        switch (s)
-        {
-            case Surface4.Floor: return 0f;
-            case Surface4.Ceiling: return 180f;
-            case Surface4.RightWall: return 270f;
-            case Surface4.LeftWall: return 90f;
-            default: return 0f;
-        }
-    }
-
-    private bool LocalAdhesionProbe(out RaycastHit2D hit)
-    {
-        var groundT = enemy.GetGroundCheck();
-        if (groundT == null) { hit = default; return false; }
-
-        Vector2 origin = (Vector2)groundT.position;
-
-        // IMPORTANT: trust the discrete step surface (not the visual-smoothing normal)
-        Vector2 dir = -SurfaceNormal(step.surface);   // cast INTO the current surface defined by step
-
-        // On walls, bias the ray origin slightly INTO the wall so 1-frame gaps don’t read as “edge”
-        if (step.surface == Surface4.LeftWall || step.surface == Surface4.RightWall)
-            origin += dir * (SKIN_NUDGE + 0.02f);
-
-        float halfExtent = ComputeColliderExtentAlong(dir);
-        float dist = Mathf.Max(
-            enemy.GetGroundCheckDistance(),
-            halfExtent + EDGE_CLEAR_PADDING + 0.1f
-        );
-
-        hit = Physics2D.Raycast(origin, dir, dist, enemy.GetWhatIsGround());
-        return hit.collider != null;
-    }
-
-
-    private bool LocalAdhesionProbeAgainst(Surface4 s, out RaycastHit2D hit)
-    {
-        var groundT = enemy.GetGroundCheck();
-        if (groundT == null) { hit = default; return false; }
-
-        Vector2 origin = (Vector2)groundT.position;
-        Vector2 dir = inAttachPose ? -(Vector2)enemy.transform.up : -SurfaceNormal(s);
-
-        // --- NEW: same wall bias so Attach/Lock doesn’t false-drop on walls ---
-        if (!inAttachPose && (s == Surface4.LeftWall || s == Surface4.RightWall))
-            origin += dir * (SKIN_NUDGE + 0.02f);
-
-        float halfExtent = ComputeColliderExtentAlong(dir);
-        float dist = Mathf.Max(enemy.GetGroundCheckDistance(),
-                               halfExtent + EDGE_CLEAR_PADDING + 0.1f);
-
-        hit = Physics2D.Raycast(origin, dir, dist, enemy.GetWhatIsGround());
-        return hit.collider != null;
-    }
-
-    private bool LocalAdhesionProbeConfirm(out RaycastHit2D hit)
-    {
-        var groundT = enemy.GetGroundCheck();
-        if (groundT == null) { hit = default; return false; }
-
-        Vector2 origin = (Vector2)groundT.position;
-        Vector2 dir = -(Vector2)enemy.transform.up; // into the current (new) surface
-
-        // --- NEW: when we’re on a wall, bias into the wall to avoid a one-frame miss after defer ---
-        if (step.surface == Surface4.LeftWall || step.surface == Surface4.RightWall)
-            origin += dir * (SKIN_NUDGE + 0.02f);
-
-        float halfExtent = ComputeColliderExtentAlong(dir);
-        float dist = Mathf.Max(enemy.GetGroundCheckDistance(),
-                               halfExtent + EDGE_CLEAR_PADDING + 0.1f);
-
-        hit = Physics2D.Raycast(origin, dir, dist, enemy.GetWhatIsGround());
-        return hit.collider != null;
-    }
-
-    #endregion
-
-    #region Helper Methods
     private void TryRandomizeFacingOnEnter()
     {
         if (enemy.boundaryTouchedOnMove)
