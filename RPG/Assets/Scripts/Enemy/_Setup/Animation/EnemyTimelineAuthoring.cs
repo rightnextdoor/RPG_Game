@@ -11,6 +11,10 @@ public class EnemyTimelineAuthoring : MonoBehaviour
     [HideInInspector] public string selectedCheck;
 
 #if UNITY_EDITOR
+    [Header("Animation Preview Audio")]
+    [Tooltip("When enabled, SOUND events on the active Animation Window clip preview in the editor while the clip is playing.")]
+    public bool previewClipAudio = true;
+
     [HideInInspector] public int lastAttackIndex = -1;
     [HideInInspector] public int lastCheckIndex = -1;
 #endif
