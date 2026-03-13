@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[System.Serializable]
 public struct StateSound
 {
     public string name;
