@@ -17,11 +17,11 @@ public class EnemyTimelineAuthoringEditor : Editor
         var t = (EnemyTimelineAuthoring)target;
         var so = serializedObject;
 
-        // Only the profile stays
         EditorGUILayout.PropertyField(so.FindProperty("profile"));
         EditorGUILayout.Space(6);
 
-        // Prefer the SCENE enemy instance near this Animator. Fallback to profile if none.
+        DrawPreviewSettings(so);
+
         var sceneEnemy = t.GetComponentInParent<Enemy>(true);
         var enemy = sceneEnemy ? sceneEnemy : (t.profile ? t.profile.GetEnemyPrototype() : null);
 
@@ -42,14 +42,12 @@ public class EnemyTimelineAuthoringEditor : Editor
             return;
         }
 
-        // --- Attack dropdown ---
         var attacks = attacksList.Where(a => a != null && !string.IsNullOrEmpty(a.name)).ToList();
         var attackNames = attacks.Select(a => a.name).ToArray();
         idxAttack = Mathf.Clamp(idxAttack, 0, Mathf.Max(0, attackNames.Length - 1));
         idxAttack = EditorGUILayout.Popup("Attack", idxAttack, attackNames);
         var attack = attacks[idxAttack];
 
-        // --- Check dropdown ---
         var checks = attack.attackChecks ?? new List<AttackCheck>();
         var checkLabels = checks.Where(c => c != null && !string.IsNullOrEmpty(c.label)).Select(c => c.label).ToArray();
         if (checkLabels.Length == 0)
@@ -58,24 +56,24 @@ public class EnemyTimelineAuthoringEditor : Editor
             so.ApplyModifiedProperties();
             return;
         }
+
         idxCheck = Mathf.Clamp(idxCheck, 0, Mathf.Max(0, checkLabels.Length - 1));
         idxCheck = EditorGUILayout.Popup("Check", idxCheck, checkLabels);
         var check = checks.First(c => c.label == checkLabels[idxCheck]);
 
-        // --- Spawn dropdown (Point only) ---
         string[] spawnNames = System.Array.Empty<string>();
-        bool needsSpawn = (check.shape == AttackCheckShape.Point);
+        bool needsSpawn = check.shape == AttackCheckShape.Point;
         if (needsSpawn)
         {
             var spawns = attack.spawnPrefab ?? new List<AttackSpawnSpec>();
             spawnNames = spawns.Where(s => s != null && !string.IsNullOrEmpty(s.name)).Select(s => s.name).ToArray();
-            if (spawnNames.Length == 0) spawnNames = new[] { "(no spawn entries)" };
+            if (spawnNames.Length == 0)
+                spawnNames = new[] { "(no spawn entries)" };
 
             idxSpawn = Mathf.Clamp(idxSpawn, 0, spawnNames.Length - 1);
             idxSpawn = EditorGUILayout.Popup("Spawn (Point)", idxSpawn, spawnNames);
         }
 
-        // --- Sound dropdown ---
         int soundCount = attack.sounds != null ? attack.sounds.Length : 0;
         var soundLabels = Enumerable.Range(0, soundCount).Select(i => $"[{i}]").ToArray();
         using (new EditorGUI.DisabledScope(soundCount == 0))
@@ -86,7 +84,6 @@ public class EnemyTimelineAuthoringEditor : Editor
 
         EditorGUILayout.Space(10);
 
-        // Inline: Selected Check Settings (edit SCENE enemy data directly)
         EditorGUILayout.LabelField("Selected Check Settings", EditorStyles.boldLabel);
         DrawSelectedCheckInspector(sceneEnemy ? sceneEnemy : enemy, attack.name, idxCheck);
 
@@ -99,7 +96,6 @@ public class EnemyTimelineAuthoringEditor : Editor
 
         EditorGUILayout.Space(8);
 
-        // Insert buttons at current Animation Window playhead (no transform binding, no OFF)
         if (GUILayout.Button("Insert ATTACK at Playhead"))
         {
             var attackName = attackNames[idxAttack];
@@ -124,7 +120,16 @@ public class EnemyTimelineAuthoringEditor : Editor
         so.ApplyModifiedProperties();
     }
 
-    // Draws the selected AttackCheck inline (full inspector via your PropertyDrawer)
+    private static void DrawPreviewSettings(SerializedObject so)
+    {
+        EditorGUILayout.LabelField("Animation Preview Audio", EditorStyles.boldLabel);
+        EditorGUILayout.PropertyField(so.FindProperty("previewClipAudio"));
+        EditorGUILayout.HelpBox(
+            "Editor-only preview. When the Animation Window clip is playing, authored SOUND events preview in the editor. Runtime game audio is unchanged.",
+            MessageType.Info);
+        EditorGUILayout.Space(8);
+    }
+
     private void DrawSelectedCheckInspector(Enemy enemyInstance, string attackName, int checkIndex)
     {
         if (!enemyInstance) return;
@@ -138,7 +143,11 @@ public class EnemyTimelineAuthoringEditor : Editor
         {
             var el = attacksProp.GetArrayElementAtIndex(i);
             var nameProp = el.FindPropertyRelative("name");
-            if (nameProp != null && nameProp.stringValue == attackName) { foundAttack = el; break; }
+            if (nameProp != null && nameProp.stringValue == attackName)
+            {
+                foundAttack = el;
+                break;
+            }
         }
         if (foundAttack == null) return;
 
@@ -147,13 +156,12 @@ public class EnemyTimelineAuthoringEditor : Editor
 
         var checkProp = checksProp.GetArrayElementAtIndex(checkIndex);
         EditorGUI.indentLevel++;
-        EditorGUILayout.PropertyField(checkProp, includeChildren: true); // uses AttackCheckDrawer
+        EditorGUILayout.PropertyField(checkProp, includeChildren: true);
         EditorGUI.indentLevel--;
 
         enemySO.ApplyModifiedProperties();
     }
 
-    // Insert AnimationEvent at current playhead (single string payload)
     private static void AddEventAtPlayhead(string method, string payload = "")
     {
         var clip = AnimationWindowUtil.GetActiveClip();

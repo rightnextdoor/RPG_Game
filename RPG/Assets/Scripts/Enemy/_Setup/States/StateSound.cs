@@ -1,13 +1,14 @@
 using UnityEngine;
 
+[System.Serializable]
 public struct StateSound
 {
     public string name;
     public float delay;
     public bool useTransform;
-    public float distance;
+    public float? distance;
 
-    public StateSound(string name, float delay = 0f, bool useTransform = false, float distance = 15f)
+    public StateSound(string name, float delay = 0f, bool useTransform = false, float? distance = null)
     {
         this.name = name;
         this.delay = delay;
@@ -21,15 +22,15 @@ public struct StateSound
 
         if (delay <= 0f)
         {
-            if (distance != 15f)
-                AudioManager.instance.PlaySFXWithDelay(name, 0f, src, distance);
+            if (distance.HasValue)
+                AudioManager.instance.PlaySFXWithDelay(name, 0f, src, distance.Value);
             else
                 AudioManager.instance.PlaySFX(name, src);
         }
         else
         {
-            if (distance != 15f)
-                AudioManager.instance.PlaySFXWithDelay(name, delay, src, distance);
+            if (distance.HasValue)
+                AudioManager.instance.PlaySFXWithDelay(name, delay, src, distance.Value);
             else
                 AudioManager.instance.PlaySFXWithDelay(name, delay, src);
         }
