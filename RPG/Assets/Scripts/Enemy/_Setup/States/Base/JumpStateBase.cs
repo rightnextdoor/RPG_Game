@@ -10,9 +10,10 @@ public class JumpStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
     private readonly List<StateSound> exitSounds;
 
     private Func<EnemyState> nextProvider;
-    private float configuredFallTime;
     private Vector2 configuredJumpVelocity;
     private bool configuredIsBack;
+
+    private bool hasLeftGround;
 
     public JumpStateBase(
         TEnemy enemyBase,
@@ -28,13 +29,11 @@ public class JumpStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
     public virtual void Configure(
         Func<EnemyState> next,
-        float fallTime,
         Vector2 jumpVelocity,
         bool isJumpBack
     )
     {
         nextProvider = next;
-        configuredFallTime = fallTime;
         configuredJumpVelocity = jumpVelocity;
         configuredIsBack = isJumpBack;
     }
@@ -45,7 +44,7 @@ public class JumpStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
         PlayStateSounds(enterSounds);
 
-        stateTimer = configuredFallTime;
+        hasLeftGround = false;
 
         if (configuredIsBack)
             JumpBack();
@@ -60,20 +59,7 @@ public class JumpStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         if (enemy.anim != null)
             enemy.anim.SetFloat("yVelocity", rb.linearVelocity.y);
 
-        if (rb.linearVelocity.y < 0f && enemy.IsGroundDetected())
-        {
-            var next = nextProvider != null ? nextProvider() : null;
-            if (next != null)
-                stateMachine.ChangeState(next);
-            return;
-        }
-
-        if (stateTimer < 0f)
-        {
-            var next = nextProvider != null ? nextProvider() : null;
-            if (next != null)
-                stateMachine.ChangeState(next);
-        }
+        UpdateJumpLanding();
     }
 
     public override void Exit()
@@ -92,6 +78,45 @@ public class JumpStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
     {
         float dir = enemy.facingDir;
         rb.linearVelocity = new Vector2(configuredJumpVelocity.x * dir, configuredJumpVelocity.y);
+    }
+
+    protected virtual void UpdateJumpLanding()
+    {
+        bool hasFloorContact = HasFloorContact();
+
+        if (!hasLeftGround)
+        {
+            if (!hasFloorContact)
+                hasLeftGround = true;
+
+            return;
+        }
+
+        if (hasFloorContact)
+        {
+            enemy.SetZeroVelocity();
+
+            var next = nextProvider != null ? nextProvider() : null;
+            if (next != null)
+                stateMachine.ChangeState(next);
+        }
+    }
+
+    protected virtual bool HasFloorContact()
+    {
+        if (enemy.cd == null)
+            return enemy.IsGroundDetected();
+
+        Bounds bounds = enemy.cd.bounds;
+
+        float insetX = Mathf.Min(0.05f, bounds.extents.x * 0.2f);
+        float probeWidth = Mathf.Max(0.02f, bounds.size.x - insetX * 2f);
+        float probeHeight = 0.06f;
+
+        Vector2 probeSize = new Vector2(probeWidth, probeHeight);
+        Vector2 probeCenter = new Vector2(bounds.center.x, bounds.min.y - probeHeight * 0.5f - 0.02f);
+
+        return Physics2D.OverlapBox(probeCenter, probeSize, 0f, enemy.GetWhatIsGround()) != null;
     }
 
     private void PlayStateSounds(List<StateSound> sounds)
