@@ -42,8 +42,6 @@ public class JumpStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
     {
         base.Enter();
 
-        PlayStateSounds(enterSounds);
-
         hasLeftGround = false;
 
         if (!CanJumpSafely())
@@ -52,6 +50,8 @@ public class JumpStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
             ChangeToNextState();
             return;
         }
+
+        PlayStateSounds(enterSounds);
 
         if (configuredIsBack)
             JumpBack();
