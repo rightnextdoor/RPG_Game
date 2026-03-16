@@ -9,15 +9,6 @@ public class Enemy_Archer : Enemy_Regular
     [SerializeField] private GameObject arrowPrefab;
     [SerializeField] private float arrowSpeed;
 
-    public bool canJump = true;
-    public Vector2 jumpVelocity;
-    public float jumpCooldown;
-    public float safeDistance; // how close player should be to trigger jump in battle state
-    [HideInInspector] public float lastTimeJumped;
-
-    [Header("Additional collision check old")]
-    [SerializeField] private Transform groundBehindCheck;
-    [SerializeField] private Vector2 groundBehindCheckSize;
     #endregion
 
     #region Jump Ability Settings
@@ -244,13 +235,4 @@ public class Enemy_Archer : Enemy_Regular
         AudioManager.instance.PlaySFX("ArcherAttack", transform);
     }
 
-    public bool GroundBehind() => Physics2D.BoxCast(groundBehindCheck.position, groundBehindCheckSize, 0, Vector2.zero, 0, whatIsGround);
-    public bool WallBehind() => Physics2D.Raycast(wallCheck.position, Vector2.right * -facingDir, wallCheckDistance + 2, whatIsGround);
-
-    protected override void OnDrawGizmos()
-    {
-        base.OnDrawGizmos();
-
-        Gizmos.DrawWireCube(groundBehindCheck.position, groundBehindCheckSize);
-    }
 }
