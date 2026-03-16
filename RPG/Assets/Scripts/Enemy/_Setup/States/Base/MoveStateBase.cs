@@ -204,7 +204,8 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
 
         if (IsBoundaryAheadInFacingDir() || enemy.IsWallDetected() || !enemy.IsGroundDetected())
         {
-            OnBoundary();
+            enemy.Flip();
+            ApplyVelocity();
             return;
         }
 

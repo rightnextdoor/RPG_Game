@@ -21,7 +21,7 @@ public class Enemy_Regular : Enemy
     [Space(6)]
     [SerializeField] public Transform patrolAreaAnchor;
     [System.NonSerialized] private Vector3 patrolAnchorFrozenWorld;
-    [SerializeField] public Vector2 patrolAreaSize = new Vector2(8f, 2f);
+    [SerializeField] public Vector2 patrolAreaSize = new Vector2(10f, 4f);
     [System.NonSerialized] public Vector2 patrolCenter;
     [System.NonSerialized] public float patrolLeftX, patrolRightX;
     [HideInInspector] public bool patrolSnapshotDone;

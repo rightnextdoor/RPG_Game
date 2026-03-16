@@ -39,6 +39,7 @@ Transform:
   - {fileID: 8630184344616395272}
   - {fileID: 4246823987779560861}
   - {fileID: 8307136111846976062}
+  - {fileID: 1406173170018145759}
   - {fileID: 8631274565098590753}
   - {fileID: 7916920955472532048}
   - {fileID: 4163266718149064840}
@@ -48,7 +49,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!50 &6360488662568941520
 Rigidbody2D:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -59,8 +60,8 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0.05
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
   m_GravityScale: 12
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -81,6 +82,7 @@ CapsuleCollider2D:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 740994826781951547}
   m_Enabled: 1
+  serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -104,7 +106,8 @@ CapsuleCollider2D:
     m_Bits: 4294967295
   m_IsTrigger: 0
   m_UsedByEffector: 0
-  m_UsedByComposite: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
   m_Offset: {x: 0.036497116, y: -0.2445507}
   m_Size: {x: 0.6581459, y: 2.9964957}
   m_Direction: 0
@@ -238,32 +241,129 @@ MonoBehaviour:
   attackCheck: {fileID: 8307136111846976062}
   attackCheckRadius: 2.07
   groundCheck: {fileID: 8630184344616395272}
-  groundCheackDistance: 1
+  groundCheckDistance: 1
   wallCheck: {fileID: 4246823987779560861}
   wallCheckDistance: 0.8
   whatIsGround:
     serializedVersion: 2
     m_Bits: 8
+  boundaryTouchedOnMove: 0
   whatIsPlayer:
     serializedVersion: 2
     m_Bits: 64
   playerDistance: 12
+  idleTime: 2
   canPatrol: 1
   moveSpeed: 6
-  idleTime: 2
   moveTime: 5
   battleTime: 7
   agroDistance: 2
   rangeAttackDistance: 0
   rangeAttackCooldown: 0
-  minRangeAttackCooldown: 1
-  maxRangeAttackCooldown: 2
+  minRangeAttackCooldown: 2
+  maxRangeAttackCooldown: 6
   lastTimeRangeAttacked: 0
   meleeAttackDistance: 3.64
   meleeAttackCooldown: 0
   minMeleeAttackCooldown: 1
   maxMeleeAttackCooldown: 2
   lastTimeMeleeAttacked: 0
+  attackDetails:
+  - name: Attack
+    animBoolName: Attack
+    action: 0
+    unlocked: 1
+    cannotUseWithTeleport: 0
+    chance: 1
+    minCooldown: 1
+    maxCooldown: 4
+    lingerTime: 0
+    attackAmount: 1
+    attackTimeMin: 0
+    attackTimeMax: 0
+    rangeMin: 0.5
+    rangeMax: 4
+    attackChecks:
+    - label: Attack
+      shape: 4
+      checkTransform: {fileID: 8307136111846976062}
+      debugDraw: 0
+      circleRadius: 0
+      boxSize: {x: 0, y: 0}
+      capsuleSize: {x: 1.33, y: 2.05}
+      capsuleDirection: 0
+      lineLength: 4
+      lineThickness: 1.03
+      arcRadius: 0
+      arcAngleDegrees: 0
+      arcInnerRadius: 0
+      polygonPoints: []
+    spawnPrefab: []
+    sounds:
+    - name: SkeletonAttack
+      delay: 0
+      useTransform: 1
+  - name: Attack2
+    animBoolName: Attack2
+    action: 0
+    unlocked: 1
+    cannotUseWithTeleport: 0
+    chance: 1
+    minCooldown: 1
+    maxCooldown: 4
+    lingerTime: 0
+    attackAmount: 1
+    attackTimeMin: 0
+    attackTimeMax: 0
+    rangeMin: 0.5
+    rangeMax: 3.55
+    attackChecks:
+    - label: Attack
+      shape: 4
+      checkTransform: {fileID: 8307136111846976062}
+      debugDraw: 0
+      circleRadius: 0
+      boxSize: {x: 0, y: 0}
+      capsuleSize: {x: 1.33, y: 2.05}
+      capsuleDirection: 0
+      lineLength: 4
+      lineThickness: 1.1
+      arcRadius: 0
+      arcAngleDegrees: 0
+      arcInnerRadius: 0
+      polygonPoints: []
+    - label: Attack2
+      shape: 4
+      checkTransform: {fileID: 1406173170018145759}
+      debugDraw: 0
+      circleRadius: 0
+      boxSize: {x: 0, y: 0}
+      capsuleSize: {x: 1.33, y: 2.05}
+      capsuleDirection: 0
+      lineLength: 3.5
+      lineThickness: 2.03
+      arcRadius: 0
+      arcAngleDegrees: 0
+      arcInnerRadius: 0
+      polygonPoints: []
+    spawnPrefab: []
+    sounds:
+    - name: SkeletonAttack
+      delay: 0
+      useTransform: 1
+  teleportForAttack: 0
+  evadeRangeMin: 0
+  evadeRangeMax: 1
+  evasionSpeedMultiplier: 1.25
+  evasionDuration: 0.5
+  evasionCooldownMin: 1
+  evasionCooldownMax: 3
+  evadeBackAwayMin: 1.2
+  evadeBackAwayMax: 2
+  evadePassPastMin: 0.6
+  evadePassPastMax: 1
+  evadeReducedFactor: 0.6
+  evadeTinyRetreat: 0.35
   evasionTimer: 1.5
   evasionSpeed: 10
   evasionDistance: 1
@@ -271,6 +371,14 @@ MonoBehaviour:
   maxEvasionCooldown: 0.5
   isSummon: 0
   enemyData: {fileID: 0}
+  moveMode: 0
+  moveSpeedMultiplier: 1
+  randomizeFacingOnMoveEnter: 1
+  patrolAreaAnchor: {fileID: 0}
+  patrolAreaSize: {x: 10, y: 4}
+  patrolSnapshotDone: 0
+  traverseStopMinSeconds: 1
+  traverseStopMaxSeconds: 2.5
   stunDuration: 1
   stunDirection: {x: 10, y: 12}
   counterImage: {fileID: 1129059011035326597}
@@ -314,6 +422,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &6711516672116826427
 SpriteRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -329,6 +438,11 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -350,9 +464,11 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -763691063
   m_SortingLayer: 7
   m_SortingOrder: -10
+  m_MaskInteraction: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
   m_Color: {r: 0.82210237, g: 0.078664735, b: 0.078664735, a: 0.6862745}
   m_FlipX: 0
@@ -362,7 +478,6 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &1455987245184642090
 GameObject:
@@ -5237,7 +5352,7 @@ ParticleSystem:
     vectorLabel1_3: W
 --- !u!199 &2541925411676632667
 ParticleSystemRenderer:
-  serializedVersion: 6
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -5253,6 +5368,11 @@ ParticleSystemRenderer:
   m_ReflectionProbeUsage: 0
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -5274,9 +5394,11 @@ ParticleSystemRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1506869901
   m_SortingLayer: 9
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_RenderMode: 0
   m_MeshDistribution: 0
   m_SortMode: 0
@@ -5308,7 +5430,6 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
-  m_MaskInteraction: 0
 --- !u!1 &2684065316310292945
 GameObject:
   m_ObjectHideFlags: 0
@@ -5441,6 +5562,37 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1509944960727947467}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5481429295108472431
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1406173170018145759}
+  m_Layer: 7
+  m_Name: Attack2Check
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1406173170018145759
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5481429295108472431}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.88, y: -0.61, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -10404,7 +10556,7 @@ ParticleSystem:
     vectorLabel1_3: W
 --- !u!199 &5848629675946981374
 ParticleSystemRenderer:
-  serializedVersion: 6
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -10420,6 +10572,11 @@ ParticleSystemRenderer:
   m_ReflectionProbeUsage: 0
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -10441,9 +10598,11 @@ ParticleSystemRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1506869901
   m_SortingLayer: 9
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_RenderMode: 0
   m_MeshDistribution: 0
   m_SortMode: 0
@@ -10475,7 +10634,6 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
-  m_MaskInteraction: 0
 --- !u!1 &8300051380082264174
 GameObject:
   m_ObjectHideFlags: 0
@@ -15234,7 +15392,7 @@ ParticleSystem:
     vectorLabel1_3: W
 --- !u!199 &5035313328066906503
 ParticleSystemRenderer:
-  serializedVersion: 6
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -15250,6 +15408,11 @@ ParticleSystemRenderer:
   m_ReflectionProbeUsage: 0
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -15271,9 +15434,11 @@ ParticleSystemRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1506869901
   m_SortingLayer: 9
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_RenderMode: 0
   m_MeshDistribution: 0
   m_SortMode: 0
@@ -15305,7 +15470,6 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
-  m_MaskInteraction: 0
 --- !u!1 &8323767177413988425
 GameObject:
   m_ObjectHideFlags: 0
@@ -15318,6 +15482,7 @@ GameObject:
   - component: {fileID: 5530178081809899820}
   - component: {fileID: 1655951665853760885}
   - component: {fileID: 971039886115169379}
+  - component: {fileID: 5363138212775154229}
   m_Layer: 0
   m_Name: Animator
   m_TagString: Untagged
@@ -15342,6 +15507,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &5530178081809899820
 SpriteRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -15357,6 +15523,11 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -15378,9 +15549,11 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -763691063
   m_SortingLayer: 7
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 7e59e0039330a4142900b62736fb3d58, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -15390,11 +15563,10 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!95 &1655951665853760885
 Animator:
-  serializedVersion: 5
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -15408,6 +15580,7 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
@@ -15425,6 +15598,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8891cf8231703214d9b57412371cdbbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &5363138212775154229
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8323767177413988425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d987166f1567a14c872e5c23483cdbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyTimelineAuthoring
+  profile: {fileID: 0}
+  selectedAttack: 
+  selectedCheck: 
+  previewClipAudio: 1
+  lastAttackIndex: -1
+  lastCheckIndex: -1
 --- !u!1 &8966187798321408793
 GameObject:
   m_ObjectHideFlags: 0

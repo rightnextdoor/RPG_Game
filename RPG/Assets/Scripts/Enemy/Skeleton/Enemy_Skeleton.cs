@@ -3,13 +3,6 @@ using UnityEngine;
 
 public class Enemy_Skeleton : Enemy_Regular
 {
-    [Header("Multi Attack old")]
-    public bool HasMultiAttack;
-    public bool IsSpearSkeleton;
-    public float chanceToMultiAttack = 0;
-    public float defaultChanceToMultiAttack = 5;
-    [SerializeField] private float multiAttackCooldown = 5f;
-    [HideInInspector] public float multiAttackCooldownTimer = 0;
 
     #region States
     public IdleStateBase<Enemy_Skeleton> idleState { get; private set; }
@@ -33,8 +26,6 @@ public class Enemy_Skeleton : Enemy_Regular
     protected override void Update()
     {
         base.Update();
-
-        multiAttackCooldownTimer -= Time.deltaTime;
     }
 
     protected override void Start()
@@ -227,21 +218,5 @@ public class Enemy_Skeleton : Enemy_Regular
 
         Destroy(gameObject, 2f);
     }
-
-    public bool CanMultiAttack()
-    {
-        if (multiAttackCooldownTimer < 0)
-        {
-            if (Random.Range(0, 100) >= chanceToMultiAttack)
-            {
-                chanceToMultiAttack = defaultChanceToMultiAttack;
-                multiAttackCooldownTimer = multiAttackCooldown;
-                return true;
-            }
-            return false;
-        }
-        return false;
-    }
-
 
 }
