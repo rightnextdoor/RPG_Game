@@ -1,5 +1,13 @@
 using UnityEngine;
 
+public enum SpecialMovementType
+{
+    None,
+    Straight,
+    Arch,
+    Homing
+}
+
 [System.Serializable]
 public class AttackSpawnSpec
 {
@@ -12,6 +20,19 @@ public class AttackSpawnSpec
     [Header("Control")]
     [Tooltip("The special attack controller used to run this attack.")]
     public SpecialAttackControl control;
+
+    [Header("Movement")]
+    [Tooltip("How this spawned attack should move.")]
+    public SpecialMovementType movementType = SpecialMovementType.None;
+
+    [Tooltip("How long homing will track before it drops.")]
+    public float moveTimer = 2f;
+
+    [Tooltip("How quickly homing turns toward the player.")]
+    public float homingTurnSpeed = 4f;
+
+    [Tooltip("How strongly homing pulls upward when recovering height.")]
+    public float homingRecoverUpStrength = 1.5f;
 
     [Tooltip("Initial speed for the projectile (usually multiplied by facingDir).")]
     public float speed = 5f;
