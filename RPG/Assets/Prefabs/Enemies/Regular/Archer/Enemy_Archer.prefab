@@ -343,7 +343,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1240692613789147434
 Transform:
   m_ObjectHideFlags: 0
@@ -353,7 +353,7 @@ Transform:
   m_GameObject: {fileID: 4657462551170313670}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.132, y: 0.74, z: 0}
+  m_LocalPosition: {x: 1.202, y: 0.705, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -742,7 +742,53 @@ MonoBehaviour:
   minMeleeAttackCooldown: 1
   maxMeleeAttackCooldown: 2
   lastTimeMeleeAttacked: 0
-  attackDetails: []
+  attackDetails:
+  - name: Attack
+    animBoolName: Attack
+    action: 0
+    unlocked: 1
+    cannotUseWithTeleport: 0
+    chance: 1
+    minCooldown: 1
+    maxCooldown: 2
+    lingerTime: 0
+    attackAmount: 0
+    attackTimeMin: 0
+    attackTimeMax: 0
+    rangeMin: 0
+    rangeMax: 10
+    attackChecks:
+    - label: Attack
+      shape: 0
+      checkTransform: {fileID: 1240692613789147434}
+      debugDraw: 0
+      circleRadius: 0.4
+      boxSize: {x: 0, y: 0}
+      capsuleSize: {x: 0, y: 0}
+      capsuleDirection: 0
+      lineLength: 0
+      lineThickness: 0
+      arcRadius: 0
+      arcAngleDegrees: 0
+      arcInnerRadius: 0
+      polygonPoints: []
+    spawnSpec:
+    - name: Arrow
+      prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
+      control: {fileID: 7644891916077742246, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
+      speed: 7
+      spawnOncePerOn: 0
+      sfxOnSpawn: 
+      explodes: 0
+      explosionRadius: 0
+      explosionTimer: 0
+      enableGrowth: 0
+      growSpeed: 0
+      maxSize: 0
+    sounds:
+    - name: ArcherAttack
+      delay: 0
+      useTransform: 1
   teleportForAttack: 0
   evadeRangeMin: 0
   evadeRangeMax: 1

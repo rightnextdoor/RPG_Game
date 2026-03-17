@@ -9,6 +9,10 @@ public class AttackSpawnSpec
     [Tooltip("The projectile or special attack prefab to spawn.")]
     public GameObject prefab;
 
+    [Header("Control")]
+    [Tooltip("The special attack controller used to run this attack.")]
+    public SpecialAttackControl control;
+
     [Tooltip("Initial speed for the projectile (usually multiplied by facingDir).")]
     public float speed = 5f;
 

@@ -25,6 +25,6 @@ public class AttackDetail
 
     public List<AttackCheck> attackChecks;
 
-    public List<AttackSpawnSpec> spawnPrefab;
+    public List<AttackSpawnSpec> spawnSpec;
     public StateSound[] sounds;
 }

@@ -3,49 +3,49 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class Arrow_Controller : MonoBehaviour
+public class Arrow_Controller : SpecialAttackControl
 {
     [SerializeField] private string targetLayerName = "Player";
     [SerializeField] private Rigidbody2D rb;
 
     private Vector3 xVelocity;
-
     private bool canMove;
     private bool flipped;
 
-    private CharacterStats myStats;
-
-    private void Update()
+    public override void Setup(CharacterStats _stats, List<AttackSpawnSpec> _spawnSpecs)
     {
-        if (canMove)
-            rb.linearVelocity = xVelocity;
-    }
+        base.Setup(_stats, _spawnSpecs);
 
-    public void SetupArrow(float _speed, CharacterStats _myStats, Vector3 _playerPos, Vector3 dir)
-    {
-        myStats = _myStats;
-        Vector3 direction = (_playerPos - transform.position).normalized;
+        if (player == null)
+            return;
+
+        Vector3 playerPos = player.transform.position;
+        Vector3 dir = playerPos - transform.position;
+        Vector3 direction = dir.normalized;
+
         canMove = true;
-        
+
         if (dir.x < 1 && dir.x > -1)
-        {
-            //if the player is under or over the enemy
-            //fix the direction of the arrow
             direction.y *= -1;
-        }
-        
-        if (_playerPos.x < transform.position.x)
-        {
-            xVelocity = direction * _speed * -1;
-        }
-        else
-        {
-            xVelocity = direction * _speed * 1;
-        }
+
+        AttackSpawnSpec currentSpec = null;
+        if (spawnSpecs != null && spawnSpecs.Count > 0)
+            currentSpec = spawnSpecs[0];
+
+        float speed = currentSpec != null ? currentSpec.speed : 0f;
+
+        xVelocity = direction * speed;
 
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        
-        transform.rotation = Quaternion.Euler(0,0,angle);
+        transform.rotation = Quaternion.Euler(0, 0, angle);
+    }
+
+    protected override void Update()
+    {
+        base.Update();
+
+        if (canMove)
+            rb.linearVelocity = xVelocity;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)

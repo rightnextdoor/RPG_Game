@@ -4,13 +4,6 @@ using UnityEngine;
 
 public class Enemy_Archer : Enemy_Regular
 {
-    #region old code
-    [Header("Archer specific info old")]
-    [SerializeField] private GameObject arrowPrefab;
-    [SerializeField] private float arrowSpeed;
-
-    #endregion
-
     #region Jump Ability Settings
     [Header("Jump Ability Settings")]
     [SerializeField] private float jumpRangeMin = 0f;
@@ -224,15 +217,6 @@ public class Enemy_Archer : Enemy_Regular
         }
 
         stateMachine.ChangeState(deadState);
-    }
-
-    public override void AnimationSpecialAttackTrigger()
-    {
-        GameObject newArrow = Instantiate(arrowPrefab, attackCheck.position,Quaternion.identity);
-        Transform player = PlayerManager.instance.player.transform;
-        Vector3 direction = player.position - wallCheck.position;
-        newArrow.GetComponent<Arrow_Controller>().SetupArrow(arrowSpeed * facingDir, stats, player.position, direction);
-        AudioManager.instance.PlaySFX("ArcherAttack", transform);
     }
 
 }
