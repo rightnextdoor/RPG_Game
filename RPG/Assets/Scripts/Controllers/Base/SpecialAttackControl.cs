@@ -4,6 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(SpecialMovement))]
 [RequireComponent(typeof(SpecialCollision))]
+[RequireComponent(typeof(SpecialDamage))]
 public abstract class SpecialAttackControl : MonoBehaviour
 {
     protected Player player;
@@ -13,6 +14,7 @@ public abstract class SpecialAttackControl : MonoBehaviour
 
     [SerializeField] private SpecialMovement movement;
     [SerializeField] private SpecialCollision specialCollision;
+    [SerializeField] private SpecialDamage specialDamage;
 
     public virtual void Setup(CharacterStats _stats, List<AttackSpawnSpec> _spawnSpecs)
     {
@@ -23,12 +25,14 @@ public abstract class SpecialAttackControl : MonoBehaviour
 
         AssignCategories();
         specialCollision.Setup(rb);
+        specialDamage.Setup(myStats);
     }
 
     private void AssignCategories()
     {
         movement = GetComponent<SpecialMovement>();
         specialCollision = GetComponent<SpecialCollision>();
+        specialDamage = GetComponent<SpecialDamage>();
     }
 
     protected virtual void Update()
@@ -93,14 +97,29 @@ public abstract class SpecialAttackControl : MonoBehaviour
         if (specialCollision == null) return;
 
         specialCollision.StuckInto();
+    }
+    #endregion
 
-        if (myStats.isDead)
-        {
-            Destroy(gameObject);
-            return;
-        }
+    #region Damage
+    protected void DoDamage(Collider2D[] targets)
+    {
+        if (specialDamage == null) return;
 
-        Destroy(gameObject, Random.Range(5, 7));
+        specialDamage.DoDamage(targets);
+    }
+
+    protected void SelfDestroy()
+    {
+        if (specialDamage == null) return;
+
+        specialDamage.SelfDestroy();
+    }
+
+    protected void DestroyAfter(float time, bool useOwnerDeath)
+    {
+        if (specialDamage == null) return;
+
+        specialDamage.DestroyAfter(time, useOwnerDeath);
     }
     #endregion
 }

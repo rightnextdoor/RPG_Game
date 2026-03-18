@@ -25,13 +25,15 @@ public class Arrow_Controller : SpecialAttackControl
 
         if (hitType == SpecialHitType.Target)
         {
-            myStats.DoDamage(hitCollision.GetComponent<CharacterStats>());
+            DoDamage(new Collider2D[] { hitCollision });
             StuckInto();
+            DestroyAfter(Random.Range(5, 7), true);
             ClearHit();
         }
         else if (hitType == SpecialHitType.Ground)
         {
             StuckInto();
+            DestroyAfter(Random.Range(5, 7), true);
             ClearHit();
         }
     }

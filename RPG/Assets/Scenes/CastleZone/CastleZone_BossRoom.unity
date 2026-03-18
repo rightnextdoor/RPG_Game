@@ -85280,6 +85280,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Enemy_Archer (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 6084631867605666463, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
+      propertyPath: iceDamage.baseValue
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6084631867605666463, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
+      propertyPath: fireDamage.baseValue
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6084631867605666463, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
+      propertyPath: lightingDamage.baseValue
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8173078681514149442, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -85314,11 +85326,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: attackDetails.Array.data[0].maxCooldown
-      value: 6
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: attackDetails.Array.data[0].minCooldown
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: attackDetails.Array.data[0].spawnSpec.Array.data[0].speed
