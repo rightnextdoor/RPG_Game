@@ -313,7 +313,6 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
         jumpState.Configure(
             next: () => this,
-            fallTime: entry.jumpFallTime,
             jumpVelocity: entry.jumpVelocity,
             isJumpBack: entry.jumpBack
         );

@@ -62,7 +62,7 @@ public class Enemy_DragonWarrior : Enemy_Boss
 
     public override void SelfDestroy() => Destroy(transform.parent.gameObject, .5f);
 
-    public override void AttackTrigger(string attackName, string checkLabel, string spawnName = null)
+    public override void AttackTrigger(string attackName, string checkLabel)
     {
         GameObject castFireBall = Instantiate(fireAttackPrefab, attackCheck.position, Quaternion.identity);
         castFireBall.GetComponent<DragonWarrior_FireBlast_Controller>().SetupFireBlast(fireAttackSpeed * facingDir, stats, attackCheckRadius, fireAttackExplosionTimer);

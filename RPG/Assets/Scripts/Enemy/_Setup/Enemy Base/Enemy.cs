@@ -188,7 +188,7 @@ public class Enemy : Entity
 
     }
 
-    public virtual void AttackTrigger(string attackName, string checkLabel, string spawnName = null)
+    public virtual void AttackTrigger(string attackName, string checkLabel)
     {
         if (attackDetails == null || attackDetails.Count == 0) return;
 
@@ -201,6 +201,7 @@ public class Enemy : Entity
                 break;
             }
         }
+
         if (selectedDetail == null) return;
 
         AttackCheck selectedCheck = null;
@@ -219,29 +220,37 @@ public class Enemy : Entity
 
         if (selectedCheck.shape == AttackCheckShape.Point)
         {
-            if (string.IsNullOrEmpty(spawnName) || selectedDetail.spawnPrefab == null) return;
+            if (selectedDetail.spawnSpec == null) return;
 
-            GameObject prefabToSpawn = null;
-            foreach (var spawnSpec in selectedDetail.spawnPrefab)
-            {
-                if (spawnSpec != null && spawnSpec.name == spawnName)
-                {
-                    prefabToSpawn = spawnSpec.prefab;
-                    break;
-                }
-            }
-            if (prefabToSpawn == null) return;
-
-            SpawnAttack(prefabToSpawn, selectedCheck.checkTransform.position);
+            SpecialAttack(selectedDetail.spawnSpec, selectedCheck);
             return;
         }
 
         ResolveCollision(selectedCheck);
     }
 
-    private void SpawnAttack(GameObject prefab, Vector3 position)
+    private void SpecialAttack(List<AttackSpawnSpec> specs, AttackCheck attackCheck)
     {
-        Instantiate(prefab, position, Quaternion.identity);
+        if (specs == null || specs.Count == 0 || attackCheck == null || attackCheck.checkTransform == null) return;
+
+        foreach (var spec in specs)
+        {
+            if (spec == null) continue;
+
+            if (spec.prefab != null)
+            {
+                GameObject spawnedObject = Instantiate(spec.prefab, attackCheck.checkTransform.position, Quaternion.identity);
+                SpecialAttackControl prefabControl = spawnedObject.GetComponent<SpecialAttackControl>();
+
+                if (prefabControl != null)
+                    prefabControl.Setup(stats, specs);
+
+                continue;
+            }
+
+            if (spec.control != null)
+                spec.control.Setup(stats, specs);
+        }
     }
 
     private void ResolveCollision(AttackCheck check)
@@ -563,8 +572,6 @@ public class Enemy : Entity
         }
 #endif
     }
-
-
 
 
     public virtual bool CanBeStunned()

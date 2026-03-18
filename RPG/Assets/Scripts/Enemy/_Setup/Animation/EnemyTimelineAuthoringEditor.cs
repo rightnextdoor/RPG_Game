@@ -65,7 +65,7 @@ public class EnemyTimelineAuthoringEditor : Editor
         bool needsSpawn = check.shape == AttackCheckShape.Point;
         if (needsSpawn)
         {
-            var spawns = attack.spawnPrefab ?? new List<AttackSpawnSpec>();
+            var spawns = attack.spawnSpec ?? new List<AttackSpawnSpec>();
             spawnNames = spawns.Where(s => s != null && !string.IsNullOrEmpty(s.name)).Select(s => s.name).ToArray();
             if (spawnNames.Length == 0)
                 spawnNames = new[] { "(no spawn entries)" };

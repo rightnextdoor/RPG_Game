@@ -34,7 +34,6 @@ public class AbilityEntry
 
     public bool jumpBack = false;
     public Vector2 jumpVelocity;  
-    public float jumpFallTime;
 
     public AbilityEntry(
         string name,
@@ -52,7 +51,6 @@ public class AbilityEntry
         float? attackTimeMin = null,
         float? attackTimeMax = null,
         Vector2 jumpVelocity = default,   // (0,0) by default
-        float jumpFallTime = 1f,
         bool jumpBack = false
     )
     {
@@ -77,7 +75,6 @@ public class AbilityEntry
         this.attackTimeMax = attackTimeMax;
 
         this.jumpVelocity = jumpVelocity;
-        this.jumpFallTime = jumpFallTime;
         this.jumpBack = jumpBack;
     }
 }

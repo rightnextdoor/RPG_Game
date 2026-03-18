@@ -12,11 +12,10 @@ public class Enemy_AnimationTriggers : MonoBehaviour
     public void AttackTrigger(string packed)
     {
         if (string.IsNullOrEmpty(packed)) return;
+
         var parts = packed.Split('|');
-        if (parts.Length == 2)
-            enemy.AttackTrigger(parts[0], parts[1]);            
-        else if (parts.Length >= 3)
-            enemy.AttackTrigger(parts[0], parts[1], parts[2]);  
+        if (parts.Length >= 2)
+            enemy.AttackTrigger(parts[0], parts[1]);
     }
     public void SoundTrigger(string packed)
     {
