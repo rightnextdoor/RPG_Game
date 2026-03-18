@@ -15,6 +15,7 @@ public class SpecialMovement : MonoBehaviour
 
     private SpecialMovementType currentMovementType;
 
+    #region Homing Settings
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private float homingGroundProbeDistance = 10f;
     [SerializeField] private float minGroundClearance = 1.5f;
@@ -38,6 +39,31 @@ public class SpecialMovement : MonoBehaviour
     }
 
     private HomingHeightBand homingHeightBand;
+
+    #endregion
+
+    #region Dive Settings
+    private enum DivePhase
+    {
+        FlyToStart,
+        Loop,
+        AttackRise,
+        AttackDrop
+    }
+
+    private DivePhase divePhase;
+    private int diveLoopCount;
+    private int diveTargetLoops;
+    private float diveLoopAngle;
+    private float diveLockedX;
+    private float diveAttackSpeedBoost;
+    private float diveCircleRadius;
+    private float divePlayerClearance;
+    private float diveDropHorizontalSpeed;
+    private float lastPlayerX;
+    private float playerXVelocity;
+    private float diveDropVelocityX;
+    #endregion
 
     public void Setup(AttackSpawnSpec _spec, Player _player)
     {
@@ -77,6 +103,10 @@ public class SpecialMovement : MonoBehaviour
 
             case SpecialMovementType.Homing:
                 ConfigureHoming();
+                break;
+
+            case SpecialMovementType.Dive:
+                ConfigureDive();
                 break;
         }
     }
@@ -191,6 +221,34 @@ public class SpecialMovement : MonoBehaviour
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
     }
 
+    private void ConfigureDive()
+    {
+        canMove = true;
+        currentMovementType = SpecialMovementType.Dive;
+
+        if (rb != null)
+        {
+            rb.gravityScale = 0f;
+            rb.linearVelocity = Vector2.zero;
+        }
+
+        divePhase = DivePhase.FlyToStart;
+        diveLoopCount = 0;
+        diveLoopAngle = Mathf.PI * 0.5f;
+        diveLockedX = transform.position.x;
+
+        diveAttackSpeedBoost = spec.attackSpeedBoost;
+        diveCircleRadius = Mathf.Max(0.5f, spec.circleRadius);
+        divePlayerClearance = Mathf.Max(0.5f, diveCircleRadius);
+        diveDropHorizontalSpeed = spec.speed;
+
+        int maxLoops = Mathf.Max(1, spec.maxLoops);
+        diveTargetLoops = Random.Range(1, maxLoops + 1);
+
+        lastPlayerX = player.transform.position.x;
+        playerXVelocity = 0f;
+    }
+
     #endregion
 
     #region Movement
@@ -217,6 +275,10 @@ public class SpecialMovement : MonoBehaviour
             case SpecialMovementType.Homing:
                 Homing();
                 break;
+
+            case SpecialMovementType.Dive:
+                Dive();
+                break;
         }
     }
 
@@ -241,7 +303,7 @@ public class SpecialMovement : MonoBehaviour
             transform.rotation = Quaternion.Euler(0f, 0f, angle);
         }
     }
-
+    #region Homing
     #region Homing Core
 
     private void Homing()
@@ -502,6 +564,203 @@ public class SpecialMovement : MonoBehaviour
 
         return desiredDirection;
     }
+
+    #endregion
+
+    #endregion
+
+    #region Dive
+
+    #region Dive Core
+
+    private void Dive()
+    {
+        if (!CanRunDive())
+            return;
+
+        UpdatePlayerXVelocity();
+
+        switch (divePhase)
+        {
+            case DivePhase.FlyToStart:
+                DiveFlyToStart();
+                break;
+
+            case DivePhase.Loop:
+                DiveLoop();
+                break;
+
+            case DivePhase.AttackRise:
+                DiveAttackRise();
+                break;
+
+            case DivePhase.AttackDrop:
+                DiveAttackDrop();
+                break;
+        }
+    }
+
+    private void DiveFlyToStart()
+    {
+        Vector2 startTarget = GetDiveLoopStart();
+
+        MoveDiveTowards(startTarget, spec.speed);
+        FaceDiveVelocity();
+
+        if (Vector2.Distance(rb.position, startTarget) <= 0.2f)
+        {
+            rb.linearVelocity = Vector2.zero;
+            diveLoopAngle = Mathf.PI * 0.5f;
+            divePhase = DivePhase.Loop;
+        }
+    }
+
+    private void DiveLoop()
+    {
+        diveLoopAngle += spec.speed * Time.deltaTime;
+
+        Vector2 targetPos = GetDiveLoopPosition(diveLoopAngle);
+        rb.position = targetPos;
+
+        moveVelocity = GetDiveLoopTangent(diveLoopAngle) * spec.speed;
+        FaceDiveVelocity();
+
+        if (diveLoopAngle >= Mathf.PI * 2.5f)
+        {
+            diveLoopAngle -= Mathf.PI * 2f;
+            diveLoopCount++;
+
+            if (diveLoopCount >= diveTargetLoops)
+                divePhase = DivePhase.AttackRise;
+        }
+    }
+
+    private void DiveAttackRise()
+    {
+        Vector2 riseTarget = GetDiveRiseTarget();
+        rb.position = riseTarget;
+
+        moveVelocity = Vector2.up * spec.speed;
+        FaceDiveVelocity();
+
+        float leadTime = 0.2f;
+        float maxLead = diveCircleRadius;
+        float predictedX = player.transform.position.x + (playerXVelocity * leadTime);
+
+        diveLockedX = Mathf.Clamp(
+            predictedX,
+            player.transform.position.x - maxLead,
+            player.transform.position.x + maxLead
+        );
+
+        float dropDistanceX = diveLockedX - rb.position.x;
+        float dropSpeedY = spec.speed + diveAttackSpeedBoost;
+        float estimatedDropTime = (diveCircleRadius * 2f) / Mathf.Max(dropSpeedY, 0.01f);
+
+        diveDropVelocityX = dropDistanceX / Mathf.Max(estimatedDropTime, 0.01f);
+        divePhase = DivePhase.AttackDrop;
+    }
+
+    private void DiveAttackDrop()
+    {
+        moveVelocity = new Vector2(
+            diveDropVelocityX,
+            -(spec.speed + diveAttackSpeedBoost)
+        );
+
+        rb.linearVelocity = moveVelocity;
+        FaceDiveVelocity();
+    }
+
+    #endregion
+
+    #region Dive Helpers
+    private void UpdatePlayerXVelocity()
+    {
+        if (player == null)
+            return;
+
+        float currentX = player.transform.position.x;
+        playerXVelocity = (currentX - lastPlayerX) / Mathf.Max(Time.deltaTime, 0.0001f);
+        lastPlayerX = currentX;
+    }
+
+    private Vector2 GetDiveLoopTangent(float angle)
+    {
+        float x = -Mathf.Sin(angle);
+        float y = Mathf.Cos(angle);
+        return new Vector2(x, y).normalized;
+    }
+
+    private Vector2 GetDiveAnchor()
+    {
+        Vector2 playerPos = player.transform.position;
+        float playerTopY = GetDivePlayerTopY();
+
+        return new Vector2(playerPos.x, playerTopY + divePlayerClearance + diveCircleRadius);
+    }
+
+    private Vector2 GetDiveLoopStart()
+    {
+        return GetDiveAnchor() + Vector2.up * diveCircleRadius;
+    }
+
+    private Vector2 GetDiveLoopPosition(float angle)
+    {
+        return GetDiveAnchor() + GetDiveLoopOffset(angle);
+    }
+
+    private Vector2 GetDiveRiseTarget()
+    {
+        Vector2 playerPos = player.transform.position;
+        float playerTopY = GetDivePlayerTopY();
+
+        return new Vector2(playerPos.x, playerTopY + divePlayerClearance + (diveCircleRadius * 2f));
+    }
+
+    private float GetDivePlayerTopY()
+    {
+        if (player == null)
+            return transform.position.y;
+
+        if (playerCapsule == null)
+            playerCapsule = player.GetComponent<CapsuleCollider2D>();
+
+        if (playerCapsule == null)
+            return player.transform.position.y;
+
+        return playerCapsule.bounds.max.y;
+    }
+
+    private bool CanRunDive()
+    {
+        return rb != null && player != null;
+    }
+
+    private Vector2 GetDiveLoopOffset(float angle)
+    {
+        float x = Mathf.Cos(angle) * diveCircleRadius;
+        float y = Mathf.Sin(angle) * diveCircleRadius;
+        return new Vector2(x, y);
+    }
+
+    private void MoveDiveTowards(Vector2 targetPos, float speed)
+    {
+        Vector2 direction = (targetPos - rb.position).normalized;
+        moveVelocity = direction * speed;
+        rb.linearVelocity = moveVelocity;
+    }
+
+    private void FaceDiveVelocity()
+    {
+        if (moveVelocity.sqrMagnitude <= 0.001f)
+            return;
+
+        float angle = Mathf.Atan2(moveVelocity.y, moveVelocity.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0f, 0f, angle);
+    }
+
+    #endregion
 
     #endregion
 
