@@ -3,9 +3,6 @@ using UnityEngine;
 
 public class Arrow_Controller : SpecialAttackControl
 {
-    [SerializeField] private string targetLayerName = "Player";
-    [SerializeField] private Rigidbody2D rb;
-
     private bool flipped;
 
     public override void Setup(CharacterStats _stats, List<AttackSpawnSpec> _spawnSpecs)
@@ -19,39 +16,24 @@ public class Arrow_Controller : SpecialAttackControl
         Movement(currentSpec);
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    protected override void Update()
     {
-        if (collision.gameObject.layer == LayerMask.NameToLayer(targetLayerName))
-        {
-            myStats.DoDamage(collision.GetComponent<CharacterStats>());
-            StuckInto(collision);
-        }
-        else if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
-        {
-            if (collision.gameObject.tag == "Platform")
-                return;
+        base.Update();
 
-            StuckInto(collision);
-        }
-    }
-
-    private void StuckInto(Collider2D collision)
-    {
-        StopMovement();
-
-        GetComponentInChildren<ParticleSystem>().Stop();
-        GetComponent<CapsuleCollider2D>().enabled = false;
-        rb.bodyType = RigidbodyType2D.Kinematic;
-        rb.constraints = RigidbodyConstraints2D.FreezeAll;
-        transform.parent = collision.transform;
-
-        if (myStats.isDead)
-        {
-            Destroy(gameObject);
+        if (!TryGetHit(out Collider2D hitCollision, out SpecialHitType hitType))
             return;
-        }
 
-        Destroy(gameObject, Random.Range(5, 7));
+        if (hitType == SpecialHitType.Target)
+        {
+            myStats.DoDamage(hitCollision.GetComponent<CharacterStats>());
+            StuckInto();
+            ClearHit();
+        }
+        else if (hitType == SpecialHitType.Ground)
+        {
+            StuckInto();
+            ClearHit();
+        }
     }
 
     public void FlipArrow()
@@ -60,8 +42,8 @@ public class Arrow_Controller : SpecialAttackControl
             return;
 
         ChangeDirection();
+        ChangeTargetLayer("Enemy");
 
         flipped = true;
-        targetLayerName = "Enemy";
     }
 }
