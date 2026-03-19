@@ -1,9 +1,13 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enemy
 {
     private readonly System.Func<EnemyState> idleState;
     private readonly System.Func<EnemyState> nextState;
+
+    private readonly List<StateSound> enterSounds;
+    private readonly List<StateSound> exitSounds;
 
     private Transform player;
 
@@ -16,15 +20,20 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     private bool hasStopDistance = false;
 
     public BattleStateBase(
-        TEnemy enemyBase,
-        EnemyStateMachine stateMachine,
-        string animBoolName,
-        System.Func<EnemyState> idleState,
-        System.Func<EnemyState> nextState
-    ) : base(enemyBase, stateMachine, animBoolName)
+       TEnemy enemyBase,
+       EnemyStateMachine stateMachine,
+       string animBoolName,
+       System.Func<EnemyState> idleState,
+       System.Func<EnemyState> nextState,
+       List<StateSound> enterSounds = null,
+       List<StateSound> exitSounds = null
+   ) : base(enemyBase, stateMachine, animBoolName)
     {
         this.idleState = idleState;
         this.nextState = nextState;
+
+        this.enterSounds = enterSounds ?? new List<StateSound>();
+        this.exitSounds = exitSounds ?? new List<StateSound>();
     }
 
 
@@ -33,7 +42,6 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         base.Enter();
 
         enemy.CurrentAbilityEntry = null;
-        enemy.teleportForAttack = false;
 
         player = PlayerUtils.GetPlayerSafe().transform;
 
@@ -221,10 +229,18 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
                     float? max = chosenAttackEntry.rangeMax;
 
                     evasionState.ConfigureMoveAndAttack(
-                        attack: () => attackState,
                         next: () => this,
+                        attack: () => attackState,
                         min: min,
-                        max: max
+                        max: max,
+                        evasionDuration: entry.evasionDuration,
+                        evasionSpeedMultiplier: entry.evasionSpeedMultiplier,
+                        evadeBackAwayMin: entry.evadeBackAwayMin,
+                        evadeBackAwayMax: entry.evadeBackAwayMax,
+                        evadePassPastMin: entry.evadePassPastMin,
+                        evadePassPastMax: entry.evadePassPastMax,
+                        evadeReducedFactor: entry.evadeReducedFactor,
+                        evadeTinyRetreat: entry.evadeTinyRetreat
                     );
 
                     stateMachine.ChangeState(evasionState);
@@ -233,7 +249,18 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
             }
         }
 
-        evasionState.ConfigureFlee(next: () => this);
+        evasionState.ConfigureFlee(
+            next: () => this,
+            evasionDuration: entry.evasionDuration,
+            evasionSpeedMultiplier: entry.evasionSpeedMultiplier,
+            evadeBackAwayMin: entry.evadeBackAwayMin,
+            evadeBackAwayMax: entry.evadeBackAwayMax,
+            evadePassPastMin: entry.evadePassPastMin,
+            evadePassPastMax: entry.evadePassPastMax,
+            evadeReducedFactor: entry.evadeReducedFactor,
+            evadeTinyRetreat: entry.evadeTinyRetreat
+        );
+
         stateMachine.ChangeState(evasionState);
     }
 
@@ -247,14 +274,18 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         var teleportState = mapped as TeleportStateBase<TEnemy>;
         if (teleportState == null) return;
 
+        bool canChainTeleportAttack =
+            selectAttack != null &&
+            !selectAttack.cannotUseWithTeleport &&
+            selectAttack.canAttackAfterTeleport;
+
         switch (mode)
         {
             // 0) Attack -> Teleport -> Battle
             case 0:
                 {
-                    if (selectAttack != null)
+                    if (canChainTeleportAttack)
                     {
-                        enemy.teleportForAttack = true;
                         enemy.CurrentAbilityEntry = selectAttack;
 
                         teleportState.Configure(() => this);
@@ -275,9 +306,8 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
             // 1) Teleport -> Attack -> Battle
             case 1:
                 {
-                    if (selectAttack != null)
+                    if (canChainTeleportAttack)
                     {
-                        enemy.teleportForAttack = true;
                         enemy.CurrentAbilityEntry = selectAttack;
 
                         var attackState = GetAttackState(selectAttack, () => this);
@@ -313,7 +343,7 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
         jumpState.Configure(
             next: () => this,
-            jumpVelocity: entry.jumpVelocity,
+            jumpVelocity: entry.jumpAbilityVelocity,
             isJumpBack: entry.jumpBack
         );
 

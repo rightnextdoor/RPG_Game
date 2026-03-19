@@ -16,9 +16,9 @@ public class KnightStunnedState : EnemyState
 
         enemy.fX.InvokeRepeating("RedColorBlink", 0, .1f);
 
-        stateTimer = enemy.stunDuration;
+        //stateTimer = enemy.stunDuration;
 
-        rb.linearVelocity = new Vector2(-enemy.facingDir * enemy.stunDirection.x, enemy.stunDirection.y);
+        //rb.linearVelocity = new Vector2(-enemy.facingDir * enemy.stunDirection.x, enemy.stunDirection.y);
     }
 
     public override void Exit()

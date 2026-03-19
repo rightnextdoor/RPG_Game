@@ -1,10 +1,14 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using static Enemy_Regular;
 
 public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enemy_Regular
 {
     private readonly System.Func<EnemyState> idleState;
     private readonly System.Func<EnemyState> battleState;
+
+    private readonly List<StateSound> enterSounds;
+    private readonly List<StateSound> exitSounds;
 
     private float traverseStopTimer;
     private bool needsPatrolReturn;
@@ -80,15 +84,20 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
     #endregion
 
     public MoveStateBase(
-        TEnemy enemyBase,
-        EnemyStateMachine stateMachine,
-        string animBoolName,
-        System.Func<EnemyState> idleState,
-        System.Func<EnemyState> battleState
-    ) : base(enemyBase, stateMachine, animBoolName)
+         TEnemy enemyBase,
+         EnemyStateMachine stateMachine,
+         string animBoolName,
+         System.Func<EnemyState> idleState,
+         System.Func<EnemyState> battleState,
+         List<StateSound> enterSounds = null,
+         List<StateSound> exitSounds = null
+     ) : base(enemyBase, stateMachine, animBoolName)
     {
         this.idleState = idleState;
         this.battleState = battleState;
+
+        this.enterSounds = enterSounds ?? new List<StateSound>();
+        this.exitSounds = exitSounds ?? new List<StateSound>();
     }
 
     public override void Enter()

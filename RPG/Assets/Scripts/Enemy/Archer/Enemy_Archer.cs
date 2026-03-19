@@ -4,15 +4,16 @@ using UnityEngine;
 
 public class Enemy_Archer : Enemy_Regular
 {
+    //remove after update
     #region Jump Ability Settings
     [Header("Jump Ability Settings")]
-    [SerializeField] private float jumpRangeMin = 0f;
-    [SerializeField] private float jumpRangeMax = 2f;
-    [SerializeField] private float jumpCooldownMin = 1f;
-    [SerializeField] private float jumpCooldownMax = 2f;
-    [SerializeField] private float jumpChance = 1f;
-    [SerializeField] private Vector2 jumpAbilityVelocity = new Vector2(8f, 12f);
-    [SerializeField] private bool jumpBack = true;
+    //[SerializeField] private float jumpRangeMin = 0f;
+    //[SerializeField] private float jumpRangeMax = 2f;
+    //[SerializeField] private float jumpCooldownMin = 1f;
+    //[SerializeField] private float jumpCooldownMax = 2f;
+    //[SerializeField] private float jumpChance = 1f;
+    //[SerializeField] private Vector2 jumpAbilityVelocity = new Vector2(8f, 12f);
+    //[SerializeField] private bool jumpBack = true;
     #endregion
 
     #region States
@@ -30,7 +31,7 @@ public class Enemy_Archer : Enemy_Regular
     {
         base.Awake();
 
-        BuildStates();
+        SetupStates();
     }
 
     protected override void Start()
@@ -39,101 +40,118 @@ public class Enemy_Archer : Enemy_Regular
         stateMachine.Initialize(idleState);
     }
 
+    private void SetupStates()
+    {
+        BuildStates();
+        MapAbilityStates();
+    }
+
     private void BuildStates()
     {
-        idleState = new IdleWithTargets(
-            this,
-            stateMachine,
-            "Idle",
-            moveFactory: () => moveState,
-            battleFactory: () => battleState
-        );
+        StateDetail idleDetail = GetStateDetail(EnemyStateType.Idle);
+        StateDetail moveDetail = GetStateDetail(EnemyStateType.Move);
+        StateDetail battleDetail = GetStateDetail(EnemyStateType.Battle);
+        StateDetail attackDetail = GetStateDetail(EnemyStateType.Attack);
+        StateDetail stunnedDetail = GetStateDetail(EnemyStateType.Stunned);
+        StateDetail deadDetail = GetStateDetail(EnemyStateType.Dead);
+        StateDetail jumpDetail = GetStateDetail(EnemyStateType.Jump);
+        StateDetail evasionDetail = GetStateDetail(EnemyStateType.Evasion);
 
-        moveState = new MoveStateBase<Enemy_Archer>(
-            this,
-            stateMachine,
-            "Move",
-            idleState: () => idleState,
-            battleState: () => battleState
-        );
+        if (idleDetail != null)
+        {
+            idleState = new IdleWithTargets(
+                this,
+                stateMachine,
+                idleDetail.animBoolName,
+                moveFactory: () => moveState,
+                battleFactory: () => battleState,
+                enterSounds: ToSoundList(idleDetail.enterSounds),
+                exitSounds: ToSoundList(idleDetail.exitSounds)
+            );
+        }
 
-        battleState = new BattleStateBase<Enemy_Archer>(
-            this,
-            stateMachine,
-            "Battle",
-            idleState: () => idleState,
-            nextState: () => idleState
-        );
+        if (moveDetail != null)
+        {
+            moveState = new MoveStateBase<Enemy_Archer>(
+                this,
+                stateMachine,
+                moveDetail.animBoolName,
+                idleState: () => idleState,
+                battleState: () => battleState,
+                enterSounds: ToSoundList(moveDetail.enterSounds),
+                exitSounds: ToSoundList(moveDetail.exitSounds)
+            );
+        }
 
-        AttackDetail detailAttack = null;
-        if (attackDetails != null && attackDetails.Count > 0)
-            detailAttack = attackDetails.Find(d => d != null && d.name == "Attack") ?? attackDetails[0];
+        if (battleDetail != null)
+        {
+            battleState = new BattleStateBase<Enemy_Archer>(
+                this,
+                stateMachine,
+                battleDetail.animBoolName,
+                idleState: () => idleState,
+                nextState: () => idleState,
+                enterSounds: ToSoundList(battleDetail.enterSounds),
+                exitSounds: ToSoundList(battleDetail.exitSounds)
+            );
+        }
 
-        if (detailAttack != null)
+        if (attackDetail != null)
         {
             attackState = new AttackStateBase<Enemy_Archer>(
                 this,
                 stateMachine,
-                detailAttack,
-                nextStateFactory: () => battleState
+                attackDetail.animBoolName,
+                nextStateFactory: () => battleState,
+                enterSounds: ToSoundList(attackDetail.enterSounds),
+                exitSounds: ToSoundList(attackDetail.exitSounds)
             );
         }
 
-        stunnedState = new StunnedStateBase<Enemy_Archer>(
-            this,
-            stateMachine,
-            "Stunned",
-            nextState: () => battleState
-        );
-
-        deadState = new DeadStateBase<Enemy_Archer>(
-            this,
-            stateMachine,
-            "Die",
-            enterSounds: new List<StateSound>
-            {
-                new StateSound { name = "ArcherDie", useTransform = true }
-            },
-            exitSounds: null
-        );
-
-        jumpState = new JumpStateBase<Enemy_Archer>(
-            this,
-            stateMachine,
-            "Jump",
-            enterSounds: new List<StateSound>
-            {
-            },
-            exitSounds: null
-        );
-
-        evasionState = new EvasionStateBase<Enemy_Archer>(
-            this,
-            stateMachine,
-            "Move",
-            battleState: () => battleState
-        );
-
-        if (abilityMap != null)
+        if (stunnedDetail != null)
         {
-            if (abilityMap.TryGetValue("Attack", out var attack) && attack != null)
-                attack.state = attackState;
+            stunnedState = new StunnedStateBase<Enemy_Archer>(
+                this,
+                stateMachine,
+                stunnedDetail.animBoolName,
+                nextState: () => battleState,
+                enterSounds: ToSoundList(stunnedDetail.enterSounds),
+                exitSounds: ToSoundList(stunnedDetail.exitSounds)
+            );
+        }
 
-            if (abilityMap.TryGetValue("Evade", out var evade) && evade != null)
-            {
-                evade.state = evasionState;
-                evade.action = BattleAction.Evade;
-                evade.unlocked = true;
-            }
+        if (deadDetail != null)
+        {
+            deadState = new DeadStateBase<Enemy_Archer>(
+                this,
+                stateMachine,
+                deadDetail.animBoolName,
+                enterSounds: ToSoundList(deadDetail.enterSounds),
+                exitSounds: ToSoundList(deadDetail.exitSounds)
+            );
+        }
 
-            if (abilityMap.TryGetValue("Jump", out var jump) && jump != null)
-            {
-                jump.state = jumpState;
-                jump.action = BattleAction.Jump;
-                jump.unlocked = true;
-                jump.jumpVelocity = jumpAbilityVelocity;
-                jump.jumpBack = jumpBack;
-            }
+        if (jumpDetail != null)
+        {
+            jumpState = new JumpStateBase<Enemy_Archer>(
+                this,
+                stateMachine,
+                jumpDetail.animBoolName,
+                enterSounds: ToSoundList(jumpDetail.enterSounds),
+                exitSounds: ToSoundList(jumpDetail.exitSounds)
+            );
+        }
+
+        if (evasionDetail != null)
+        {
+            evasionState = new EvasionStateBase<Enemy_Archer>(
+                this,
+                stateMachine,
+                evasionDetail.animBoolName,
+                battleState: () => battleState,
+                enterSounds: ToSoundList(evasionDetail.enterSounds),
+                exitSounds: ToSoundList(evasionDetail.exitSounds)
+            );
         }
     }
 
@@ -141,34 +159,48 @@ public class Enemy_Archer : Enemy_Regular
     {
         base.MapAbilityStates();
 
-        if (abilityMap.TryGetValue("Attack", out var attack) && attack != null)
-            attack.state = attackState;
+        if (abilityMap == null || abilityMap.Count == 0)
+            return;
 
-        abilityMap["Evade"] = new AbilityEntry(
-            name: "Evade",
-            animBoolName: "Move",
-            state: evasionState,
-            minCooldown: evasionCooldownMin,
-            maxCooldown: evasionCooldownMax,
-            action: BattleAction.Evade,
-            rangeMin: evadeRangeMin,
-            rangeMax: evadeRangeMax,
-            chance: 1f
-        );
+        foreach (var entry in abilityMap.Values)
+        {
+            if (entry == null)
+                continue;
 
-        abilityMap["Jump"] = new AbilityEntry(
-            name: "Jump",
-            animBoolName: "Jump",
-            state: jumpState,
-            minCooldown: jumpCooldownMin,
-            maxCooldown: jumpCooldownMax,
-            action: BattleAction.Jump,
-            rangeMin: jumpRangeMin,
-            rangeMax: jumpRangeMax,
-            chance: jumpChance,
-            jumpVelocity: jumpAbilityVelocity,
-            jumpBack: jumpBack
-        );
+            switch (entry.action)
+            {
+                case BattleAction.Attack:
+                    if (attackState != null)
+                        entry.state = attackState;
+                    break;
+
+                case BattleAction.Evade:
+                    if (evasionState != null)
+                        entry.state = evasionState;
+                    break;
+
+                case BattleAction.Jump:
+                    if (jumpState != null)
+                        entry.state = jumpState;
+                    break;
+
+                case BattleAction.Stunned:
+                    if (stunnedState != null)
+                        entry.state = stunnedState;
+                    break;
+
+                case BattleAction.Teleport:
+                    break;
+            }
+        }
+    }
+
+    private List<StateSound> ToSoundList(StateSound[] sounds)
+    {
+        if (sounds == null || sounds.Length == 0)
+            return null;
+
+        return new List<StateSound>(sounds);
     }
 
     private sealed class IdleWithTargets : IdleStateBase<Enemy_Archer>

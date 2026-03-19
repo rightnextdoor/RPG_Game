@@ -73,25 +73,25 @@ public class Enemy_Skeleton : Enemy_Regular
             else
                 detailAttack2 = detailAttack;
         }
-        if (detailAttack != null)
-        {
-            attackState = new AttackStateBase<Enemy_Skeleton>(
-                this,
-                stateMachine,
-                detailAttack,
-                nextStateFactory: () => battleState
-            );
-        }
+        //if (detailAttack != null)
+        //{
+        //    attackState = new AttackStateBase<Enemy_Skeleton>(
+        //        this,
+        //        stateMachine,
+        //        detailAttack,
+        //        nextStateFactory: () => battleState
+        //    );
+        //}
 
-        if (detailAttack2 != null)
-        {
-            attack2State = new AttackStateBase<Enemy_Skeleton>(
-                this,
-                stateMachine,
-                detailAttack2,
-                nextStateFactory: () => battleState
-            );
-        }
+        //if (detailAttack2 != null)
+        //{
+        //    attack2State = new AttackStateBase<Enemy_Skeleton>(
+        //        this,
+        //        stateMachine,
+        //        detailAttack2,
+        //        nextStateFactory: () => battleState
+        //    );
+        //}
         stunnedState = new StunnedStateBase<Enemy_Skeleton>(
             this,
             stateMachine,
@@ -145,17 +145,17 @@ public class Enemy_Skeleton : Enemy_Regular
             a2.state = attack2State;
         }
 
-        abilityMap["Evade"] = new AbilityEntry(
-            name: "Evade",
-            animBoolName: "Move",
-            state: evasionState,
-            rangeMin: evadeRangeMin,
-            rangeMax: evadeRangeMax,
-            minCooldown: evasionCooldownMin,
-            maxCooldown: evasionCooldownMax,
-            chance: 1f,
-            action: BattleAction.Evade
-        );
+        //abilityMap["Evade"] = new AbilityEntry(
+        //    name: "Evade",
+        //    animBoolName: "Move",
+        //    state: evasionState,
+        //    rangeMin: evadeRangeMin,
+        //    rangeMax: evadeRangeMax,
+        //    minCooldown: evasionCooldownMin,
+        //    maxCooldown: evasionCooldownMax,
+        //    chance: 1f,
+        //    action: BattleAction.Evade
+        //);
     }
 
     private sealed class IdleWithTargets : IdleStateBase<Enemy_Skeleton>

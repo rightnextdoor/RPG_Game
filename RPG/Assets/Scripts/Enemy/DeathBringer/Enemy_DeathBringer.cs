@@ -96,7 +96,7 @@ public class Enemy_DeathBringer : Enemy_Boss
         base.FindPosition();
         AudioManager.instance.PlaySFX("DeathBringerTeleport2");
     }
-  
+
 
     public bool CanDoSpellCast()
     {

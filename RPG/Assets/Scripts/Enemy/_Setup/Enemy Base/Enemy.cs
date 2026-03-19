@@ -15,12 +15,21 @@ public class Enemy : Entity
     public float idleTime = 2;
 
     [Header("Move info")]
-    public bool canPatrol = true;
+    public bool canPatrol = true; // remove after update of all enemies
     public float moveSpeed = 1.5f;
 
     public float moveTime = 5;
     public float battleTime = 7;
     private float defaultMoveSpeed;
+
+    #region Old settings
+    [Header("Evasion info_Old")]
+    public float evasionTimer = 1.5f;
+    public float evasionSpeed = 10f;
+    [SerializeField] private float evasionDistance = 1f; //How close player should be to trigger before evading
+    [SerializeField] private float minEvasionCooldown = 0f;
+    [SerializeField] private float maxEvasionCooldown = .5f;
+    private float lastTimeEvade;
 
     [Header("Range Attack info old")]
     public float agroDistance = 2;
@@ -36,40 +45,19 @@ public class Enemy : Entity
     public float minMeleeAttackCooldown = 1;
     public float maxMeleeAttackCooldown = 2;
     [HideInInspector] public float lastTimeMeleeAttacked;
+    #endregion
 
+    [Space(2)]
+    [Header("State Details")]
+    public List<StateDetail> stateDetails = new List<StateDetail>();
+
+    [Space(2)]
     [Header("Attack Details")]
     public List<AttackDetail> attackDetails = new List<AttackDetail>();
     [HideInInspector] public Dictionary<string, AbilityEntry> abilityMap;
-    [HideInInspector] public bool teleportForAttack = false;
+    //[HideInInspector] public bool teleportForAttack = false; // need to remove
     [HideInInspector] public AbilityEntry CurrentAbilityEntry { get; set; }
 
-
-    #region Evasion
-    [Header("Evasion")]
-    [Space(2)]
-    [SerializeField] public float evadeRangeMin = 0f;
-    [SerializeField] public float evadeRangeMax = 1f;
-    [SerializeField] public float evasionSpeedMultiplier = 1.25f;
-    [SerializeField] public float evasionDuration = 0.5f;
-    [SerializeField] public float evasionCooldownMin = 1f;
-    [SerializeField] public float evasionCooldownMax = 3f;
-
-    [SerializeField] public float evadeBackAwayMin = 1.2f;
-    [SerializeField] public float evadeBackAwayMax = 2.0f;
-    [SerializeField] public float evadePassPastMin = 0.6f;
-    [SerializeField] public float evadePassPastMax = 1.0f;
-    [SerializeField] public float evadeReducedFactor = 0.6f;  // distance reduction for second-round attempts
-    [SerializeField] public float evadeTinyRetreat = 0.35f; // small step-back when already inside band (M&A)
-
-    #endregion
-
-    [Header("Evasion info_Old")]
-    public float evasionTimer = 1.5f;
-    public float evasionSpeed = 10f;
-    [SerializeField] private float evasionDistance = 1f; //How close player should be to trigger before evading
-    [SerializeField] private float minEvasionCooldown = 0f;
-    [SerializeField] private float maxEvasionCooldown = .5f;
-    private float lastTimeEvade;
 
     [HideInInspector] public bool isSummon = false;
 
@@ -77,6 +65,7 @@ public class Enemy : Entity
     public EntityFX fX { get; private set; }
     public string lastAnimBoolName { get; private set; }
 
+    #region Setup
     protected override void Awake()
     {
         base.Awake();
@@ -86,7 +75,6 @@ public class Enemy : Entity
         defaultMoveSpeed = moveSpeed;
 
         abilityMap = new Dictionary<string, AbilityEntry>();
-        MapAbilityStates();
     }
 
     protected override void Start()
@@ -101,6 +89,10 @@ public class Enemy : Entity
         base.Update();
         stateMachine.currentState.Update();
     }
+    public virtual void AssignLastAnimName(string _animBoolName) => lastAnimBoolName = _animBoolName;
+    #endregion
+
+    #region Ability Mapping
 
     protected virtual void MapAbilityStates()
     {
@@ -109,25 +101,58 @@ public class Enemy : Entity
 
     private void MapAttackDetailsToAbilityEntries()
     {
+        if (abilityMap == null)
+            abilityMap = new Dictionary<string, AbilityEntry>();
+        else
+            abilityMap.Clear();
+
+        if (attackDetails == null || attackDetails.Count == 0)
+            return;
+
         foreach (var attackDetail in attackDetails)
         {
+            if (attackDetail == null || string.IsNullOrWhiteSpace(attackDetail.name))
+                continue;
+
             var entry = new AbilityEntry(
                 name: attackDetail.name,
                 animBoolName: attackDetail.animBoolName,
                 state: null,
                 minCooldown: attackDetail.minCooldown,
                 maxCooldown: attackDetail.maxCooldown,
-                chance: attackDetail.chance,
+                action: attackDetail.action,
+                initialCooldown: 0f,
                 rangeMin: attackDetail.rangeMin,
                 rangeMax: attackDetail.rangeMax,
+                unlocked: attackDetail.unlocked,
+                chance: attackDetail.chance,
+                cannotUseWithTeleport: attackDetail.cannotUseWithTeleport,
+                canAttackAfterTeleport: attackDetail.canAttackAfterTeleport,
+
+                lingerTime: attackDetail.lingerTime,
                 attackAmount: attackDetail.attackAmount,
                 attackTimeMin: attackDetail.attackTimeMin,
                 attackTimeMax: attackDetail.attackTimeMax,
-                action: attackDetail.action,
-                unlocked: attackDetail.unlocked
+
+                evasionSpeedMultiplier: attackDetail.evasionSpeedMultiplier,
+                evasionDuration: attackDetail.evasionDuration,
+                evadeBackAwayMin: attackDetail.evadeBackAwayMin,
+                evadeBackAwayMax: attackDetail.evadeBackAwayMax,
+                evadePassPastMin: attackDetail.evadePassPastMin,
+                evadePassPastMax: attackDetail.evadePassPastMax,
+                evadeReducedFactor: attackDetail.evadeReducedFactor,
+                evadeTinyRetreat: attackDetail.evadeTinyRetreat,
+
+                stunDuration: attackDetail.stunDuration,
+                stunDirection: attackDetail.stunDirection,
+                canBeStunned: attackDetail.canBeStunned,
+                counterImage: attackDetail.counterImage,
+
+                jumpAbilityVelocity: attackDetail.jumpAbilityVelocity,
+                jumpBack: attackDetail.jumpBack
             );
 
-            abilityMap.Add(attackDetail.name, entry);
+            abilityMap[attackDetail.name] = entry;
         }
     }
 
@@ -141,53 +166,24 @@ public class Enemy : Entity
         return null;
     }
 
-    public virtual void AssignLastAnimName(string _animBoolName) => lastAnimBoolName = _animBoolName;
-
-    public override void SlowEntityBy(float _slowPercentage, float _slowDuration)
+    public virtual StateDetail GetStateDetail(EnemyStateType stateType)
     {
-        moveSpeed = moveSpeed * (1 - _slowPercentage);
-        anim.speed = anim.speed * (1 - _slowPercentage);
+        if (stateDetails == null || stateDetails.Count == 0)
+            return null;
 
-        Invoke("ReturnDefaultSpeed", _slowDuration);
-    }
-
-    protected override void ReturnDefaultSpeed()
-    {
-        base.ReturnDefaultSpeed();
-
-        moveSpeed = defaultMoveSpeed;
-    }
-
-    public virtual void FreezeTime(bool _timeFrozen)
-    {
-        if (_timeFrozen)
+        for (int i = 0; i < stateDetails.Count; i++)
         {
-            moveSpeed = 0;
-            anim.speed = 0;
+            var detail = stateDetails[i];
+            if (detail != null && detail.stateType == stateType)
+                return detail;
         }
-        else
-        {
-            moveSpeed = defaultMoveSpeed;
-            anim.speed = 1;
-        }
+
+        return null;
     }
 
-    public virtual void FreezeTimeFor(float _duration) => StartCoroutine(FreezeTimerCoroutine(_duration));
+    #endregion
 
-    protected virtual IEnumerator FreezeTimerCoroutine(float _seconds)
-    {
-        FreezeTime(true);
-
-        yield return new WaitForSeconds(_seconds);
-        FreezeTime(false);
-    }
-
-    public virtual void AnimationFinishTrigger() => stateMachine.currentState.AnimationFinishTrigger();
-    public virtual void AnimationSpecialAttackTrigger()
-    {
-
-    }
-
+    #region Attack Triggers
     public virtual void AttackTrigger(string attackName, string checkLabel)
     {
         if (attackDetails == null || attackDetails.Count == 0) return;
@@ -228,7 +224,6 @@ public class Enemy : Entity
 
         ResolveCollision(selectedCheck);
     }
-
     private void SpecialAttack(List<AttackSpawnSpec> specs, AttackCheck attackCheck)
     {
         if (specs == null || specs.Count == 0 || attackCheck == null || attackCheck.checkTransform == null) return;
@@ -252,7 +247,43 @@ public class Enemy : Entity
                 spec.control.Setup(stats, specs);
         }
     }
+    public virtual void SoundTrigger(string attackName, int soundIndex)
+    {
+        if (attackDetails == null || attackDetails.Count == 0) return;
 
+        AttackDetail selectedDetail = null;
+        foreach (var detail in attackDetails)
+        {
+            if (detail != null && detail.name == attackName)
+            {
+                selectedDetail = detail;
+                break;
+            }
+        }
+        if (selectedDetail == null || selectedDetail.sounds == null) return;
+        if (soundIndex < 0 || soundIndex >= selectedDetail.sounds.Length) return;
+
+        // Play the requested sound at/with this enemy's transform context
+        StateSound sound = selectedDetail.sounds[soundIndex];
+        sound.Play(transform);
+    }
+
+    #region Trigger helpers
+    public virtual void AnimationFinishTrigger() => stateMachine.currentState.AnimationFinishTrigger();
+    private static bool PointInPolygon(List<Vector2> poly, Vector2 p)
+    {
+        bool inside = false;
+        int n = poly.Count;
+        for (int i = 0, j = n - 1; i < n; j = i++)
+        {
+            Vector2 a = poly[i];
+            Vector2 b = poly[j];
+            bool intersect = ((a.y > p.y) != (b.y > p.y)) &&
+                             (p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y + Mathf.Epsilon) + a.x);
+            if (intersect) inside = !inside;
+        }
+        return inside;
+    }
     private void ResolveCollision(AttackCheck check)
     {
         Vector2 pos = check.checkTransform.position;
@@ -391,48 +422,60 @@ public class Enemy : Entity
                 break;
         }
     }
-
-    private static bool PointInPolygon(List<Vector2> poly, Vector2 p)
+    public virtual void OpenCounterAttackWindow()
     {
-        bool inside = false;
-        int n = poly.Count;
-        for (int i = 0, j = n - 1; i < n; j = i++)
+    }
+    public virtual void CloseCounterAttackWindow()
+    {
+    }
+
+    #endregion
+
+    #region Old Triggers need to be remove
+    public virtual void AnimationSpecialAttackTrigger()
+    {
+
+    }
+    #endregion
+    #endregion
+
+
+    #region Enemy Config
+    public override void SlowEntityBy(float _slowPercentage, float _slowDuration)
+    {
+        moveSpeed = moveSpeed * (1 - _slowPercentage);
+        anim.speed = anim.speed * (1 - _slowPercentage);
+
+        Invoke("ReturnDefaultSpeed", _slowDuration);
+    }
+
+    public virtual void FreezeTime(bool _timeFrozen)
+    {
+        if (_timeFrozen)
         {
-            Vector2 a = poly[i];
-            Vector2 b = poly[j];
-            bool intersect = ((a.y > p.y) != (b.y > p.y)) &&
-                             (p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y + Mathf.Epsilon) + a.x);
-            if (intersect) inside = !inside;
+            moveSpeed = 0;
+            anim.speed = 0;
         }
-        return inside;
-    }
-
-    public virtual void SoundTrigger(string attackName, int soundIndex)
-    {
-        if (attackDetails == null || attackDetails.Count == 0) return;
-
-        AttackDetail selectedDetail = null;
-        foreach (var detail in attackDetails)
+        else
         {
-            if (detail != null && detail.name == attackName)
-            {
-                selectedDetail = detail;
-                break;
-            }
+            moveSpeed = defaultMoveSpeed;
+            anim.speed = 1;
         }
-        if (selectedDetail == null || selectedDetail.sounds == null) return;
-        if (soundIndex < 0 || soundIndex >= selectedDetail.sounds.Length) return;
-
-        // Play the requested sound at/with this enemy's transform context
-        StateSound sound = selectedDetail.sounds[soundIndex];
-        sound.Play(transform);
     }
-
-    public virtual void SelfDestroy()
+    public virtual void FreezeTimeFor(float _duration) => StartCoroutine(FreezeTimerCoroutine(_duration));
+    protected virtual IEnumerator FreezeTimerCoroutine(float _seconds)
     {
+        FreezeTime(true);
 
+        yield return new WaitForSeconds(_seconds);
+        FreezeTime(false);
     }
+    protected override void ReturnDefaultSpeed()
+    {
+        base.ReturnDefaultSpeed();
 
+        moveSpeed = defaultMoveSpeed;
+    }
     public virtual RaycastHit2D IsPlayerDetected()
     {
         Transform player = PlayerManager.instance.player.transform;
@@ -457,7 +500,6 @@ public class Enemy : Entity
         Debug.DrawRay(wallCheck.position, direction, Color.green);
         return playerDetected;
     }
-
     protected override void OnDrawGizmos()
     {
         base.OnDrawGizmos();
@@ -553,9 +595,32 @@ public class Enemy : Entity
             const float endTick = 0.03f;
             const float stubLength = 0.5f;
 
-            float minR = Mathf.Max(0f, evadeRangeMin);
-            float maxR = Mathf.Max(minR, evadeRangeMax);
-            if (maxR <= minR) maxR = minR + stubLength;
+            float minR = -1f;
+            float maxR = -1f;
+
+            if (attackDetails != null)
+            {
+                foreach (var ad in attackDetails)
+                {
+                    if (ad == null || ad.action != BattleAction.Evade)
+                        continue;
+
+                    float detailMin = Mathf.Max(0f, ad.rangeMin);
+                    float detailMax = Mathf.Max(detailMin, ad.rangeMax);
+
+                    if (minR < 0f || detailMin < minR)
+                        minR = detailMin;
+
+                    if (maxR < 0f || detailMax > maxR)
+                        maxR = detailMax;
+                }
+            }
+
+            if (minR < 0f || maxR < 0f)
+                return;
+
+            if (maxR <= minR)
+                maxR = minR + stubLength;
 
             float yLaneBelow = baseYOffset - (laneStepY * 7f);
             Vector3 laneOrigin = transform.position + new Vector3(0f, yLaneBelow, 0f);
@@ -572,26 +637,26 @@ public class Enemy : Entity
         }
 #endif
     }
+    #endregion
 
+    #region Combat Helper
+    public virtual void SelfDestroy()
+    {
 
+    }
+    
     public virtual bool CanBeStunned()
     {
         return false;
     }
-    public virtual void OpenCounterAttackWindow()
-    {
-    }
-
-    public virtual void CloseCounterAttackWindow()
-    {
-    }
-
     public bool IsSummon()
     {
         return isSummon;
     }
+    #endregion
 
-    #region Battle States
+
+    #region Battle States old system need be remove when all enemy is updated
 
     public void RangeAttack(Transform player, EnemyState attackState, EnemyState evasionState, string audioName)
     {
