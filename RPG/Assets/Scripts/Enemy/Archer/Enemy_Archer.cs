@@ -103,7 +103,6 @@ public class Enemy_Archer : Enemy_Regular
             "Jump",
             enterSounds: new List<StateSound>
             {
-                new StateSound { name = "ArcherJump", useTransform = true }
             },
             exitSounds: null
         );
