@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 public class CooldownSystem
 {
-    public readonly List<AbilityEntry> attackAbilities = new();
-    public readonly List<AbilityEntry> evadeAbilities = new();
-    public readonly List<AbilityEntry> jumpAbilities = new();
-    public readonly List<AbilityEntry> teleportAbilities = new();
+    private readonly List<AbilityEntry> attackAbilities = new();
+    private readonly List<AbilityEntry> evadeAbilities = new();
+    private readonly List<AbilityEntry> jumpAbilities = new();
+    private readonly List<AbilityEntry> teleportAbilities = new();
 
     #region Ability
     public void BuildAbilityLists(IDictionary<string, AbilityEntry> abilityMap)

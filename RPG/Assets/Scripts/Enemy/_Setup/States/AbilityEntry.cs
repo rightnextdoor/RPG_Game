@@ -20,6 +20,7 @@ public class AbilityEntry
     public string animBoolName;
     public EnemyState state;
     public BattleAction action;
+    public AbilityPreference preference;
 
     public float minCooldown;
     public float maxCooldown;
@@ -33,6 +34,8 @@ public class AbilityEntry
     public float chance = 1f;
     public bool cannotUseWithTeleport = false;
     public bool canAttackAfterTeleport = false;
+
+    public int repeatStreak = 0;
 
     #endregion
 
@@ -70,7 +73,7 @@ public class AbilityEntry
 
     #region Jump
 
-    public Vector2 jumpAbilityVelocity = new Vector2(8f, 12f);
+    public Vector2 jumpAbilityVelocity = new Vector2(20f, 12f);
     public bool jumpBack = true;
 
     #endregion
@@ -82,6 +85,7 @@ public class AbilityEntry
         float minCooldown,
         float maxCooldown,
         BattleAction action,
+        AbilityPreference preference = AbilityPreference.Mixed,
         float initialCooldown = 0f,
         float? rangeMin = null,
         float? rangeMax = null,
@@ -89,6 +93,7 @@ public class AbilityEntry
         float chance = 1f,
         bool cannotUseWithTeleport = false,
         bool canAttackAfterTeleport = false,
+        int repeatStreak = 0,
         float lingerTime = 0f,
         int attackAmount = 0,
         float attackTimeMin = 0f,
@@ -113,6 +118,7 @@ public class AbilityEntry
         this.animBoolName = animBoolName;
         this.state = state;
         this.action = action;
+        this.preference = preference;
 
         this.minCooldown = minCooldown;
         this.maxCooldown = maxCooldown;
@@ -126,6 +132,7 @@ public class AbilityEntry
         this.chance = chance;
         this.cannotUseWithTeleport = cannotUseWithTeleport;
         this.canAttackAfterTeleport = canAttackAfterTeleport;
+        this.repeatStreak = repeatStreak;
 
         this.lingerTime = lingerTime;
         this.attackAmount = attackAmount;
@@ -146,7 +153,7 @@ public class AbilityEntry
         this.canBeStunned = canBeStunned;
         this.counterImage = counterImage;
 
-        this.jumpAbilityVelocity = jumpAbilityVelocity == default ? new Vector2(8f, 12f) : jumpAbilityVelocity;
+        this.jumpAbilityVelocity = jumpAbilityVelocity == default ? new Vector2(20f, 12f) : jumpAbilityVelocity;
         this.jumpBack = jumpBack;
     }
 }

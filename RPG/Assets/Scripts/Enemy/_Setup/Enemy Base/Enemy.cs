@@ -55,7 +55,6 @@ public class Enemy : Entity
     [Header("Attack Details")]
     public List<AttackDetail> attackDetails = new List<AttackDetail>();
     [HideInInspector] public Dictionary<string, AbilityEntry> abilityMap;
-    //[HideInInspector] public bool teleportForAttack = false; // need to remove
     [HideInInspector] public AbilityEntry CurrentAbilityEntry { get; set; }
 
 
@@ -121,6 +120,7 @@ public class Enemy : Entity
                 minCooldown: attackDetail.minCooldown,
                 maxCooldown: attackDetail.maxCooldown,
                 action: attackDetail.action,
+                preference: attackDetail.preference,
                 initialCooldown: 0f,
                 rangeMin: attackDetail.rangeMin,
                 rangeMax: attackDetail.rangeMax,

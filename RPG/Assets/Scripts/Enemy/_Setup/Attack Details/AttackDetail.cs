@@ -1,6 +1,13 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+public enum AbilityPreference
+{
+    Mixed,
+    Long,
+    Short
+}
+
 [System.Serializable]
 public class AttackDetail
 {
@@ -9,6 +16,7 @@ public class AttackDetail
     public string name;
     public string animBoolName;
     public BattleAction action;
+    public AbilityPreference preference = AbilityPreference.Mixed;
     public bool unlocked = true;
     public bool cannotUseWithTeleport = false;
     public bool canAttackAfterTeleport = false;
@@ -62,7 +70,7 @@ public class AttackDetail
     #region Jump
     [Space(2)]
     [Header("Jump")]
-    public Vector2 jumpAbilityVelocity = new Vector2(8f, 12f);
+    public Vector2 jumpAbilityVelocity = new Vector2(20f, 12f);
     public bool jumpBack = true;
 
     #endregion

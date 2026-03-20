@@ -132,7 +132,9 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         float distance = Vector2.Distance(player.position, enemy.transform.position);
 
         var abilityMap = enemy.abilityMap;
-        AbilityEntry entry = hub.TryPick(abilityMap, distance);
+        //update for new hub
+        //AbilityEntry entry = hub.TryPick(abilityMap, distance);
+        AbilityEntry entry = null;
 
         if (entry != null)
             UseAbilityEntry(entry);

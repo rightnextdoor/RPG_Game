@@ -32,6 +32,7 @@ public class AttackDetailDrawer : PropertyDrawer
         DrawField(ref y, position, property, "name");
         DrawField(ref y, position, property, "animBoolName");
         DrawField(ref y, position, property, "action");
+        DrawField(ref y, position, property, "preference");
         DrawField(ref y, position, property, "unlocked");
         DrawField(ref y, position, property, "cannotUseWithTeleport");
         DrawField(ref y, position, property, "canAttackAfterTeleport");
@@ -110,11 +111,12 @@ public class AttackDetailDrawer : PropertyDrawer
 
         h += Space;
 
-        // Shared header + 11 shared fields
+        // Shared header + 12 shared fields
         h += HeaderHeight();
         h += FieldHeight(property, "name");
         h += FieldHeight(property, "animBoolName");
         h += FieldHeight(property, "action");
+        h += FieldHeight(property, "preference");
         h += FieldHeight(property, "unlocked");
         h += FieldHeight(property, "cannotUseWithTeleport");
         h += FieldHeight(property, "canAttackAfterTeleport");

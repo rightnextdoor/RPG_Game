@@ -5,6 +5,8 @@ using UnityEngine;
 public class Enemy_Archer : Enemy_Regular
 {
     public CooldownSystem cooldownSystem { get; private set; }
+    public AbilityHub abilityHub { get; private set; }
+
     #region States
     public IdleStateBase<Enemy_Archer> idleState { get; private set; }
     public MoveStateBase<Enemy_Archer> moveState { get; private set; }
@@ -36,6 +38,10 @@ public class Enemy_Archer : Enemy_Regular
 
         cooldownSystem = new CooldownSystem();
         cooldownSystem.BuildAbilityLists(abilityMap);
+
+        abilityHub = new AbilityHub();
+        abilityHub.BuildAbilityLists(abilityMap);
+        abilityHub.Setup(cooldownSystem);
     }
 
     private void BuildStates()
