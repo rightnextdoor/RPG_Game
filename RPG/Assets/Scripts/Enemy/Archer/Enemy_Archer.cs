@@ -4,18 +4,7 @@ using UnityEngine;
 
 public class Enemy_Archer : Enemy_Regular
 {
-    //remove after update
-    #region Jump Ability Settings
-    [Header("Jump Ability Settings")]
-    //[SerializeField] private float jumpRangeMin = 0f;
-    //[SerializeField] private float jumpRangeMax = 2f;
-    //[SerializeField] private float jumpCooldownMin = 1f;
-    //[SerializeField] private float jumpCooldownMax = 2f;
-    //[SerializeField] private float jumpChance = 1f;
-    //[SerializeField] private Vector2 jumpAbilityVelocity = new Vector2(8f, 12f);
-    //[SerializeField] private bool jumpBack = true;
-    #endregion
-
+    public CooldownSystem cooldownSystem { get; private set; }
     #region States
     public IdleStateBase<Enemy_Archer> idleState { get; private set; }
     public MoveStateBase<Enemy_Archer> moveState { get; private set; }
@@ -44,6 +33,9 @@ public class Enemy_Archer : Enemy_Regular
     {
         BuildStates();
         MapAbilityStates();
+
+        cooldownSystem = new CooldownSystem();
+        cooldownSystem.BuildAbilityLists(abilityMap);
     }
 
     private void BuildStates()
