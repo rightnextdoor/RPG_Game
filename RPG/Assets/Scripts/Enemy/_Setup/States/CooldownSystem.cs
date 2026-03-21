@@ -114,6 +114,7 @@ public class CooldownSystem
         if (entry == null)
         {
             Debug.LogWarning($"CooldownSystem could not find ability '{abilityName}' in cooldown list.");
+            return;
         }
 
         SetCooldown(entry);
@@ -126,6 +127,32 @@ public class CooldownSystem
 
         entry.cooldown = Random.Range(min, max);
         entry.lastTimeUsed = Time.time;
+    }
+
+    public void ApplyStartCooldowns()
+    {
+        ApplyStartCooldownsInList(attackAbilities);
+        ApplyStartCooldownsInList(evadeAbilities);
+        ApplyStartCooldownsInList(jumpAbilities);
+        ApplyStartCooldownsInList(teleportAbilities);
+    }
+
+    private void ApplyStartCooldownsInList(List<AbilityEntry> abilities)
+    {
+        if (abilities == null || abilities.Count == 0)
+            return;
+
+        foreach (var entry in abilities)
+        {
+            if (entry == null)
+                continue;
+
+            if (entry.startCooldown <= 0f)
+                continue;
+
+            entry.cooldown = entry.startCooldown;
+            entry.lastTimeUsed = Time.time;
+        }
     }
     #endregion
 

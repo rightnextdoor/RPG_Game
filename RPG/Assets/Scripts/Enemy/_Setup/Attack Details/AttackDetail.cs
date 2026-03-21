@@ -24,6 +24,7 @@ public class AttackDetail
 
     public float minCooldown = 0f;
     public float maxCooldown = 0f;
+    public float startCooldown = 0f;
 
     public float rangeMin;
     public float rangeMax;

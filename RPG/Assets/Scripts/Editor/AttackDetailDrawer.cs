@@ -39,6 +39,7 @@ public class AttackDetailDrawer : PropertyDrawer
         DrawField(ref y, position, property, "chance");
         DrawField(ref y, position, property, "minCooldown");
         DrawField(ref y, position, property, "maxCooldown");
+        DrawField(ref y, position, property, "startCooldown");
         DrawField(ref y, position, property, "rangeMin");
         DrawField(ref y, position, property, "rangeMax");
 
@@ -123,6 +124,7 @@ public class AttackDetailDrawer : PropertyDrawer
         h += FieldHeight(property, "chance");
         h += FieldHeight(property, "minCooldown");
         h += FieldHeight(property, "maxCooldown");
+        h += FieldHeight(property, "startCooldown");
         h += FieldHeight(property, "rangeMin");
         h += FieldHeight(property, "rangeMax");
 

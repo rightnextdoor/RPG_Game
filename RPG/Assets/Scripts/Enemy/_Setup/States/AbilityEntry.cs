@@ -24,6 +24,7 @@ public class AbilityEntry
 
     public float minCooldown;
     public float maxCooldown;
+    public float startCooldown;
     public float cooldown;
     public float lastTimeUsed;
 
@@ -84,6 +85,7 @@ public class AbilityEntry
         EnemyState state,
         float minCooldown,
         float maxCooldown,
+        float startCooldown,
         BattleAction action,
         AbilityPreference preference = AbilityPreference.Mixed,
         float initialCooldown = 0f,
@@ -122,6 +124,7 @@ public class AbilityEntry
 
         this.minCooldown = minCooldown;
         this.maxCooldown = maxCooldown;
+        this.startCooldown = startCooldown;
         this.cooldown = initialCooldown;
         this.lastTimeUsed = 0f;
 

@@ -58,6 +58,7 @@ public class Enemy : Entity
     [HideInInspector] public AbilityEntry CurrentAbilityEntry { get; set; }
     protected AttackDetail currentAttackDetail;
 
+    protected bool battleStarted;
 
     [HideInInspector] public bool isSummon = false;
 
@@ -120,6 +121,7 @@ public class Enemy : Entity
                 state: null,
                 minCooldown: attackDetail.minCooldown,
                 maxCooldown: attackDetail.maxCooldown,
+                startCooldown: attackDetail.startCooldown,
                 action: attackDetail.action,
                 preference: attackDetail.preference,
                 initialCooldown: 0f,
@@ -665,6 +667,20 @@ public class Enemy : Entity
         }
 #endif
     }
+
+    public virtual void StartBattle()
+    {
+        if (battleStarted)
+            return;
+
+        battleStarted = true;
+    }
+
+    public void EndBattle()
+    {
+        battleStarted = false;
+    }
+    public bool BattleStarted => battleStarted;
     #endregion
 
     #region Combat Helper

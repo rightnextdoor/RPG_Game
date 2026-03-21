@@ -195,6 +195,12 @@ public class Enemy_Archer : Enemy_Regular
         }
     }
 
+    public override void StartBattle()
+    {
+        base.StartBattle();
+        cooldownSystem?.ApplyStartCooldowns();
+    }
+
     private List<StateSound> ToSoundList(StateSound[] sounds)
     {
         if (sounds == null || sounds.Length == 0)

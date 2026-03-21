@@ -48,6 +48,9 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     {
         base.Enter();
 
+        if (!enemy.BattleStarted)
+            enemy.StartBattle();
+
         enemy.CurrentAbilityEntry = null;
 
         player = PlayerUtils.GetPlayerSafe().transform;
@@ -113,6 +116,8 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
             if (stateTimer < 0f ||
                 Vector2.Distance(player.position, enemy.transform.position) > enemy.playerDistance)
             {
+                enemy.EndBattle();
+
                 if (idleState != null)
                     stateMachine.ChangeState(idleState());
             }
