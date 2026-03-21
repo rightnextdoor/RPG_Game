@@ -11,13 +11,15 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     private Transform player;
 
-    private readonly AbilityHub hub = new AbilityHub();
     private float nextHubTime;
     private const float hubIntervalMin = 0.15f;
     private const float hubIntervalMax = 0.30f;
 
     private float stopDistance = 0f;
     private bool hasStopDistance = false;
+
+    private AbilityHub hub;
+    private CooldownSystem cooldownSystem;
 
     public BattleStateBase(
        TEnemy enemyBase,
@@ -36,6 +38,11 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         this.exitSounds = exitSounds ?? new List<StateSound>();
     }
 
+    public void Configure(AbilityHub abilityHub, CooldownSystem enemyCooldownSystem)
+    {
+        hub = abilityHub;
+        cooldownSystem = enemyCooldownSystem;
+    }
 
     public override void Enter()
     {
@@ -92,6 +99,7 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
             enemy.anim.SetFloat("xVelocity", enemy.rb.linearVelocity.x);
     }
 
+    #region Player detection
     private void PlayerDetected()
     {
         if (enemy.IsPlayerDetected())
@@ -122,6 +130,10 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         else if (dx < 0f && enemy.facingDir == 1) enemy.Flip();
     }
 
+    #endregion
+
+    #region Hub
+
     protected virtual void DecideFromHub()
     {
         float now = Time.time;
@@ -133,15 +145,19 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
         var abilityMap = enemy.abilityMap;
         //update for new hub
-        //AbilityEntry entry = hub.TryPick(abilityMap, distance);
-        AbilityEntry entry = null;
+        AbilityEntry entry = hub.GetAbility(BattleAction.Attack, AbilityPreference.Long);
 
         if (entry != null)
+        {
             UseAbilityEntry(entry);
+            cooldownSystem.SetAbilityCooldown(entry.action, entry.name);
+        }
 
         nextHubTime = now + Random.Range(hubIntervalMin, hubIntervalMax);
     }
+    #endregion
 
+    #region Battle decision
     private void UseAbilityEntry(AbilityEntry selectedEntry)
     {
         if (selectedEntry == null) return;
@@ -352,7 +368,7 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         stateMachine.ChangeState(jumpState);
     }
 
-
+    #region State
     private EnemyState GetAttackState(AbilityEntry entry, System.Func<EnemyState> nextProvider)
     {
         if (entry == null) return null;
@@ -377,6 +393,67 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         return entry?.state ?? enemy.GetMappedAbilityState(entry.name);
     }
 
+    #endregion
+    #endregion
+
+
+    #region Movement
+    private void ApplyMovementTowardStopDistance()
+    {
+        if (player == null) return;
+
+        float distance = Vector2.Distance(player.position, enemy.transform.position);
+
+        bool shouldAdvance =
+            !hasStopDistance ? true : distance > stopDistance;
+
+        if (shouldAdvance)
+        {
+            if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
+                return;
+
+            enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, enemy.rb.linearVelocity.y);
+        }
+
+    }
+    private void ComputeStopDistanceFromAttackDetails()
+    {
+        hasStopDistance = false;
+        stopDistance = 0f;
+
+        var details = enemy.attackDetails;
+        if (details == null || details.Count == 0) return;
+
+        float best = float.PositiveInfinity;
+
+        for (int i = 0; i < details.Count; i++)
+        {
+            var detail = details[i];
+            if (detail == null) continue;
+
+            float threshold = 0f;
+
+            if (detail.rangeMax > 0f)
+                threshold = detail.rangeMax;
+            else if (detail.rangeMin > 0f)
+                threshold = detail.rangeMin;
+            else
+                continue;
+
+            if (threshold < best)
+                best = threshold;
+        }
+
+        if (best < float.PositiveInfinity)
+        {
+            stopDistance = best;
+            hasStopDistance = true;
+        }
+    }
+
+    #endregion
+
+    #region Helpers
     private AttackDetail FindAttackDetail(System.Collections.Generic.List<AttackDetail> list, string name)
     {
         if (list == null || string.IsNullOrEmpty(name)) return null;
@@ -429,58 +506,6 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
         return candidates[candidates.Count - 1];
     }
+    #endregion
 
-    private void ApplyMovementTowardStopDistance()
-    {
-        if (player == null) return;
-
-        float distance = Vector2.Distance(player.position, enemy.transform.position);
-
-        bool shouldAdvance =
-            !hasStopDistance ? true : distance > stopDistance;
-
-        if (shouldAdvance)
-        {
-            if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
-                return;
-
-            enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, enemy.rb.linearVelocity.y);
-        }
-
-    }
-
-    private void ComputeStopDistanceFromAttackDetails()
-    {
-        hasStopDistance = false;
-        stopDistance = 0f;
-
-        var details = enemy.attackDetails;
-        if (details == null || details.Count == 0) return;
-
-        float best = float.PositiveInfinity;
-
-        for (int i = 0; i < details.Count; i++)
-        {
-            var detail = details[i];
-            if (detail == null) continue;
-
-            float threshold = 0f;
-
-            if (detail.rangeMax > 0f)
-                threshold = detail.rangeMax;
-            else if (detail.rangeMin > 0f)
-                threshold = detail.rangeMin;
-            else
-                continue;
-
-            if (threshold < best)
-                best = threshold;
-        }
-
-        if (best < float.PositiveInfinity)
-        {
-            stopDistance = best;
-            hasStopDistance = true;
-        }
-    }
 }

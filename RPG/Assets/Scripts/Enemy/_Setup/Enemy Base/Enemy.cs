@@ -56,6 +56,7 @@ public class Enemy : Entity
     public List<AttackDetail> attackDetails = new List<AttackDetail>();
     [HideInInspector] public Dictionary<string, AbilityEntry> abilityMap;
     [HideInInspector] public AbilityEntry CurrentAbilityEntry { get; set; }
+    protected AttackDetail currentAttackDetail;
 
 
     [HideInInspector] public bool isSummon = false;
@@ -184,46 +185,60 @@ public class Enemy : Entity
     #endregion
 
     #region Attack Triggers
-    public virtual void AttackTrigger(string attackName, string checkLabel)
+    public virtual void AttackTrigger(string pointName)
     {
-        if (attackDetails == null || attackDetails.Count == 0) return;
-
-        AttackDetail selectedDetail = null;
-        foreach (var detail in attackDetails)
-        {
-            if (detail != null && detail.name == attackName)
-            {
-                selectedDetail = detail;
-                break;
-            }
-        }
-
-        if (selectedDetail == null) return;
-
-        AttackCheck selectedCheck = null;
-        if (selectedDetail.attackChecks != null)
-        {
-            foreach (var check in selectedDetail.attackChecks)
-            {
-                if (check != null && check.label == checkLabel)
-                {
-                    selectedCheck = check;
-                    break;
-                }
-            }
-        }
-        if (selectedCheck == null || selectedCheck.checkTransform == null) return;
-
-        if (selectedCheck.shape == AttackCheckShape.Point)
-        {
-            if (selectedDetail.spawnSpec == null) return;
-
-            SpecialAttack(selectedDetail.spawnSpec, selectedCheck);
+        if (currentAttackDetail == null || string.IsNullOrWhiteSpace(pointName))
             return;
+
+        if (!pointName.StartsWith("attackPoint"))
+            return;
+
+        string numberText = pointName.Substring("attackPoint".Length);
+        if (!int.TryParse(numberText, out int attackPoint))
+            return;
+
+        List<AttackSpawnSpec> selectedSpecs = null;
+        if (currentAttackDetail.spawnSpec != null)
+        {
+            selectedSpecs = new List<AttackSpawnSpec>();
+
+            foreach (var spec in currentAttackDetail.spawnSpec)
+            {
+                if (spec == null || spec.attackPoints == null)
+                    continue;
+
+                if (spec.attackPoints.Contains(attackPoint))
+                    selectedSpecs.Add(spec);
+            }
         }
 
-        ResolveCollision(selectedCheck);
+        if (currentAttackDetail.attackChecks == null || currentAttackDetail.attackChecks.Count == 0)
+            return;
+
+        foreach (var check in currentAttackDetail.attackChecks)
+        {
+            if (check == null || check.attackPoints == null)
+                continue;
+
+            if (!check.attackPoints.Contains(attackPoint))
+                continue;
+
+            if (check.checkTransform == null)
+                continue;
+
+            if (check.shape == AttackCheckShape.Point)
+            {
+                if (selectedSpecs == null || selectedSpecs.Count == 0)
+                    continue;
+
+                SpecialAttack(selectedSpecs, check);
+                continue;
+            }
+
+            ResolveCollision(check);
+        }
     }
+
     private void SpecialAttack(List<AttackSpawnSpec> specs, AttackCheck attackCheck)
     {
         if (specs == null || specs.Count == 0 || attackCheck == null || attackCheck.checkTransform == null) return;
@@ -247,25 +262,38 @@ public class Enemy : Entity
                 spec.control.Setup(stats, specs);
         }
     }
-    public virtual void SoundTrigger(string attackName, int soundIndex)
+    public virtual void SoundTrigger(string pointName)
     {
-        if (attackDetails == null || attackDetails.Count == 0) return;
+        if (currentAttackDetail == null || currentAttackDetail.sounds == null || string.IsNullOrWhiteSpace(pointName))
+            return;
 
-        AttackDetail selectedDetail = null;
-        foreach (var detail in attackDetails)
+        if (!pointName.StartsWith("soundPoint"))
+            return;
+
+        string numberText = pointName.Substring("soundPoint".Length);
+        if (!int.TryParse(numberText, out int soundPoint))
+            return;
+
+        foreach (var sound in currentAttackDetail.sounds)
         {
-            if (detail != null && detail.name == attackName)
-            {
-                selectedDetail = detail;
-                break;
-            }
-        }
-        if (selectedDetail == null || selectedDetail.sounds == null) return;
-        if (soundIndex < 0 || soundIndex >= selectedDetail.sounds.Length) return;
+            if (sound.soundPoints == null)
+                continue;
 
-        // Play the requested sound at/with this enemy's transform context
-        StateSound sound = selectedDetail.sounds[soundIndex];
-        sound.Play(transform);
+            if (!sound.soundPoints.Contains(soundPoint))
+                continue;
+
+            sound.Play(transform);
+        }
+    }
+
+    public void SetCurrentAttackDetail(AttackDetail attackDetail)
+    {
+        currentAttackDetail = attackDetail;
+    }
+
+    public void ClearCurrentAttackDetail()
+    {
+        currentAttackDetail = null;
     }
 
     #region Trigger helpers

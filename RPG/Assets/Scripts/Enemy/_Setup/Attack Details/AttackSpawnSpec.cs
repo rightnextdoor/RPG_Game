@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum SpecialMovementType
@@ -17,7 +18,9 @@ public class AttackSpawnSpec
     [Header("Prefab Basics")]
     [Tooltip("The name of the prefab to spawn.")]
     public string name;
-    
+
+    public List<int> attackPoints = new();
+
     [Tooltip("The projectile or special attack prefab to spawn.")]
     public GameObject prefab;
     

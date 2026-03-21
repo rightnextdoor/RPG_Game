@@ -96,26 +96,59 @@ public class EnemyTimelineAuthoringEditor : Editor
 
         EditorGUILayout.Space(8);
 
-        if (GUILayout.Button("Insert ATTACK at Playhead"))
+        if (GUILayout.Button("Insert Attack"))
         {
-            var attackName = attackNames[idxAttack];
-            var checkLabel = checkLabels[idxCheck];
-            var spawnName = needsSpawn ? spawnNames[idxSpawn] : null;
-
-            if (needsSpawn && spawnName != "(no spawn entries)")
-                AddEventAtPlayhead(nameof(Enemy_AnimationTriggers.AttackTrigger), $"{attackName}|{checkLabel}|{spawnName}");
+            var clip = AnimationWindowUtil.GetActiveClip();
+            if (clip == null)
+            {
+                Debug.LogWarning("No active Animation Clip selected in Animation Window.");
+            }
             else
-                AddEventAtPlayhead(nameof(Enemy_AnimationTriggers.AttackTrigger), $"{attackName}|{checkLabel}");
+            {
+                string pointName = GetNextPointName(clip, "attackPoint");
+                AddEventAtPlayhead(nameof(Enemy_AnimationTriggers.AttackTrigger), pointName);
+            }
         }
 
-        using (new EditorGUI.DisabledScope(soundCount == 0))
+        if (GUILayout.Button("Insert Sound"))
         {
-            if (GUILayout.Button("Insert SOUND at Playhead"))
-                AddEventAtPlayhead(nameof(Enemy_AnimationTriggers.SoundTrigger), $"{attack.name}|{idxSound}");
+            var clip = AnimationWindowUtil.GetActiveClip();
+            if (clip == null)
+            {
+                Debug.LogWarning("No active Animation Clip selected in Animation Window.");
+            }
+            else
+            {
+                string pointName = GetNextPointName(clip, "soundPoint");
+                AddEventAtPlayhead(nameof(Enemy_AnimationTriggers.SoundTrigger), pointName);
+            }
         }
 
-        if (GUILayout.Button("Insert RESOLVE at Playhead"))
-            AddEventAtPlayhead("AnimationTrigger");
+        if (GUILayout.Button("Remove Attack"))
+        {
+            var clip = AnimationWindowUtil.GetActiveClip();
+            if (clip == null)
+            {
+                Debug.LogWarning("No active Animation Clip selected in Animation Window.");
+            }
+            else
+            {
+                RemoveLastAttackPointAndReassign(clip, sceneEnemy ? sceneEnemy : enemy);
+            }
+        }
+
+        if (GUILayout.Button("Remove Sound"))
+        {
+            var clip = AnimationWindowUtil.GetActiveClip();
+            if (clip == null)
+            {
+                Debug.LogWarning("No active Animation Clip selected in Animation Window.");
+            }
+            else
+            {
+                RemoveLastSoundPointAndReassign(clip, sceneEnemy ? sceneEnemy : enemy);
+            }
+        }
 
         so.ApplyModifiedProperties();
     }
@@ -183,6 +216,216 @@ public class EnemyTimelineAuthoringEditor : Editor
         list.Add(ev);
         AnimationUtility.SetAnimationEvents(clip, list.ToArray());
         EditorUtility.SetDirty(clip);
+    }
+
+    private static string GetNextPointName(AnimationClip clip, string prefix)
+    {
+        var events = AnimationUtility.GetAnimationEvents(clip);
+        int max = 0;
+
+        foreach (var ev in events)
+        {
+            if (string.IsNullOrEmpty(ev.stringParameter))
+                continue;
+
+            var parts = ev.stringParameter.Split('|');
+            if (parts.Length == 0)
+                continue;
+
+            string pointName = parts[0];
+            if (!pointName.StartsWith(prefix))
+                continue;
+
+            string numberText = pointName.Substring(prefix.Length);
+            if (int.TryParse(numberText, out int n))
+                max = Mathf.Max(max, n);
+        }
+
+        return $"{prefix}{max + 1}";
+    }
+
+    private static void RemoveLastPoint(AnimationClip clip, string prefix)
+    {
+        var list = AnimationUtility.GetAnimationEvents(clip).ToList();
+
+        int removeIndex = -1;
+        int removePoint = -1;
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            var ev = list[i];
+            if (string.IsNullOrEmpty(ev.stringParameter))
+                continue;
+
+            var parts = ev.stringParameter.Split('|');
+            if (parts.Length == 0)
+                continue;
+
+            string pointName = parts[0];
+            if (!pointName.StartsWith(prefix))
+                continue;
+
+            string numberText = pointName.Substring(prefix.Length);
+            if (int.TryParse(numberText, out int n) && n >= removePoint)
+            {
+                removePoint = n;
+                removeIndex = i;
+            }
+        }
+
+        if (removeIndex < 0 || removePoint < 0)
+            return;
+
+        list.RemoveAt(removeIndex);
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            var ev = list[i];
+            if (string.IsNullOrEmpty(ev.stringParameter))
+                continue;
+
+            var parts = ev.stringParameter.Split('|');
+            if (parts.Length == 0)
+                continue;
+
+            string pointName = parts[0];
+            if (!pointName.StartsWith(prefix))
+                continue;
+
+            string numberText = pointName.Substring(prefix.Length);
+            if (!int.TryParse(numberText, out int n))
+                continue;
+
+            if (n > removePoint)
+            {
+                parts[0] = $"{prefix}{n - 1}";
+                ev.stringParameter = string.Join("|", parts);
+                list[i] = ev;
+            }
+        }
+
+        AnimationUtility.SetAnimationEvents(clip, list.ToArray());
+        EditorUtility.SetDirty(clip);
+    }
+
+    private static void RemoveLastAttackPointAndReassign(AnimationClip clip, Enemy enemy)
+    {
+        int removedPoint = GetHighestPointNumber(clip, "attackPoint");
+        if (removedPoint < 1)
+            return;
+
+        RemoveLastPoint(clip, "attackPoint");
+        ReassignAttackPointData(enemy, removedPoint);
+    }
+
+    private static void RemoveLastSoundPointAndReassign(AnimationClip clip, Enemy enemy)
+    {
+        int removedPoint = GetHighestPointNumber(clip, "soundPoint");
+        if (removedPoint < 1)
+            return;
+
+        RemoveLastPoint(clip, "soundPoint");
+        ReassignSoundPointData(enemy, removedPoint);
+    }
+
+    private static int GetHighestPointNumber(AnimationClip clip, string prefix)
+    {
+        var events = AnimationUtility.GetAnimationEvents(clip);
+        int max = 0;
+
+        foreach (var ev in events)
+        {
+            if (string.IsNullOrEmpty(ev.stringParameter))
+                continue;
+
+            var parts = ev.stringParameter.Split('|');
+            if (parts.Length == 0)
+                continue;
+
+            string pointName = parts[0];
+            if (!pointName.StartsWith(prefix))
+                continue;
+
+            string numberText = pointName.Substring(prefix.Length);
+            if (int.TryParse(numberText, out int n))
+                max = Mathf.Max(max, n);
+        }
+
+        return max;
+    }
+
+    private static void ReassignAttackPointData(Enemy enemy, int removedPoint)
+    {
+        if (enemy == null || enemy.attackDetails == null)
+            return;
+
+        var enemySO = new SerializedObject(enemy);
+        var attackDetailsProp = enemySO.FindProperty("attackDetails");
+        if (attackDetailsProp == null || !attackDetailsProp.isArray)
+            return;
+
+        for (int i = 0; i < attackDetailsProp.arraySize; i++)
+        {
+            var detailProp = attackDetailsProp.GetArrayElementAtIndex(i);
+            UpdatePointListsInArray(detailProp.FindPropertyRelative("attackChecks"), "attackPoints", removedPoint);
+            UpdatePointListsInArray(detailProp.FindPropertyRelative("spawnSpec"), "attackPoints", removedPoint);
+        }
+
+        enemySO.ApplyModifiedProperties();
+        EditorUtility.SetDirty(enemy);
+    }
+
+    private static void ReassignSoundPointData(Enemy enemy, int removedPoint)
+    {
+        if (enemy == null || enemy.attackDetails == null)
+            return;
+
+        var enemySO = new SerializedObject(enemy);
+        var attackDetailsProp = enemySO.FindProperty("attackDetails");
+        if (attackDetailsProp == null || !attackDetailsProp.isArray)
+            return;
+
+        for (int i = 0; i < attackDetailsProp.arraySize; i++)
+        {
+            var detailProp = attackDetailsProp.GetArrayElementAtIndex(i);
+            var soundsProp = detailProp.FindPropertyRelative("sounds");
+            UpdatePointListsInArray(soundsProp, "soundPoints", removedPoint);
+        }
+
+        enemySO.ApplyModifiedProperties();
+        EditorUtility.SetDirty(enemy);
+    }
+
+    private static void UpdatePointListsInArray(SerializedProperty arrayProp, string listName, int removedPoint)
+    {
+        if (arrayProp == null || !arrayProp.isArray)
+            return;
+
+        for (int i = 0; i < arrayProp.arraySize; i++)
+        {
+            var elementProp = arrayProp.GetArrayElementAtIndex(i);
+            if (elementProp == null)
+                continue;
+
+            var pointsProp = elementProp.FindPropertyRelative(listName);
+            if (pointsProp == null || !pointsProp.isArray)
+                continue;
+
+            for (int p = pointsProp.arraySize - 1; p >= 0; p--)
+            {
+                var pointProp = pointsProp.GetArrayElementAtIndex(p);
+                int value = pointProp.intValue;
+
+                if (value == removedPoint)
+                {
+                    pointsProp.DeleteArrayElementAtIndex(p);
+                }
+                else if (value > removedPoint)
+                {
+                    pointProp.intValue = value - 1;
+                }
+            }
+        }
     }
 }
 #endif

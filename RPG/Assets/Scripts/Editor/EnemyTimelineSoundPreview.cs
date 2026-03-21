@@ -190,39 +190,50 @@ public static class EnemyTimelineSoundPreview
             return;
 
         var parts = packed.Split('|');
-        if (parts.Length < 2)
+        if (parts.Length < 1)
             return;
 
-        if (!int.TryParse(parts[1], out int soundIndex))
+        string pointName = parts[0];
+        if (!pointName.StartsWith("soundPoint"))
+            return;
+
+        string numberText = pointName.Substring("soundPoint".Length);
+        if (!int.TryParse(numberText, out int soundPoint))
             return;
 
         var enemy = ResolveAuthoringEnemy(authoring);
         if (enemy == null || enemy.attackDetails == null)
             return;
 
-        var attack = enemy.attackDetails.FirstOrDefault(a => a != null && a.name == parts[0]);
-        if (attack == null || attack.sounds == null)
-            return;
-
-        if (soundIndex < 0 || soundIndex >= attack.sounds.Length)
-            return;
-
-        var sound = attack.sounds[soundIndex];
-        if (string.IsNullOrEmpty(sound.name))
-            return;
-
-        var clip = FindClipBySoundName(sound.name);
-        if (clip == null)
+        foreach (var attack in enemy.attackDetails)
         {
-            Debug.LogWarning($"Timeline preview could not find clip for sound '{sound.name}'.");
-            return;
-        }
+            if (attack == null || attack.sounds == null)
+                continue;
 
-        float delay = Mathf.Max(0f, sound.delay);
-        if (delay > 0f)
-            StartDelayedPreview(clip, delay);
-        else
-            PlayPreviewClip(clip);
+            foreach (var sound in attack.sounds)
+            {
+                if (string.IsNullOrEmpty(sound.name) || sound.soundPoints == null)
+                    continue;
+
+                if (!sound.soundPoints.Contains(soundPoint))
+                    continue;
+
+                var clip = FindClipBySoundName(sound.name);
+                if (clip == null)
+                {
+                    Debug.LogWarning($"Timeline preview could not find clip for sound '{sound.name}'.");
+                    continue;
+                }
+
+                float delay = Mathf.Max(0f, sound.delay);
+                if (delay > 0f)
+                    StartDelayedPreview(clip, delay);
+                else
+                    PlayPreviewClip(clip);
+
+                return;
+            }
+        }
     }
 
     private static void StartDelayedPreview(AudioClip clip, float delay)

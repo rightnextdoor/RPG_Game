@@ -9,20 +9,20 @@ public class Enemy_AnimationTriggers : MonoBehaviour
 
     private void AnimationTrigger() => enemy.AnimationFinishTrigger();
 
-    public void AttackTrigger(string packed)
+    public void AttackTrigger(string pointName)
     {
-        if (string.IsNullOrEmpty(packed)) return;
+        if (string.IsNullOrWhiteSpace(pointName))
+            return;
 
-        var parts = packed.Split('|');
-        if (parts.Length >= 2)
-            enemy.AttackTrigger(parts[0], parts[1]);
+        enemy.AttackTrigger(pointName);
     }
-    public void SoundTrigger(string packed)
+
+    public void SoundTrigger(string pointName)
     {
-        if (string.IsNullOrEmpty(packed)) return;
-        var parts = packed.Split('|');
-        if (parts.Length >= 2 && int.TryParse(parts[1], out var idx))
-            enemy.SoundTrigger(parts[0], idx);
+        if (string.IsNullOrWhiteSpace(pointName))
+            return;
+
+        enemy.SoundTrigger(pointName);
     }
     private void SpeicalAttackTrigger() => enemy.AnimationSpecialAttackTrigger();
     

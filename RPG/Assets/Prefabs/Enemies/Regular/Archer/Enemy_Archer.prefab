@@ -772,6 +772,7 @@ MonoBehaviour:
     stateType: 2
     enterSounds:
     - name: ArcherDie
+      soundPoints: 
       delay: 0
       useTransform: 1
     exitSounds: []
@@ -779,6 +780,7 @@ MonoBehaviour:
     stateType: 5
     enterSounds:
     - name: ArcherJump
+      soundPoints: 
       delay: 0
       useTransform: 1
     exitSounds: []
@@ -790,6 +792,7 @@ MonoBehaviour:
   - name: Attack
     animBoolName: Attack
     action: 0
+    preference: 1
     unlocked: 1
     cannotUseWithTeleport: 0
     canAttackAfterTeleport: 0
@@ -818,6 +821,7 @@ MonoBehaviour:
     jumpBack: 1
     attackChecks:
     - label: Attack
+      attackPoints: 01000000
       shape: 0
       checkTransform: {fileID: 1240692613789147434}
       debugDraw: 0
@@ -833,6 +837,7 @@ MonoBehaviour:
       polygonPoints: []
     spawnSpec:
     - name: Arrow
+      attackPoints: 01000000
       prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
       spawnOncePerOn: 0
       sfxOnSpawn: 
@@ -853,11 +858,13 @@ MonoBehaviour:
       maxSize: 0
     sounds:
     - name: ArcherAttack
+      soundPoints: 01000000
       delay: 0
       useTransform: 1
   - name: Evade
     animBoolName: Move
     action: 1
+    preference: 0
     unlocked: 1
     cannotUseWithTeleport: 0
     canAttackAfterTeleport: 0
@@ -886,6 +893,7 @@ MonoBehaviour:
     jumpBack: 1
     attackChecks:
     - label: Attack
+      attackPoints: 
       shape: 0
       checkTransform: {fileID: 1240692613789147434}
       debugDraw: 0
@@ -901,6 +909,7 @@ MonoBehaviour:
       polygonPoints: []
     spawnSpec:
     - name: Arrow
+      attackPoints: 
       prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
       spawnOncePerOn: 0
       sfxOnSpawn: 
@@ -921,11 +930,13 @@ MonoBehaviour:
       maxSize: 0
     sounds:
     - name: ArcherAttack
+      soundPoints: 
       delay: 0
       useTransform: 1
   - name: Jump
     animBoolName: Jump
     action: 2
+    preference: 0
     unlocked: 1
     cannotUseWithTeleport: 0
     canAttackAfterTeleport: 0
@@ -954,6 +965,7 @@ MonoBehaviour:
     jumpBack: 1
     attackChecks:
     - label: Attack
+      attackPoints: 
       shape: 0
       checkTransform: {fileID: 1240692613789147434}
       debugDraw: 0
@@ -969,6 +981,7 @@ MonoBehaviour:
       polygonPoints: []
     spawnSpec:
     - name: Arrow
+      attackPoints: 
       prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
       spawnOncePerOn: 0
       sfxOnSpawn: 
@@ -989,11 +1002,13 @@ MonoBehaviour:
       maxSize: 0
     sounds:
     - name: ArcherAttack
+      soundPoints: 
       delay: 0
       useTransform: 1
   - name: Stunned
     animBoolName: Stunned
     action: 3
+    preference: 0
     unlocked: 1
     cannotUseWithTeleport: 0
     canAttackAfterTeleport: 0
@@ -1022,6 +1037,7 @@ MonoBehaviour:
     jumpBack: 1
     attackChecks:
     - label: Attack
+      attackPoints: 
       shape: 0
       checkTransform: {fileID: 1240692613789147434}
       debugDraw: 0
@@ -1037,6 +1053,7 @@ MonoBehaviour:
       polygonPoints: []
     spawnSpec:
     - name: Arrow
+      attackPoints: 
       prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
       spawnOncePerOn: 0
       sfxOnSpawn: 
@@ -1057,6 +1074,7 @@ MonoBehaviour:
       maxSize: 0
     sounds:
     - name: ArcherAttack
+      soundPoints: 
       delay: 0
       useTransform: 1
   isSummon: 0

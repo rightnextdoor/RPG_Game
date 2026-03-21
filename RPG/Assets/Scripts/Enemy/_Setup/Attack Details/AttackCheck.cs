@@ -17,6 +17,7 @@ public class AttackCheck
 {
     [Header("Identity")]
     public string label;
+    public List<int> attackPoints = new();
     public AttackCheckShape shape = AttackCheckShape.Point;
 
     [Tooltip("Anchor for this check (bone/empty).")]

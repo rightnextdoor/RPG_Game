@@ -22,6 +22,7 @@ public class AttackCheckDrawer : PropertyDrawer
 
         // Common fields
         y = DrawProp(new Rect(position.x, y, w, 0), property.FindPropertyRelative("label"), "Label");
+        y = DrawProp(new Rect(position.x, y, w, 0), property.FindPropertyRelative("attackPoints"), "Attack Points");
         y = DrawProp(new Rect(position.x, y, w, 0), property.FindPropertyRelative("checkTransform"), "Check Transform");
 
         var shapeProp = property.FindPropertyRelative("shape");
@@ -76,6 +77,7 @@ public class AttackCheckDrawer : PropertyDrawer
 
         // common fields
         total += PropHeight(property.FindPropertyRelative("label"));
+        total += PropHeight(property.FindPropertyRelative("attackPoints"));
         total += PropHeight(property.FindPropertyRelative("checkTransform"));
         total += PropHeight(property.FindPropertyRelative("shape"));
 

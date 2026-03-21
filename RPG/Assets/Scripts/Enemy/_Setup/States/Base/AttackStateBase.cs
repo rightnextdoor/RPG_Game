@@ -39,6 +39,7 @@ public class AttackStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     public override void Enter()
     {
         base.Enter();
+        enemy.SetCurrentAttackDetail(detail);
         stateTimer = 0f;
         isLingering = false;
     }
@@ -65,6 +66,7 @@ public class AttackStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     public override void Exit()
     {
         base.Exit();
+        enemy.ClearCurrentAttackDetail();
     }
 
     protected virtual void SingleAttack()
