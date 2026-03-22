@@ -37,13 +37,13 @@ public class Enemy_Archer : Enemy_Regular
         MapAbilityStates();
 
         cooldownSystem = new CooldownSystem();
-        cooldownSystem.BuildAbilityLists(abilityMap);
+        cooldownSystem.Setup(abilityMap, battleMinCooldown, battleMaxCooldown);
 
         abilityHub = new AbilityHub();
         abilityHub.BuildAbilityLists(abilityMap);
         abilityHub.Setup(cooldownSystem);
 
-        battleState?.Configure(abilityHub, cooldownSystem);
+        battleState?.Configure(abilityHub, cooldownSystem, abilityMap, AbilityPreference.Long);
     }
 
     private void BuildStates()
@@ -230,6 +230,21 @@ public class Enemy_Archer : Enemy_Regular
 
         protected override EnemyState MoveState => moveFactory?.Invoke();
         protected override EnemyState BattleState => battleFactory?.Invoke();
+    }
+
+    public override void ChangeBattleCooldownRange(float minCooldown, float maxCooldown)
+    {
+        cooldownSystem?.ChangeBattleCooldownRange(minCooldown, maxCooldown);
+    }
+
+    public override void TempChangeBattleCooldownRange(float minCooldown, float maxCooldown, float duration)
+    {
+        cooldownSystem?.TempChangeBattleCooldownRange(minCooldown, maxCooldown, duration);
+    }
+
+    public override void PauseBattleCooldown(bool pause)
+    {
+        cooldownSystem?.PauseBattleCooldown(pause);
     }
 
     public override bool CanBeStunned()

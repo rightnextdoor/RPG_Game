@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enemy
 {
+    #region Settings
     private readonly System.Func<EnemyState> idleState;
     private readonly System.Func<EnemyState> nextState;
 
@@ -11,16 +12,40 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     private Transform player;
 
-    private float nextHubTime;
-    private const float hubIntervalMin = 0.15f;
-    private const float hubIntervalMax = 0.30f;
-
-    private float stopDistance = 0f;
-    private bool hasStopDistance = false;
-
     private AbilityHub hub;
     private CooldownSystem cooldownSystem;
 
+    private AbilityPreference preferredAttackPreference = AbilityPreference.Mixed;
+    private BattleAction currentPlanAction = BattleAction.None;
+
+    private readonly List<AbilityEntry> attackAbilities = new();
+    private readonly List<AbilityEntry> evadeAbilities = new();
+    private readonly List<AbilityEntry> jumpAbilities = new();
+    private readonly List<AbilityEntry> teleportAbilities = new();
+
+    private float shortAttackMinRange = 0f;
+    private float shortAttackMaxRange = 0f;
+
+    private float longAttackMinRange = 0f;
+    private float longAttackMaxRange = 0f;
+
+    private float mixedAttackMinRange = 0f;
+    private float mixedAttackMaxRange = 0f;
+
+    private float preferredRangeMin = 0f;
+    private float preferredRangeMax = 0f;
+
+    private bool hasTeleport = false;
+    private bool hasJump = false;
+    private bool hasEvade = false;
+
+    private float jumpMaxRange = 0f;
+    private float evadeMaxRange = 0f;
+
+    private AbilityEntry selectedAttackEntry;
+    #endregion
+
+    #region Configure
     public BattleStateBase(
        TEnemy enemyBase,
        EnemyStateMachine stateMachine,
@@ -38,18 +63,32 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         this.exitSounds = exitSounds ?? new List<StateSound>();
     }
 
-    public void Configure(AbilityHub abilityHub, CooldownSystem enemyCooldownSystem)
+    public void Configure(
+    AbilityHub abilityHub,
+    CooldownSystem enemyCooldownSystem,
+    Dictionary<string, AbilityEntry> abilityMap,
+    AbilityPreference enemyPreferredAttackPreference)
     {
         hub = abilityHub;
         cooldownSystem = enemyCooldownSystem;
+
+        preferredAttackPreference = enemyPreferredAttackPreference;
+
+        BuildAbilityLists(abilityMap);
     }
 
+    #endregion
+
+    #region State 
     public override void Enter()
     {
         base.Enter();
 
         if (!enemy.BattleStarted)
+        {
             enemy.StartBattle();
+            SetupBattleData();
+        }
 
         enemy.CurrentAbilityEntry = null;
 
@@ -60,10 +99,6 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
             stateMachine.ChangeState(nextState());
             return;
         }
-
-        ComputeStopDistanceFromAttackDetails();
-
-        nextHubTime = Time.time;
 
         stateTimer = enemy.battleTime;
         FlipTowardsPlayer();
@@ -101,6 +136,168 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         if (enemy.anim != null && enemy.rb != null)
             enemy.anim.SetFloat("xVelocity", enemy.rb.linearVelocity.x);
     }
+    #endregion
+
+    #region Setup
+    private void SetupBattleData()
+    {
+        SetupAttackRangeInfo();
+        SetupPreferredRange();
+        SetupSupportMaxRanges();
+        SetupAbilityFlags();
+    }
+
+    private void SetupAttackRangeInfo()
+    {
+        shortAttackMinRange = 0f;
+        shortAttackMaxRange = 0f;
+
+        longAttackMinRange = 0f;
+        longAttackMaxRange = 0f;
+
+        mixedAttackMinRange = 0f;
+        mixedAttackMaxRange = 0f;
+
+        if (attackAbilities == null || attackAbilities.Count == 0)
+            return;
+
+        foreach (AbilityEntry entry in attackAbilities)
+        {
+            if (entry == null) continue;
+
+            float rangeMin = entry.rangeMin ?? 0f;
+            float rangeMax = entry.rangeMax ?? 0f;
+
+            switch (entry.preference)
+            {
+                case AbilityPreference.Short:
+                    if (rangeMin > shortAttackMinRange)
+                        shortAttackMinRange = rangeMin;
+
+                    if (rangeMax > shortAttackMaxRange)
+                        shortAttackMaxRange = rangeMax;
+                    break;
+
+                case AbilityPreference.Long:
+                    if (rangeMin > longAttackMinRange)
+                        longAttackMinRange = rangeMin;
+
+                    if (rangeMax > longAttackMaxRange)
+                        longAttackMaxRange = rangeMax;
+                    break;
+            }
+        }
+
+        if (shortAttackMinRange <= 0f && shortAttackMaxRange > 0f)
+            shortAttackMinRange = shortAttackMaxRange * 0.5f;
+
+        if (longAttackMinRange <= 0f && longAttackMaxRange > 0f)
+            longAttackMinRange = longAttackMaxRange * 0.5f;
+
+        mixedAttackMinRange = shortAttackMaxRange;
+        mixedAttackMaxRange = longAttackMinRange;
+    }
+
+    private void SetupSupportMaxRanges()
+    {
+        jumpMaxRange = 0f;
+        evadeMaxRange = 0f;
+
+        if (jumpAbilities != null)
+        {
+            foreach (AbilityEntry entry in jumpAbilities)
+            {
+                if (entry == null) continue;
+
+                float rangeMax = entry.rangeMax ?? 0f;
+
+                if (rangeMax > jumpMaxRange)
+                    jumpMaxRange = rangeMax;
+            }
+        }
+
+        if (evadeAbilities != null)
+        {
+            foreach (AbilityEntry entry in evadeAbilities)
+            {
+                if (entry == null) continue;
+
+                float rangeMax = entry.rangeMax ?? 0f;
+
+                if (rangeMax > evadeMaxRange)
+                    evadeMaxRange = rangeMax;
+            }
+        }
+    }
+
+    private void SetupPreferredRange()
+    {
+        preferredRangeMin = 0f;
+        preferredRangeMax = 0f;
+
+        switch (preferredAttackPreference)
+        {
+            case AbilityPreference.Short:
+                preferredRangeMin = shortAttackMinRange;
+                preferredRangeMax = shortAttackMaxRange;
+                break;
+
+            case AbilityPreference.Long:
+                preferredRangeMin = longAttackMinRange;
+                preferredRangeMax = longAttackMaxRange;
+                break;
+
+            case AbilityPreference.Mixed:
+                preferredRangeMin = mixedAttackMinRange;
+                preferredRangeMax = mixedAttackMaxRange;
+                break;
+        }
+    }
+
+    private void SetupAbilityFlags()
+    {
+        hasTeleport = false;
+        hasJump = false;
+        hasEvade = false;
+
+        if (teleportAbilities != null)
+        {
+            foreach (AbilityEntry entry in teleportAbilities)
+            {
+                if (entry == null) continue;
+                if (entry.state == null) continue;
+
+                hasTeleport = true;
+                break;
+            }
+        }
+
+        if (jumpAbilities != null)
+        {
+            foreach (AbilityEntry entry in jumpAbilities)
+            {
+                if (entry == null) continue;
+                if (entry.state == null) continue;
+
+                hasJump = true;
+                break;
+            }
+        }
+
+        if (evadeAbilities != null)
+        {
+            foreach (AbilityEntry entry in evadeAbilities)
+            {
+                if (entry == null) continue;
+                if (entry.state == null) continue;
+
+                hasEvade = true;
+                break;
+            }
+        }
+    }
+
+    #endregion
 
     #region Player detection
     private void PlayerDetected()
@@ -109,7 +306,14 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         {
             stateTimer = enemy.battleTime;
 
-            DecideFromHub();
+            if (cooldownSystem != null && cooldownSystem.IsBattleCooldownReady())
+            {
+                DecideFromHub();
+            }
+            else
+            {
+                UpdateBattleSpacingOnly(GetPlayerDistance());
+            }
         }
         else
         {
@@ -122,8 +326,6 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
                     stateMachine.ChangeState(idleState());
             }
         }
-
-        FlipTowardsPlayer();
     }
 
     private void FlipTowardsPlayer()
@@ -141,28 +343,65 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     protected virtual void DecideFromHub()
     {
-        float now = Time.time;
-        ApplyMovementTowardStopDistance();
+        if (cooldownSystem == null || !cooldownSystem.IsBattleCooldownReady()) return;
+        if (hub == null) return;
 
-        if (now < nextHubTime) return;
+        float playerDistance = GetPlayerDistance();
+        AbilityPreference requestPreference = GetAttackPreferenceFromDistance(playerDistance);
 
-        float distance = Vector2.Distance(player.position, enemy.transform.position);
+        selectedAttackEntry = hub.GetAbility(BattleAction.Attack, requestPreference);
 
-        var abilityMap = enemy.abilityMap;
-        //update for new hub
-        AbilityEntry entry = hub.GetAbility(BattleAction.Attack, AbilityPreference.Long);
-
-        if (entry != null)
-        {
-            UseAbilityEntry(entry);
-            cooldownSystem.SetAbilityCooldown(entry.action, entry.name);
-        }
-
-        nextHubTime = now + Random.Range(hubIntervalMin, hubIntervalMax);
+        float updatedPlayerDistance = GetPlayerDistance();
+        RunBattlePlanSwitch(updatedPlayerDistance);
     }
     #endregion
 
     #region Battle decision
+
+    private void RunBattlePlanSwitch(float playerDistance)
+    {
+        switch (currentPlanAction)
+        {
+            case BattleAction.Teleport:
+                RunTeleportPlan(playerDistance);
+                break;
+
+            case BattleAction.Jump:
+                RunJumpPlan(playerDistance);
+                break;
+
+            case BattleAction.Evade:
+                RunEvadePlan(playerDistance);
+                break;
+
+            default:
+                RunMovePlan(playerDistance);
+                break;
+        }
+    }
+
+    private void RunTeleportPlan(float playerDistance)
+    {
+    }
+
+    private void RunJumpPlan(float playerDistance)
+    {
+    }
+
+    private void RunEvadePlan(float playerDistance)
+    {
+    }
+
+    private void RunMovePlan(float playerDistance)
+    {
+        if (selectedAttackEntry == null) return;
+
+        if (UpdateBattleSpacingOnly(playerDistance))
+        {
+            CommitSelectedAttack();
+        }
+    }
+
     private void UseAbilityEntry(AbilityEntry selectedEntry)
     {
         if (selectedEntry == null) return;
@@ -403,62 +642,79 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
 
     #region Movement
-    private void ApplyMovementTowardStopDistance()
+
+    private bool UpdateBattleSpacingOnly(float playerDistance)
+    {
+        if (playerDistance >= preferredRangeMin && playerDistance <= preferredRangeMax)
+        {
+            StopBattleMovement();
+            return true;
+        }
+
+        if (playerDistance < preferredRangeMin)
+        {
+            MoveAwayToPreferredRange();
+            return false;
+        }
+
+        if (playerDistance > preferredRangeMax)
+        {
+            MoveTowardPreferredRange();
+            return false;
+        }
+
+        return false;
+    }
+    private void MoveTowardPreferredRange()
     {
         if (player == null) return;
+        if (enemy.IsWallDetected() || !enemy.IsGroundDetected()) return;
 
-        float distance = Vector2.Distance(player.position, enemy.transform.position);
-
-        bool shouldAdvance =
-            !hasStopDistance ? true : distance > stopDistance;
-
-        if (shouldAdvance)
-        {
-            if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
-                return;
-
-            enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, enemy.rb.linearVelocity.y);
-        }
-
+        FlipTowardsPlayer();
+        enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, enemy.rb.linearVelocity.y);
     }
-    private void ComputeStopDistanceFromAttackDetails()
+
+    private void MoveAwayToPreferredRange()
     {
-        hasStopDistance = false;
-        stopDistance = 0f;
+        if (player == null) return;
+        if (enemy.IsWallDetected() || !enemy.IsGroundDetected()) return;
 
-        var details = enemy.attackDetails;
-        if (details == null || details.Count == 0) return;
+        float dx = player.position.x - enemy.transform.position.x;
 
-        float best = float.PositiveInfinity;
-
-        for (int i = 0; i < details.Count; i++)
+        if (dx > 0f)
         {
-            var detail = details[i];
-            if (detail == null) continue;
-
-            float threshold = 0f;
-
-            if (detail.rangeMax > 0f)
-                threshold = detail.rangeMax;
-            else if (detail.rangeMin > 0f)
-                threshold = detail.rangeMin;
-            else
-                continue;
-
-            if (threshold < best)
-                best = threshold;
+            if (enemy.facingDir != -1)
+                enemy.Flip();
+        }
+        else if (dx < 0f)
+        {
+            if (enemy.facingDir != 1)
+                enemy.Flip();
         }
 
-        if (best < float.PositiveInfinity)
-        {
-            stopDistance = best;
-            hasStopDistance = true;
-        }
+        enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, enemy.rb.linearVelocity.y);
     }
+
+    private void StopBattleMovement()
+    {
+        FlipTowardsPlayer();
+        enemy.SetVelocity(0f, enemy.rb.linearVelocity.y);
+    }
+
 
     #endregion
 
     #region Helpers
+    private void CommitSelectedAttack()
+    {
+        if (selectedAttackEntry == null) return;
+
+        UseAbilityEntry(selectedAttackEntry);
+
+        cooldownSystem?.SetBattleCooldown();
+        cooldownSystem?.SetAbilityCooldown(selectedAttackEntry.action, selectedAttackEntry.name);
+    }
+
     private AttackDetail FindAttackDetail(System.Collections.Generic.List<AttackDetail> list, string name)
     {
         if (list == null || string.IsNullOrEmpty(name)) return null;
@@ -510,6 +766,61 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         }
 
         return candidates[candidates.Count - 1];
+    }
+
+    private void BuildAbilityLists(IDictionary<string, AbilityEntry> abilityMap)
+    {
+        attackAbilities.Clear();
+        evadeAbilities.Clear();
+        jumpAbilities.Clear();
+        teleportAbilities.Clear();
+
+        if (abilityMap == null || abilityMap.Count == 0)
+            return;
+
+        foreach (var kvp in abilityMap)
+        {
+            AbilityEntry entry = kvp.Value;
+            if (entry == null)
+                continue;
+
+            switch (entry.action)
+            {
+                case BattleAction.Attack:
+                    attackAbilities.Add(entry);
+                    break;
+
+                case BattleAction.Evade:
+                    evadeAbilities.Add(entry);
+                    break;
+
+                case BattleAction.Jump:
+                    jumpAbilities.Add(entry);
+                    break;
+
+                case BattleAction.Teleport:
+                    teleportAbilities.Add(entry);
+                    break;
+            }
+        }
+    }
+
+    private float GetPlayerDistance()
+    {
+        if (player == null) return 0f;
+
+        return Vector2.Distance(player.position, enemy.transform.position);
+    }
+
+    private AbilityPreference GetAttackPreferenceFromDistance(float playerDistance)
+    {
+        if (playerDistance >= mixedAttackMinRange && playerDistance <= mixedAttackMaxRange)
+            return AbilityPreference.Mixed;
+
+        if (playerDistance <= shortAttackMaxRange)
+            return AbilityPreference.Short;
+
+        return AbilityPreference.Long;
     }
     #endregion
 

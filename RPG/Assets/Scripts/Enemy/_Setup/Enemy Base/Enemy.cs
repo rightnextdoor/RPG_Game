@@ -58,6 +58,10 @@ public class Enemy : Entity
     [HideInInspector] public AbilityEntry CurrentAbilityEntry { get; set; }
     protected AttackDetail currentAttackDetail;
 
+    [Space(2)]
+    [Header("Battle Cooldown")]
+    public float battleMinCooldown = 1.5f;
+    public float battleMaxCooldown = 2.5f;
     protected bool battleStarted;
 
     [HideInInspector] public bool isSummon = false;
@@ -471,10 +475,30 @@ public class Enemy : Entity
 
 
     #region Enemy Config
+
+    public virtual void ChangeBattleCooldownRange(float minCooldown, float maxCooldown)
+    {
+    }
+
+    public virtual void TempChangeBattleCooldownRange(float minCooldown, float maxCooldown, float duration)
+    {
+    }
+
+    public virtual void PauseBattleCooldown(bool pause)
+    {
+    }
+
     public override void SlowEntityBy(float _slowPercentage, float _slowDuration)
     {
         moveSpeed = moveSpeed * (1 - _slowPercentage);
         anim.speed = anim.speed * (1 - _slowPercentage);
+
+        float slowMultiplier = 1f + _slowPercentage;
+
+        float slowedBattleMin = battleMinCooldown * slowMultiplier;
+        float slowedBattleMax = battleMaxCooldown * slowMultiplier;
+
+        TempChangeBattleCooldownRange(slowedBattleMin, slowedBattleMax, _slowDuration);
 
         Invoke("ReturnDefaultSpeed", _slowDuration);
     }
@@ -495,10 +519,13 @@ public class Enemy : Entity
     public virtual void FreezeTimeFor(float _duration) => StartCoroutine(FreezeTimerCoroutine(_duration));
     protected virtual IEnumerator FreezeTimerCoroutine(float _seconds)
     {
+        PauseBattleCooldown(true);
         FreezeTime(true);
 
         yield return new WaitForSeconds(_seconds);
+
         FreezeTime(false);
+        PauseBattleCooldown(false);
     }
     protected override void ReturnDefaultSpeed()
     {

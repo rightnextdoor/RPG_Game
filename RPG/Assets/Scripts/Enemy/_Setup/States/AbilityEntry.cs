@@ -3,6 +3,7 @@ using UnityEngine;
 
 public enum BattleAction
 {
+    None,
     Attack,
     Evade,
     Jump,

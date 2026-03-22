@@ -2,13 +2,35 @@ using System.Collections.Generic;
 using UnityEngine;
 public class CooldownSystem
 {
+    #region Ability settings
     private readonly List<AbilityEntry> attackAbilities = new();
     private readonly List<AbilityEntry> evadeAbilities = new();
     private readonly List<AbilityEntry> jumpAbilities = new();
     private readonly List<AbilityEntry> teleportAbilities = new();
+    #endregion
+
+    #region Battle settings
+    private float battleMinCooldown;
+    private float battleMaxCooldown;
+
+    private float battleTempMinCooldown;
+    private float battleTempMaxCooldown;
+    private float battleTempEndTime;
+
+    private float battleCooldown;
+    private float battleLastTimeUsed;
+
+    private bool battleCooldownPaused;
+    #endregion
+
+    public void Setup(IDictionary<string, AbilityEntry> abilityMap, float minCooldown, float maxCooldown)
+    {
+        BuildAbilityLists(abilityMap);
+        SetupBattle(minCooldown, maxCooldown);
+    }
 
     #region Ability
-    public void BuildAbilityLists(IDictionary<string, AbilityEntry> abilityMap)
+    private void BuildAbilityLists(IDictionary<string, AbilityEntry> abilityMap)
     {
         attackAbilities.Clear();
         evadeAbilities.Clear();
@@ -156,6 +178,74 @@ public class CooldownSystem
     }
     #endregion
 
+    #region Battle
+
+    #region Setup
+    private void SetupBattle(float minCooldown, float maxCooldown)
+    {
+        battleMinCooldown = Mathf.Min(minCooldown, maxCooldown);
+        battleMaxCooldown = Mathf.Max(minCooldown, maxCooldown);
+
+        battleTempMinCooldown = 0f;
+        battleTempMaxCooldown = 0f;
+        battleTempEndTime = 0f;
+
+        battleCooldownPaused = false;
+
+        battleCooldown = 0f;
+        battleLastTimeUsed = 0f;
+    }
+    #endregion
+
+    #region Controls
+    public void ChangeBattleCooldownRange(float minCooldown, float maxCooldown)
+    {
+        battleMinCooldown = Mathf.Min(minCooldown, maxCooldown);
+        battleMaxCooldown = Mathf.Max(minCooldown, maxCooldown);
+    }
+
+    public void TempChangeBattleCooldownRange(float minCooldown, float maxCooldown, float duration)
+    {
+        battleTempMinCooldown = Mathf.Min(minCooldown, maxCooldown);
+        battleTempMaxCooldown = Mathf.Max(minCooldown, maxCooldown);
+        battleTempEndTime = Time.time + duration;
+    }
+
+    public void PauseBattleCooldown(bool pause)
+    {
+        battleCooldownPaused = pause;
+    }
+    #endregion
+
+    #region Check for ready
+    public bool IsBattleCooldownReady()
+    {
+        if (battleCooldownPaused)
+            return false;
+
+        return Time.time >= battleLastTimeUsed + battleCooldown;
+    }
+    #endregion
+
+    #region Set cooldown
+    public void SetBattleCooldown()
+    {
+        float min = battleMinCooldown;
+        float max = battleMaxCooldown;
+
+        if (IsTempBattleCooldownRangeActive())
+        {
+            min = battleTempMinCooldown;
+            max = battleTempMaxCooldown;
+        }
+
+        battleCooldown = Random.Range(min, max);
+        battleLastTimeUsed = Time.time;
+    }
+    #endregion
+
+    #endregion
+
     #region Helper
     private AbilityEntry GetAbilityEntry(List<AbilityEntry> abilities, string abilityName)
     {
@@ -173,6 +263,11 @@ public class CooldownSystem
         }
 
         return null;
+    }
+
+    private bool IsTempBattleCooldownRangeActive()
+    {
+        return Time.time < battleTempEndTime;
     }
     #endregion
 

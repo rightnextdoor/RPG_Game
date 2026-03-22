@@ -85385,6 +85385,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6505600653464153832, guid: 97d486ba49580d84e917cb47ddcc01cf, type: 3}
+      propertyPath: iceDamage.baseValue
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 6505600653464153832, guid: 97d486ba49580d84e917cb47ddcc01cf, type: 3}
       propertyPath: maxHealth.baseValue
       value: 100
       objectReference: {fileID: 0}
@@ -128776,6 +128780,14 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
+      propertyPath: battleMaxCooldown
+      value: 2.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
+      propertyPath: battleMinCooldown
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: attackDetails.Array.size
       value: 6
       objectReference: {fileID: 0}
@@ -128788,16 +128800,48 @@ PrefabInstance:
       value: Attack3
       objectReference: {fileID: 0}
     - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
+      propertyPath: attackDetails.Array.data[0].action
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
+      propertyPath: attackDetails.Array.data[1].action
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
+      propertyPath: attackDetails.Array.data[2].action
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
+      propertyPath: attackDetails.Array.data[3].action
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: attackDetails.Array.data[4].action
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: attackDetails.Array.data[4].chance
       value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
+      propertyPath: attackDetails.Array.data[5].action
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: attackDetails.Array.data[5].chance
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
+      propertyPath: attackDetails.Array.data[1].rangeMax
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
+      propertyPath: attackDetails.Array.data[2].rangeMax
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
+      propertyPath: attackDetails.Array.data[3].rangeMax
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: attackDetails.Array.data[4].jumpBack
@@ -128822,6 +128866,14 @@ PrefabInstance:
     - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: attackDetails.Array.data[5].unlocked
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
+      propertyPath: attackDetails.Array.data[1].preference
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
+      propertyPath: attackDetails.Array.data[2].preference
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: attackDetails.Array.data[4].preference
