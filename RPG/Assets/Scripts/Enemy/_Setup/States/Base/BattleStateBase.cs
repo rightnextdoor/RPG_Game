@@ -15,8 +15,17 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     private AbilityHub hub;
     private CooldownSystem cooldownSystem;
 
+    private enum BattlePlanHandoff
+    {
+        Teleport,
+        Jump,
+        Evade,
+        None
+    }
+
     private AbilityPreference preferredAttackPreference = AbilityPreference.Mixed;
     private BattleAction currentPlanAction = BattleAction.None;
+    private BattlePlanHandoff currentPlanHandoff = BattlePlanHandoff.Teleport;
 
     private readonly List<AbilityEntry> attackAbilities = new();
     private readonly List<AbilityEntry> evadeAbilities = new();
@@ -43,6 +52,7 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     private float evadeMaxRange = 0f;
 
     private AbilityEntry selectedAttackEntry;
+    private AbilityEntry selectedSupportEntry;
     #endregion
 
     #region Configure
@@ -351,12 +361,64 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
         selectedAttackEntry = hub.GetAbility(BattleAction.Attack, requestPreference);
 
+        HandoffToNextPlan();
+
         float updatedPlayerDistance = GetPlayerDistance();
         RunBattlePlanSwitch(updatedPlayerDistance);
     }
     #endregion
 
     #region Battle decision
+
+    #region Plan handoff
+    private void HandoffToNextPlan()
+    {
+        switch (currentPlanHandoff)
+        {
+            case BattlePlanHandoff.Teleport:
+                if (hasTeleport)
+                {
+                    currentPlanAction = BattleAction.Teleport;
+                    return;
+                }
+
+                currentPlanHandoff = BattlePlanHandoff.Jump;
+                HandoffToNextPlan();
+                return;
+
+            case BattlePlanHandoff.Jump:
+                if (hasJump)
+                {
+                    currentPlanAction = BattleAction.Jump;
+                    return;
+                }
+
+                currentPlanHandoff = BattlePlanHandoff.Evade;
+                HandoffToNextPlan();
+                return;
+
+            case BattlePlanHandoff.Evade:
+                if (hasEvade)
+                {
+                    currentPlanAction = BattleAction.Evade;
+                    return;
+                }
+
+                currentPlanHandoff = BattlePlanHandoff.None;
+                HandoffToNextPlan();
+                return;
+
+            default:
+                currentPlanAction = BattleAction.None;
+                return;
+        }
+    }
+
+    private void ResetHandoff()
+    {
+        currentPlanHandoff = BattlePlanHandoff.Teleport;
+    }
+    #endregion
 
     private void RunBattlePlanSwitch(float playerDistance)
     {
@@ -382,29 +444,161 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     private void RunTeleportPlan(float playerDistance)
     {
+        bool check = CheckSupportPlan(BattleAction.Teleport, AbilityPreference.Mixed, playerDistance, 0);
+        if (check)
+        {
+            Debug.Log("do teleport plan");
+            ResetHandoff();
+        }
+
+        currentPlanHandoff = BattlePlanHandoff.Jump;
+        HandoffToNextPlan();
     }
 
     private void RunJumpPlan(float playerDistance)
     {
+        bool check = CheckSupportPlan(BattleAction.Jump, AbilityPreference.Short, playerDistance, jumpMaxRange);
+        if (check)
+        {
+            Debug.Log("do jump plan");
+            ResetHandoff();
+        }
+
+        currentPlanHandoff = BattlePlanHandoff.Evade;
+        HandoffToNextPlan();
     }
 
     private void RunEvadePlan(float playerDistance)
     {
+        bool check = CheckSupportPlan(BattleAction.Evade, AbilityPreference.Short, playerDistance, evadeMaxRange);
+        if (check)
+        {
+            Debug.Log("do evade plan");
+            ResetHandoff();
+        }
+
+        currentPlanHandoff = BattlePlanHandoff.None;
+        HandoffToNextPlan();
     }
 
     private void RunMovePlan(float playerDistance)
     {
-        if (selectedAttackEntry == null) return;
+        if (!UpdateBattleSpacingOnly(playerDistance))
+            return;
 
-        if (UpdateBattleSpacingOnly(playerDistance))
-        {
-            CommitSelectedAttack();
-        }
+        RunSelectedAttackPlan(playerDistance);
     }
 
+    #region Support check
+    private bool CheckSupportPlan(BattleAction supportAction, AbilityPreference preference, float playerDistance, float maxRange)
+    {
+        selectedSupportEntry = null;
+
+        if (!CheckSupportAbility(supportAction, preference))
+        {
+            HandoffToNextPlan();
+            return false;
+        }
+
+        if (!CheckSupportRange(playerDistance, maxRange))
+        {
+            selectedSupportEntry = null;
+            HandoffToNextPlan();
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool CheckSupportAbility(BattleAction supportAction, AbilityPreference preference)
+    {
+        if (hub == null)
+            return false;
+
+        selectedSupportEntry = hub.GetAbility(supportAction, preference);
+
+        return selectedSupportEntry != null;
+    }
+
+    private bool CheckSupportRange(float playerDistance, float maxRange)
+    {
+        if (maxRange <= 0f)
+            return true;
+
+        return playerDistance <= maxRange;
+    }
+
+    private void RunSelectedAttackPlan(float playerDistance)
+    {
+        if (!CheckSelectedAttackRange(playerDistance))
+        {
+            ResetSelectedAttack();
+            HandoffToNextPlan();
+            return;
+        }
+
+        CommitSelectedAttack();
+    }
+
+    private bool CheckSelectedAttackRange(float playerDistance)
+    {
+        if (selectedAttackEntry == null)
+            return false;
+
+        float minRange = selectedAttackEntry.rangeMin ?? 0f;
+        float maxRange = selectedAttackEntry.rangeMax ?? 0f;
+
+        if (playerDistance < minRange)
+            return false;
+
+        if (maxRange > 0f && playerDistance > maxRange)
+            return false;
+
+        return true;
+    }
+
+    private void ResetSelectedAttack()
+    {
+        selectedAttackEntry = null;
+    }
+
+    #endregion
+
+    #region State
+    private EnemyState GetAttackState(AbilityEntry entry, System.Func<EnemyState> nextProvider)
+    {
+        if (entry == null) return null;
+
+        var mappedState = entry.state ?? enemy.GetMappedAbilityState(entry.name);
+
+        var attackState = mappedState as AttackStateBase<TEnemy>;
+        if (attackState != null)
+        {
+            var detail = FindAttackDetail(enemy.attackDetails, entry.name);
+            if (detail == null) return null;
+
+            attackState.Configure(detail, nextProvider);
+            return attackState;
+        }
+
+        return BuildCustomState(entry);
+    }
+
+    protected virtual EnemyState BuildCustomState(AbilityEntry entry)
+    {
+        return entry?.state ?? enemy.GetMappedAbilityState(entry.name);
+    }
+
+    #endregion
+
+    #endregion
+
+    #region Setup next state
     private void UseAbilityEntry(AbilityEntry selectedEntry)
     {
         if (selectedEntry == null) return;
+        
+        ResetHandoff();
 
         switch (selectedEntry.action)
         {
@@ -611,51 +805,23 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
         stateMachine.ChangeState(jumpState);
     }
-
-    #region State
-    private EnemyState GetAttackState(AbilityEntry entry, System.Func<EnemyState> nextProvider)
-    {
-        if (entry == null) return null;
-
-        var mappedState = entry.state ?? enemy.GetMappedAbilityState(entry.name);
-
-        var attackState = mappedState as AttackStateBase<TEnemy>;
-        if (attackState != null)
-        {
-            var detail = FindAttackDetail(enemy.attackDetails, entry.name);
-            if (detail == null) return null;
-
-            attackState.Configure(detail, nextProvider);
-            return attackState;
-        }
-
-        return BuildCustomState(entry);
-    }
-
-    protected virtual EnemyState BuildCustomState(AbilityEntry entry)
-    {
-        return entry?.state ?? enemy.GetMappedAbilityState(entry.name);
-    }
-
     #endregion
-    #endregion
-
 
     #region Movement
 
     private bool UpdateBattleSpacingOnly(float playerDistance)
     {
-        if (playerDistance >= preferredRangeMin && playerDistance <= preferredRangeMax)
+        if (playerDistance <= preferredRangeMax)
         {
             StopBattleMovement();
             return true;
         }
 
-        if (playerDistance < preferredRangeMin)
-        {
-            MoveAwayToPreferredRange();
-            return false;
-        }
+        //if (playerDistance < preferredRangeMin)
+        //{
+        //    MoveAwayToPreferredRange();
+        //    return false;
+        //}
 
         if (playerDistance > preferredRangeMax)
         {
@@ -703,6 +869,7 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
 
     #endregion
+
 
     #region Helpers
     private void CommitSelectedAttack()
