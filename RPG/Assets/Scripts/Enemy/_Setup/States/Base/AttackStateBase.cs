@@ -36,6 +36,11 @@ public class AttackStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         isLingering = false;
     }
 
+    public virtual void SetNextState(System.Func<EnemyState> nextFactory)
+    {
+        nextStateFactory = nextFactory;
+    }
+
     public override void Enter()
     {
         base.Enter();

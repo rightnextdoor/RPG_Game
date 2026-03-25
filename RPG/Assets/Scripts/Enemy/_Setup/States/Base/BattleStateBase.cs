@@ -27,6 +27,21 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     private BattleAction currentPlanAction = BattleAction.None;
     private BattlePlanHandoff currentPlanHandoff = BattlePlanHandoff.Teleport;
 
+    protected enum SupportPlanDecision
+    {
+        AttackThenAbility,
+        AbilityThenAttack,
+        AbilityOnly,
+        SkipAbility
+    }
+
+    private readonly List<SupportPlanDecision> supportDecisionList = new();
+
+    private float attackThenAbilityWeight = 3f;
+    private float abilityThenAttackWeight = 2f;
+    private float abilityOnlyWeight = 1.5f;
+    private float skipAbilityWeight = 1f;
+
     private readonly List<AbilityEntry> attackAbilities = new();
     private readonly List<AbilityEntry> evadeAbilities = new();
     private readonly List<AbilityEntry> jumpAbilities = new();
@@ -41,7 +56,6 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     private float mixedAttackMinRange = 0f;
     private float mixedAttackMaxRange = 0f;
 
-    private float preferredRangeMin = 0f;
     private float preferredRangeMax = 0f;
 
     private bool hasTeleport = false;
@@ -242,23 +256,19 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     private void SetupPreferredRange()
     {
-        preferredRangeMin = 0f;
         preferredRangeMax = 0f;
 
         switch (preferredAttackPreference)
         {
             case AbilityPreference.Short:
-                preferredRangeMin = shortAttackMinRange;
                 preferredRangeMax = shortAttackMaxRange;
                 break;
 
             case AbilityPreference.Long:
-                preferredRangeMin = longAttackMinRange;
                 preferredRangeMax = longAttackMaxRange;
                 break;
 
             case AbilityPreference.Mixed:
-                preferredRangeMin = mixedAttackMinRange;
                 preferredRangeMax = mixedAttackMaxRange;
                 break;
         }
@@ -445,40 +455,71 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     private void RunTeleportPlan(float playerDistance)
     {
         bool check = CheckSupportPlan(BattleAction.Teleport, AbilityPreference.Mixed, playerDistance, 0);
-        if (check)
+        if (!check)
         {
-            Debug.Log("do teleport plan");
-            ResetHandoff();
+            currentPlanHandoff = BattlePlanHandoff.Jump;
+            HandoffToNextPlan();
+            return;
         }
 
-        currentPlanHandoff = BattlePlanHandoff.Jump;
-        HandoffToNextPlan();
+        BuildSupportDecisionList(playerDistance);
+        SupportPlanDecision decision = ChooseSupportDecision();
+        DebugSupportDecision(decision, "Teleport");
+
+        if (decision == SupportPlanDecision.SkipAbility)
+        {
+            currentPlanHandoff = BattlePlanHandoff.Jump;
+            HandoffToNextPlan();
+            return;
+        }
+
+        CommitSelectedAttack(selectedSupportEntry, decision);
     }
 
     private void RunJumpPlan(float playerDistance)
     {
         bool check = CheckSupportPlan(BattleAction.Jump, AbilityPreference.Short, playerDistance, jumpMaxRange);
-        if (check)
+        if (!check)
         {
-            Debug.Log("do jump plan");
-            ResetHandoff();
+            currentPlanHandoff = BattlePlanHandoff.Evade;
+            HandoffToNextPlan();
+            return;
         }
 
-        currentPlanHandoff = BattlePlanHandoff.Evade;
-        HandoffToNextPlan();
+        BuildSupportDecisionList(playerDistance);
+        SupportPlanDecision decision = ChooseSupportDecision();
+
+        if (decision == SupportPlanDecision.SkipAbility)
+        {
+            currentPlanHandoff = BattlePlanHandoff.Evade;
+            HandoffToNextPlan();
+            return;
+        }
+
+        CommitSelectedAttack(selectedSupportEntry, decision);
     }
 
     private void RunEvadePlan(float playerDistance)
     {
         bool check = CheckSupportPlan(BattleAction.Evade, AbilityPreference.Short, playerDistance, evadeMaxRange);
-        if (check)
+        if (!check)
         {
-            Debug.Log("do evade plan");
-            ResetHandoff();
+            currentPlanHandoff = BattlePlanHandoff.None;
+            HandoffToNextPlan();
+            return;
         }
 
-        currentPlanHandoff = BattlePlanHandoff.None;
-        HandoffToNextPlan();
+        BuildSupportDecisionList(playerDistance);
+        SupportPlanDecision decision = ChooseSupportDecision();
+
+        if (decision == SupportPlanDecision.SkipAbility)
+        {
+            currentPlanHandoff = BattlePlanHandoff.None;
+            HandoffToNextPlan();
+            return;
+        }
+
+        CommitSelectedAttack(selectedSupportEntry, decision);
     }
 
     private void RunMovePlan(float playerDistance)
@@ -532,12 +573,11 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     {
         if (!CheckSelectedAttackRange(playerDistance))
         {
-            ResetSelectedAttack();
             HandoffToNextPlan();
             return;
         }
 
-        CommitSelectedAttack();
+        CommitSelectedAttack(selectedAttackEntry);
     }
 
     private bool CheckSelectedAttackRange(float playerDistance)
@@ -557,254 +597,343 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         return true;
     }
 
-    private void ResetSelectedAttack()
-    {
-        selectedAttackEntry = null;
-    }
 
     #endregion
 
-    #region State
-    private EnemyState GetAttackState(AbilityEntry entry, System.Func<EnemyState> nextProvider)
+    #region Support decision
+    private void BuildSupportDecisionList(float playerDistance)
     {
-        if (entry == null) return null;
+        supportDecisionList.Clear();
 
-        var mappedState = entry.state ?? enemy.GetMappedAbilityState(entry.name);
+        if (CheckSelectedAttackRange(playerDistance))
+            supportDecisionList.Add(SupportPlanDecision.AttackThenAbility);
 
-        var attackState = mappedState as AttackStateBase<TEnemy>;
-        if (attackState != null)
+        supportDecisionList.Add(SupportPlanDecision.AbilityThenAttack);
+        supportDecisionList.Add(SupportPlanDecision.AbilityOnly);
+        supportDecisionList.Add(SupportPlanDecision.SkipAbility);
+    }
+
+    private SupportPlanDecision ChooseSupportDecision()
+    {
+        float totalWeight = 0f;
+
+        for (int i = 0; i < supportDecisionList.Count; i++)
         {
-            var detail = FindAttackDetail(enemy.attackDetails, entry.name);
-            if (detail == null) return null;
+            switch (supportDecisionList[i])
+            {
+                case SupportPlanDecision.AttackThenAbility:
+                    totalWeight += attackThenAbilityWeight;
+                    break;
 
-            attackState.Configure(detail, nextProvider);
-            return attackState;
+                case SupportPlanDecision.AbilityThenAttack:
+                    totalWeight += abilityThenAttackWeight;
+                    break;
+
+                case SupportPlanDecision.AbilityOnly:
+                    totalWeight += abilityOnlyWeight;
+                    break;
+
+                case SupportPlanDecision.SkipAbility:
+                    totalWeight += skipAbilityWeight;
+                    break;
+            }
         }
 
-        return BuildCustomState(entry);
+        float roll = Random.Range(0f, totalWeight);
+        float currentWeight = 0f;
+
+        for (int i = 0; i < supportDecisionList.Count; i++)
+        {
+            switch (supportDecisionList[i])
+            {
+                case SupportPlanDecision.AttackThenAbility:
+                    currentWeight += attackThenAbilityWeight;
+                    break;
+
+                case SupportPlanDecision.AbilityThenAttack:
+                    currentWeight += abilityThenAttackWeight;
+                    break;
+
+                case SupportPlanDecision.AbilityOnly:
+                    currentWeight += abilityOnlyWeight;
+                    break;
+
+                case SupportPlanDecision.SkipAbility:
+                    currentWeight += skipAbilityWeight;
+                    break;
+            }
+
+            if (roll <= currentWeight)
+                return supportDecisionList[i];
+        }
+
+        return supportDecisionList[supportDecisionList.Count - 1];
     }
 
-    protected virtual EnemyState BuildCustomState(AbilityEntry entry)
+    private void DebugSupportDecision(SupportPlanDecision decision, string planName)
     {
-        return entry?.state ?? enemy.GetMappedAbilityState(entry.name);
+        Debug.Log(planName + " picked decision: " + decision);
     }
-
     #endregion
+
 
     #endregion
 
     #region Setup next state
-    private void UseAbilityEntry(AbilityEntry selectedEntry)
+    private void UseAbilityEntry(AbilityEntry selectedEntry, SupportPlanDecision? decision = null)
     {
-        if (selectedEntry == null) return;
-        
-        ResetHandoff();
+        if (selectedEntry == null)
+            return;
+
+        enemy.CurrentAbilityEntry = selectedEntry;
 
         switch (selectedEntry.action)
         {
             case BattleAction.Attack:
-                {
-                    var mapped = selectedEntry.state ?? enemy.GetMappedAbilityState(selectedEntry.name);
-                    var attackState = mapped as AttackStateBase<TEnemy>;
-                    if (attackState == null) break;
-
-                    var detail = FindAttackDetail(enemy.attackDetails, selectedEntry.name);
-                    if (detail == null) break;
-
-                    enemy.CurrentAbilityEntry = selectedEntry;
-                    OnUseAttack(selectedEntry, attackState, detail);
-
-                    break;
-                }
-
-            case BattleAction.Evade:
-                {
-                    var mapped = selectedEntry.state ?? enemy.GetMappedAbilityState(selectedEntry.name);
-                    var evasionState = mapped as EvasionStateBase<TEnemy>;
-                    if (evasionState == null) break;
-
-                    enemy.CurrentAbilityEntry = selectedEntry;
-                    OnUseEvade(selectedEntry, evasionState);
-                    break;
-                }
-
-            case BattleAction.Teleport:
-                {
-                    var mapped = selectedEntry.state ?? enemy.GetMappedAbilityState(selectedEntry.name);
-                    if (mapped as TeleportStateBase<TEnemy> == null) break;
-
-                    enemy.CurrentAbilityEntry = selectedEntry;
-                    OnUseTeleport(selectedEntry);
-                    break;
-                }
-
-            case BattleAction.Custom:
-                {
-                    enemy.CurrentAbilityEntry = selectedEntry;
-                    OnUseCustom(selectedEntry);
-                    break;
-                }
-
-            case BattleAction.Jump:
-                {
-                    var mapped = selectedEntry.state ?? enemy.GetMappedAbilityState(selectedEntry.name);
-                    var jumpState = mapped as JumpStateBase<TEnemy>;
-                    if (jumpState == null) break;
-
-                    enemy.CurrentAbilityEntry = selectedEntry;
-                    OnUseJump(selectedEntry);
-                    break;
-                }
-
-            default:
+                OnUseAttack();
                 break;
 
+            case BattleAction.Evade:
+                if (!decision.HasValue)
+                    return;
+
+                OnUseEvade(decision.Value);
+                break;
+
+            case BattleAction.Teleport:
+                if (!decision.HasValue)
+                    return;
+
+                OnUseTeleport(decision.Value);
+                break;
+
+            case BattleAction.Jump:
+                if (!decision.HasValue)
+                    return;
+
+                OnUseJump(decision.Value);
+                break;
         }
     }
 
-    protected virtual void OnUseAttack(AbilityEntry entry, AttackStateBase<TEnemy> attackState, AttackDetail detail)
+    protected virtual void OnUseAttack()
     {
-        attackState.Configure(detail, () => this);
+        EnemyState attackState = GetAttackState();
+        if (attackState == null)
+            return;
+
         stateMachine.ChangeState(attackState);
     }
 
-    protected virtual void OnUseEvade(AbilityEntry entry, EvasionStateBase<TEnemy> evasionState)
+    protected virtual void OnUseEvade(SupportPlanDecision decision)
     {
-        int evasionMode = UnityEngine.Random.Range(0, 2);
+        if (selectedSupportEntry == null)
+            return;
 
-        if (evasionMode == 0)
+        var mapped = selectedSupportEntry.state ?? enemy.GetMappedAbilityState(selectedSupportEntry.name);
+        var evasionState = mapped as EvasionStateBase<TEnemy>;
+        if (evasionState == null)
+            return;
+
+        EnemyState attackState = null;
+
+        if (decision == SupportPlanDecision.AbilityThenAttack)
         {
-            AbilityEntry chosenAttackEntry = SelectRandomAttack();
+            attackState = GetAttackState();
+            if (attackState == null)
+                return;
 
-            if (chosenAttackEntry != null)
+            evasionState.ConfigureMoveAndAttack(
+                next: () => this,
+                attack: () => attackState,
+                entry: selectedSupportEntry,
+                attackEntry: selectedAttackEntry
+            );
+        }
+        else
+        {
+            if (decision == SupportPlanDecision.AttackThenAbility)
             {
-                EnemyState attackState = GetAttackState(chosenAttackEntry, () => this);
-                if (attackState != null)
-                {
-                    float? min = chosenAttackEntry.rangeMin;
-                    float? max = chosenAttackEntry.rangeMax;
-
-                    evasionState.ConfigureMoveAndAttack(
-                        next: () => this,
-                        attack: () => attackState,
-                        min: min,
-                        max: max,
-                        evasionDuration: entry.evasionDuration,
-                        evasionSpeedMultiplier: entry.evasionSpeedMultiplier,
-                        evadeBackAwayMin: entry.evadeBackAwayMin,
-                        evadeBackAwayMax: entry.evadeBackAwayMax,
-                        evadePassPastMin: entry.evadePassPastMin,
-                        evadePassPastMax: entry.evadePassPastMax,
-                        evadeReducedFactor: entry.evadeReducedFactor,
-                        evadeTinyRetreat: entry.evadeTinyRetreat
-                    );
-
-                    stateMachine.ChangeState(evasionState);
+                attackState = GetAttackState();
+                if (attackState == null)
                     return;
-                }
             }
+
+            evasionState.ConfigureFlee(
+                next: () => this,
+                entry: selectedSupportEntry
+            );
         }
 
-        evasionState.ConfigureFlee(
-            next: () => this,
-            evasionDuration: entry.evasionDuration,
-            evasionSpeedMultiplier: entry.evasionSpeedMultiplier,
-            evadeBackAwayMin: entry.evadeBackAwayMin,
-            evadeBackAwayMax: entry.evadeBackAwayMax,
-            evadePassPastMin: entry.evadePassPastMin,
-            evadePassPastMax: entry.evadePassPastMax,
-            evadeReducedFactor: entry.evadeReducedFactor,
-            evadeTinyRetreat: entry.evadeTinyRetreat
-        );
+        EnemyState firstState = BuildNextStateFromDecision(
+            decision,
+            evasionState,
+            attackState);
 
-        stateMachine.ChangeState(evasionState);
+        if (firstState == null)
+            return;
+
+        stateMachine.ChangeState(firstState);
     }
 
-    protected virtual void OnUseCustom(AbilityEntry entry) { }
-    protected virtual void OnUseTeleport(AbilityEntry teleportEntry)
+    protected virtual void OnUseTeleport(SupportPlanDecision decision)
     {
-        int mode = UnityEngine.Random.Range(0, 3);
-        var selectAttack = SelectRandomAttack();
+        if (selectedSupportEntry == null)
+            return;
 
-        var mapped = teleportEntry.state ?? enemy.GetMappedAbilityState(teleportEntry.name);
+        var mapped = selectedSupportEntry.state ?? enemy.GetMappedAbilityState(selectedSupportEntry.name);
         var teleportState = mapped as TeleportStateBase<TEnemy>;
-        if (teleportState == null) return;
+        if (teleportState == null)
+            return;
 
-        bool canChainTeleportAttack =
-            selectAttack != null &&
-            !selectAttack.cannotUseWithTeleport &&
-            selectAttack.canAttackAfterTeleport;
+        teleportState.Configure(() => this);
 
-        switch (mode)
+        EnemyState attackState = null;
+
+        if (decision != SupportPlanDecision.AbilityOnly)
         {
-            // 0) Attack -> Teleport -> Battle
-            case 0:
-                {
-                    if (canChainTeleportAttack)
-                    {
-                        enemy.CurrentAbilityEntry = selectAttack;
-
-                        teleportState.Configure(() => this);
-
-                        var attackState = GetAttackState(selectAttack, () => teleportState);
-                        if (attackState != null)
-                        {
-                            stateMachine.ChangeState(attackState);
-                            break;
-                        }
-                    }
-
-                    teleportState.Configure(() => this);
-                    stateMachine.ChangeState(teleportState);
-                    break;
-                }
-
-            // 1) Teleport -> Attack -> Battle
-            case 1:
-                {
-                    if (canChainTeleportAttack)
-                    {
-                        enemy.CurrentAbilityEntry = selectAttack;
-
-                        var attackState = GetAttackState(selectAttack, () => this);
-                        if (attackState != null)
-                        {
-                            teleportState.Configure(() => attackState);
-                            stateMachine.ChangeState(teleportState);
-                            break;
-                        }
-                    }
-
-                    teleportState.Configure(() => this);
-                    stateMachine.ChangeState(teleportState);
-                    break;
-                }
-
-            default:
-                {
-                    teleportState.Configure(() => this);
-                    stateMachine.ChangeState(teleportState);
-                    break;
-                }
+            attackState = GetAttackState();
+            if (attackState == null)
+                return;
         }
+
+        EnemyState firstState = BuildNextStateFromDecision(
+            decision,
+            teleportState,
+            attackState);
+
+        if (firstState == null)
+            return;
+
+        stateMachine.ChangeState(firstState);
     }
 
-    protected virtual void OnUseJump(AbilityEntry entry)
+    protected virtual void OnUseJump(SupportPlanDecision decision)
     {
-        if (entry == null) return;
+        if (selectedSupportEntry == null)
+            return;
 
-        var mapped = entry.state ?? enemy.GetMappedAbilityState(entry.name);
+        var mapped = selectedSupportEntry.state ?? enemy.GetMappedAbilityState(selectedSupportEntry.name);
         var jumpState = mapped as JumpStateBase<TEnemy>;
-        if (jumpState == null) return;
+        if (jumpState == null)
+            return;
 
         jumpState.Configure(
             next: () => this,
-            jumpVelocity: entry.jumpAbilityVelocity,
-            isJumpBack: entry.jumpBack
+            jumpVelocity: selectedSupportEntry.jumpAbilityVelocity,
+            isJumpBack: selectedSupportEntry.jumpBack
         );
 
-        stateMachine.ChangeState(jumpState);
+        EnemyState attackState = null;
+
+        if (decision != SupportPlanDecision.AbilityOnly)
+        {
+            attackState = GetAttackState();
+            if (attackState == null)
+                return;
+        }
+
+        EnemyState firstState = BuildNextStateFromDecision(
+            decision,
+            jumpState,
+            attackState);
+
+        if (firstState == null)
+            return;
+
+        stateMachine.ChangeState(firstState);
     }
+
+    private EnemyState BuildNextStateFromDecision(
+    SupportPlanDecision decision,
+    EnemyState supportState,
+    EnemyState attackState = null)
+    {
+        if (supportState == null)
+            return null;
+
+        switch (decision)
+        {
+            case SupportPlanDecision.AttackThenAbility:
+                {
+                    if (attackState == null)
+                        return null;
+
+                    var attack = attackState as AttackStateBase<TEnemy>;
+                    if (attack == null)
+                        return null;
+
+                    attack.SetNextState(() => supportState);
+
+                    if (supportState is TeleportStateBase<TEnemy> teleport)
+                        teleport.SetNextState(() => this);
+                    else if (supportState is JumpStateBase<TEnemy> jump)
+                        jump.SetNextState(() => this);
+                    else if (supportState is EvasionStateBase<TEnemy> evade)
+                        evade.SetNextState(() => this);
+
+                    return attackState;
+                }
+
+            case SupportPlanDecision.AbilityThenAttack:
+                {
+                    if (attackState == null)
+                        return null;
+
+                    var attack = attackState as AttackStateBase<TEnemy>;
+                    if (attack == null)
+                        return null;
+
+                    attack.SetNextState(() => this);
+
+                    if (supportState is TeleportStateBase<TEnemy> teleport)
+                        teleport.SetNextState(() => attackState);
+                    else if (supportState is JumpStateBase<TEnemy> jump)
+                        jump.SetNextState(() => attackState);
+                    else if (supportState is EvasionStateBase<TEnemy> evade)
+                        evade.SetNextState(() => this);
+
+                    return supportState;
+                }
+
+            case SupportPlanDecision.AbilityOnly:
+                {
+                    if (supportState is TeleportStateBase<TEnemy> teleport)
+                        teleport.SetNextState(() => this);
+                    else if (supportState is JumpStateBase<TEnemy> jump)
+                        jump.SetNextState(() => this);
+                    else if (supportState is EvasionStateBase<TEnemy> evade)
+                        evade.SetNextState(() => this);
+
+                    return supportState;
+                }
+
+            default:
+                return null;
+        }
+    }
+
+    #region State Helper
+    private EnemyState GetAttackState()
+    {
+        if (selectedAttackEntry == null)
+            return null;
+
+        var mappedState = selectedAttackEntry.state ?? enemy.GetMappedAbilityState(selectedAttackEntry.name);
+        var attackState = mappedState as AttackStateBase<TEnemy>;
+        if (attackState == null)
+            return null;
+
+        var detail = FindAttackDetail(enemy.attackDetails, selectedAttackEntry.name);
+        if (detail == null)
+            return null;
+
+        attackState.Configure(detail, () => this);
+        return attackState;
+    }
+
+    #endregion
+
     #endregion
 
     #region Movement
@@ -816,12 +945,6 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
             StopBattleMovement();
             return true;
         }
-
-        //if (playerDistance < preferredRangeMin)
-        //{
-        //    MoveAwayToPreferredRange();
-        //    return false;
-        //}
 
         if (playerDistance > preferredRangeMax)
         {
@@ -840,27 +963,6 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, enemy.rb.linearVelocity.y);
     }
 
-    private void MoveAwayToPreferredRange()
-    {
-        if (player == null) return;
-        if (enemy.IsWallDetected() || !enemy.IsGroundDetected()) return;
-
-        float dx = player.position.x - enemy.transform.position.x;
-
-        if (dx > 0f)
-        {
-            if (enemy.facingDir != -1)
-                enemy.Flip();
-        }
-        else if (dx < 0f)
-        {
-            if (enemy.facingDir != 1)
-                enemy.Flip();
-        }
-
-        enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, enemy.rb.linearVelocity.y);
-    }
-
     private void StopBattleMovement()
     {
         FlipTowardsPlayer();
@@ -870,16 +972,47 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     #endregion
 
-
     #region Helpers
-    private void CommitSelectedAttack()
+    private void CommitSelectedAttack(AbilityEntry entry, SupportPlanDecision? decision = null)
     {
-        if (selectedAttackEntry == null) return;
+        if (entry == null)
+            return;
 
-        UseAbilityEntry(selectedAttackEntry);
+        UseAbilityEntry(entry, decision);
+        ResetBattleUseState(decision);
+    }
 
+    private void ResetBattleUseState(SupportPlanDecision? decision = null)
+    {
+        ResetHandoff();
         cooldownSystem?.SetBattleCooldown();
-        cooldownSystem?.SetAbilityCooldown(selectedAttackEntry.action, selectedAttackEntry.name);
+
+        if (decision.HasValue)
+        {
+            if (decision.Value == SupportPlanDecision.AbilityOnly)
+            {
+                if (selectedSupportEntry != null)
+                    cooldownSystem?.SetAbilityCooldown(selectedSupportEntry.action, selectedSupportEntry.name);
+            }
+            else
+            {
+                if (selectedAttackEntry != null)
+                    cooldownSystem?.SetAbilityCooldown(selectedAttackEntry.action, selectedAttackEntry.name);
+
+                if (selectedSupportEntry != null)
+                    cooldownSystem?.SetAbilityCooldown(selectedSupportEntry.action, selectedSupportEntry.name);
+            }
+
+            selectedAttackEntry = null;
+            selectedSupportEntry = null;
+            return;
+        }
+
+        if (selectedAttackEntry != null)
+            cooldownSystem?.SetAbilityCooldown(selectedAttackEntry.action, selectedAttackEntry.name);
+
+        selectedAttackEntry = null;
+        selectedSupportEntry = null;
     }
 
     private AttackDetail FindAttackDetail(System.Collections.Generic.List<AttackDetail> list, string name)
@@ -893,48 +1026,7 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         return null;
     }
 
-    private AbilityEntry SelectRandomAttack()
-    {
-        var map = enemy.abilityMap;
-        if (map == null || map.Count == 0) return null;
-
-        var candidates = new System.Collections.Generic.List<AbilityEntry>();
-        foreach (var pair in map)
-        {
-            AbilityEntry entry = pair.Value;
-            if (entry == null) continue;
-            if (!entry.unlocked) continue;
-            if (entry.action != BattleAction.Attack) continue;
-
-            var state = entry.state ?? enemy.GetMappedAbilityState(entry.name);
-            if (state == null) continue;
-
-            candidates.Add(entry);
-        }
-
-        if (candidates.Count == 0) return null;
-
-        return WeightedPickByChance(candidates);
-    }
-
-    private AbilityEntry WeightedPickByChance(System.Collections.Generic.List<AbilityEntry> candidates)
-    {
-        float totalWeight = 0f;
-        foreach (var candidate in candidates)
-            totalWeight += 1f + Mathf.Max(0f, candidate.chance);
-
-        float roll = UnityEngine.Random.Range(0f, totalWeight);
-        float accumulated = 0f;
-
-        foreach (var candidate in candidates)
-        {
-            accumulated += 1f + Mathf.Max(0f, candidate.chance);
-            if (roll < accumulated) return candidate;
-        }
-
-        return candidates[candidates.Count - 1];
-    }
-
+    
     private void BuildAbilityLists(IDictionary<string, AbilityEntry> abilityMap)
     {
         attackAbilities.Clear();
