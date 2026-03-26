@@ -15,6 +15,7 @@ public class AttackDetail
     [Header("Shared")]
     public string name;
     public string animBoolName;
+    public string stateName;
     public BattleAction action;
     public AbilityPreference preference = AbilityPreference.Mixed;
     public bool unlocked = true;
@@ -46,13 +47,13 @@ public class AttackDetail
     #region Evasion
     [Space(2)]
     [Header("Evasion")]
-    public float evasionSpeedMultiplier = 1.25f;
-    public float evasionDuration = 0.5f;
+    public float evasionSpeedMultiplier = 1.80f;
+    public float evasionDuration = 2.5f;
 
-    public float evadeBackAwayMin = 1.2f;
-    public float evadeBackAwayMax = 2.0f;
-    public float evadePassPastMin = 0.6f;
-    public float evadePassPastMax = 1.0f;
+    public float evadeBackAwayMin = 5f;
+    public float evadeBackAwayMax = 6.5f;
+    public float evadePassPastMin = 5f;
+    public float evadePassPastMax = 6.5f;
     public float evadeReducedFactor = 0.6f;
     public float evadeTinyRetreat = 0.35f;
 

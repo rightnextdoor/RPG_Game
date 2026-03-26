@@ -748,27 +748,33 @@ MonoBehaviour:
   maxMeleeAttackCooldown: 2
   lastTimeMeleeAttacked: 0
   stateDetails:
-  - animBoolName: Idle
+  - name: Idle
+    animBoolName: Idle
     stateType: 4
     enterSounds: []
     exitSounds: []
-  - animBoolName: Move
+  - name: Move
+    animBoolName: Move
     stateType: 6
     enterSounds: []
     exitSounds: []
-  - animBoolName: Battle
+  - name: Battle
+    animBoolName: Battle
     stateType: 1
     enterSounds: []
     exitSounds: []
-  - animBoolName: Attack
+  - name: Attack
+    animBoolName: Attack
     stateType: 0
     enterSounds: []
     exitSounds: []
-  - animBoolName: Stunned
+  - name: Stunned
+    animBoolName: Stunned
     stateType: 7
     enterSounds: []
     exitSounds: []
-  - animBoolName: Die
+  - name: Dead
+    animBoolName: Die
     stateType: 2
     enterSounds:
     - name: ArcherDie
@@ -776,7 +782,8 @@ MonoBehaviour:
       delay: 0
       useTransform: 1
     exitSounds: []
-  - animBoolName: Jump
+  - name: Jump
+    animBoolName: Jump
     stateType: 5
     enterSounds:
     - name: ArcherJump
@@ -784,13 +791,15 @@ MonoBehaviour:
       delay: 0
       useTransform: 1
     exitSounds: []
-  - animBoolName: Move
+  - name: Evade
+    animBoolName: Move
     stateType: 3
     enterSounds: []
     exitSounds: []
   attackDetails:
   - name: Attack
     animBoolName: Attack
+    stateName: 
     action: 0
     preference: 1
     unlocked: 1
@@ -799,6 +808,7 @@ MonoBehaviour:
     chance: 1
     minCooldown: 1
     maxCooldown: 2
+    startCooldown: 0
     rangeMin: 0
     rangeMax: 10
     lingerTime: 0
@@ -863,6 +873,7 @@ MonoBehaviour:
       useTransform: 1
   - name: Evade
     animBoolName: Move
+    stateName: 
     action: 1
     preference: 0
     unlocked: 1
@@ -871,6 +882,7 @@ MonoBehaviour:
     chance: 1
     minCooldown: 1
     maxCooldown: 2
+    startCooldown: 0
     rangeMin: 0
     rangeMax: 10
     lingerTime: 0
@@ -935,6 +947,7 @@ MonoBehaviour:
       useTransform: 1
   - name: Jump
     animBoolName: Jump
+    stateName: 
     action: 2
     preference: 0
     unlocked: 1
@@ -943,6 +956,7 @@ MonoBehaviour:
     chance: 1
     minCooldown: 1
     maxCooldown: 2
+    startCooldown: 0
     rangeMin: 0
     rangeMax: 10
     lingerTime: 0
@@ -1007,6 +1021,7 @@ MonoBehaviour:
       useTransform: 1
   - name: Stunned
     animBoolName: Stunned
+    stateName: 
     action: 3
     preference: 0
     unlocked: 1
@@ -1015,6 +1030,7 @@ MonoBehaviour:
     chance: 1
     minCooldown: 1
     maxCooldown: 2
+    startCooldown: 0
     rangeMin: 0
     rangeMax: 10
     lingerTime: 0
@@ -1077,6 +1093,9 @@ MonoBehaviour:
       soundPoints: 
       delay: 0
       useTransform: 1
+  battlePreference: 1
+  battleMinCooldown: 1.5
+  battleMaxCooldown: 2.5
   isSummon: 0
   enemyData: {fileID: 0}
   moveMode: 0

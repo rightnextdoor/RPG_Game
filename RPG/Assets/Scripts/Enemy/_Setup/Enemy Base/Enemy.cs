@@ -59,7 +59,8 @@ public class Enemy : Entity
     protected AttackDetail currentAttackDetail;
 
     [Space(2)]
-    [Header("Battle Cooldown")]
+    [Header("Battle Settings")]
+    public AbilityPreference battlePreference = AbilityPreference.Mixed;
     public float battleMinCooldown = 1.5f;
     public float battleMaxCooldown = 2.5f;
     protected bool battleStarted;
@@ -122,6 +123,7 @@ public class Enemy : Entity
             var entry = new AbilityEntry(
                 name: attackDetail.name,
                 animBoolName: attackDetail.animBoolName,
+                stateName: attackDetail.stateName,
                 state: null,
                 minCooldown: attackDetail.minCooldown,
                 maxCooldown: attackDetail.maxCooldown,
@@ -182,6 +184,21 @@ public class Enemy : Entity
         {
             var detail = stateDetails[i];
             if (detail != null && detail.stateType == stateType)
+                return detail;
+        }
+
+        return null;
+    }
+
+    public virtual StateDetail GetStateDetailByName(string stateName)
+    {
+        if (stateDetails == null || stateDetails.Count == 0 || string.IsNullOrWhiteSpace(stateName))
+            return null;
+
+        for (int i = 0; i < stateDetails.Count; i++)
+        {
+            var detail = stateDetails[i];
+            if (detail != null && detail.name == stateName)
                 return detail;
         }
 

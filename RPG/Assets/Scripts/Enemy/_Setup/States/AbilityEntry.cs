@@ -19,6 +19,7 @@ public class AbilityEntry
 
     public string name;
     public string animBoolName;
+    public string stateName;
     public EnemyState state;
     public BattleAction action;
     public AbilityPreference preference;
@@ -52,13 +53,13 @@ public class AbilityEntry
 
     #region Evasion
 
-    public float evasionSpeedMultiplier = 1.25f;
-    public float evasionDuration = 0.5f;
+    public float evasionSpeedMultiplier = 1.80f;
+    public float evasionDuration = 2.5f;
 
-    public float evadeBackAwayMin = 1.2f;
-    public float evadeBackAwayMax = 2.0f;
-    public float evadePassPastMin = 0.6f;
-    public float evadePassPastMax = 1.0f;
+    public float evadeBackAwayMin = 5f;
+    public float evadeBackAwayMax = 6.5f;
+    public float evadePassPastMin = 5f;
+    public float evadePassPastMax = 6.5f;
     public float evadeReducedFactor = 0.6f;
     public float evadeTinyRetreat = 0.35f;
 
@@ -83,6 +84,7 @@ public class AbilityEntry
     public AbilityEntry(
         string name,
         string animBoolName,
+        string stateName,
         EnemyState state,
         float minCooldown,
         float maxCooldown,
@@ -119,6 +121,7 @@ public class AbilityEntry
     {
         this.name = name;
         this.animBoolName = animBoolName;
+        this.stateName = stateName;
         this.state = state;
         this.action = action;
         this.preference = preference;

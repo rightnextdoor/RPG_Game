@@ -43,7 +43,7 @@ public class Enemy_Archer : Enemy_Regular
         abilityHub.BuildAbilityLists(abilityMap);
         abilityHub.Setup(cooldownSystem);
 
-        battleState?.Configure(abilityHub, cooldownSystem, abilityMap, AbilityPreference.Long);
+        battleState?.Configure(abilityHub, cooldownSystem, abilityMap, battlePreference);
     }
 
     private void BuildStates()

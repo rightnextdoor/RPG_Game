@@ -398,6 +398,11 @@ MonoBehaviour:
   moveSpeed: 2.5
   moveTime: 5
   battleTime: 4
+  evasionTimer: 2
+  evasionSpeed: 10
+  evasionDistance: 0.5
+  minEvasionCooldown: 0
+  maxEvasionCooldown: 0.5
   agroDistance: 2
   rangeAttackDistance: 0
   rangeAttackCooldown: 0
@@ -409,23 +414,86 @@ MonoBehaviour:
   minMeleeAttackCooldown: 1
   maxMeleeAttackCooldown: 2
   lastTimeMeleeAttacked: 0
+  stateDetails:
+  - name: Attack1
+    animBoolName: Attack
+    stateType: 0
+    enterSounds: []
+    exitSounds: []
+  - name: Battle
+    animBoolName: Battle
+    stateType: 1
+    enterSounds: []
+    exitSounds: []
+  - name: Idle
+    animBoolName: Idle
+    stateType: 4
+    enterSounds: []
+    exitSounds:
+    - name: SkeletonIdle
+      soundPoints: 
+      delay: 0
+      useTransform: 1
+  - name: Move
+    animBoolName: Move
+    stateType: 6
+    enterSounds: []
+    exitSounds: []
+  - name: Stunned
+    animBoolName: Stunned
+    stateType: 7
+    enterSounds: []
+    exitSounds: []
+  - name: Dead
+    animBoolName: Die
+    stateType: 2
+    enterSounds:
+    - name: SkeletonDie
+      soundPoints: 
+      delay: 0
+      useTransform: 1
+    exitSounds: []
+  - name: Evade
+    animBoolName: Move
+    stateType: 3
+    enterSounds: []
+    exitSounds: []
   attackDetails:
   - name: Attack
     animBoolName: Attack
-    action: 0
+    stateName: Attack1
+    action: 1
+    preference: 2
     unlocked: 1
     cannotUseWithTeleport: 0
+    canAttackAfterTeleport: 0
     chance: 1
     minCooldown: 1
     maxCooldown: 2
+    startCooldown: 0
+    rangeMin: 0.5
+    rangeMax: 2.2
     lingerTime: 0
     attackAmount: 1
     attackTimeMin: 0
     attackTimeMax: 0
-    rangeMin: 0.5
-    rangeMax: 2.2
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 2.5
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 6.5
+    evadePassPastMin: 5
+    evadePassPastMax: 6.5
+    evadeReducedFactor: 0.6
+    evadeTinyRetreat: 0.35
+    stunDuration: 1
+    stunDirection: {x: 10, y: 12}
+    canBeStunned: 0
+    counterImage: {fileID: 0}
+    jumpAbilityVelocity: {x: 20, y: 12}
+    jumpBack: 1
     attackChecks:
     - label: Attack
+      attackPoints: 01000000
       shape: 1
       checkTransform: {fileID: 3888429274525928104}
       debugDraw: 0
@@ -439,29 +507,123 @@ MonoBehaviour:
       arcAngleDegrees: 1
       arcInnerRadius: 10
       polygonPoints: []
-    spawnPrefab: []
+    spawnSpec: []
     sounds:
     - name: SkeletonAttack
+      soundPoints: 01000000
       delay: 0
       useTransform: 1
-  teleportForAttack: 0
-  evadeRangeMin: 0
-  evadeRangeMax: 1
-  evasionSpeedMultiplier: 2.5
-  evasionDuration: 1.5
-  evasionCooldownMin: 0
-  evasionCooldownMax: 0.5
-  evadeBackAwayMin: 3
-  evadeBackAwayMax: 6
-  evadePassPastMin: 2
-  evadePassPastMax: 5
-  evadeReducedFactor: 0.6
-  evadeTinyRetreat: 0.35
-  evasionTimer: 2
-  evasionSpeed: 10
-  evasionDistance: 0.5
-  minEvasionCooldown: 0
-  maxEvasionCooldown: 0.5
+  - name: Evade
+    animBoolName: Move
+    stateName: 
+    action: 2
+    preference: 2
+    unlocked: 1
+    cannotUseWithTeleport: 0
+    canAttackAfterTeleport: 0
+    chance: 1
+    minCooldown: 1
+    maxCooldown: 2
+    startCooldown: 0
+    rangeMin: 0.5
+    rangeMax: 0.5
+    lingerTime: 0
+    attackAmount: 1
+    attackTimeMin: 0
+    attackTimeMax: 0
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 2.5
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 6.5
+    evadePassPastMin: 5
+    evadePassPastMax: 6.5
+    evadeReducedFactor: 0.6
+    evadeTinyRetreat: 0.35
+    stunDuration: 1
+    stunDirection: {x: 10, y: 12}
+    canBeStunned: 0
+    counterImage: {fileID: 0}
+    jumpAbilityVelocity: {x: 20, y: 12}
+    jumpBack: 1
+    attackChecks:
+    - label: Attack
+      attackPoints: 01000000
+      shape: 1
+      checkTransform: {fileID: 3888429274525928104}
+      debugDraw: 0
+      circleRadius: 1.5
+      boxSize: {x: 0, y: 0}
+      capsuleSize: {x: 0, y: 0}
+      capsuleDirection: 0
+      lineLength: 0
+      lineThickness: 0
+      arcRadius: 10
+      arcAngleDegrees: 1
+      arcInnerRadius: 10
+      polygonPoints: []
+    spawnSpec: []
+    sounds:
+    - name: SkeletonAttack
+      soundPoints: 01000000
+      delay: 0
+      useTransform: 1
+  - name: Stunned
+    animBoolName: Stunned
+    stateName: 
+    action: 4
+    preference: 2
+    unlocked: 1
+    cannotUseWithTeleport: 0
+    canAttackAfterTeleport: 0
+    chance: 1
+    minCooldown: 1
+    maxCooldown: 2
+    startCooldown: 0
+    rangeMin: 0.5
+    rangeMax: 2.2
+    lingerTime: 0
+    attackAmount: 1
+    attackTimeMin: 0
+    attackTimeMax: 0
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 2.5
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 6.5
+    evadePassPastMin: 5
+    evadePassPastMax: 6.5
+    evadeReducedFactor: 0.6
+    evadeTinyRetreat: 0.35
+    stunDuration: 1
+    stunDirection: {x: 10, y: 12}
+    canBeStunned: 0
+    counterImage: {fileID: 4676605648977866115}
+    jumpAbilityVelocity: {x: 20, y: 12}
+    jumpBack: 1
+    attackChecks:
+    - label: Attack
+      attackPoints: 01000000
+      shape: 1
+      checkTransform: {fileID: 3888429274525928104}
+      debugDraw: 0
+      circleRadius: 1.5
+      boxSize: {x: 0, y: 0}
+      capsuleSize: {x: 0, y: 0}
+      capsuleDirection: 0
+      lineLength: 0
+      lineThickness: 0
+      arcRadius: 10
+      arcAngleDegrees: 1
+      arcInnerRadius: 10
+      polygonPoints: []
+    spawnSpec: []
+    sounds:
+    - name: SkeletonAttack
+      soundPoints: 01000000
+      delay: 0
+      useTransform: 1
+  battlePreference: 2
+  battleMinCooldown: 1
+  battleMaxCooldown: 2
   isSummon: 0
   enemyData: {fileID: 0}
   moveMode: 0
@@ -472,15 +634,6 @@ MonoBehaviour:
   patrolSnapshotDone: 0
   traverseStopMinSeconds: 3
   traverseStopMaxSeconds: 5
-  stunDuration: 1
-  stunDirection: {x: 10, y: 12}
-  counterImage: {fileID: 4676605648977866115}
-  HasMultiAttack: 0
-  IsSpearSkeleton: 0
-  chanceToMultiAttack: 0
-  defaultChanceToMultiAttack: 5
-  multiAttackCooldown: 5
-  multiAttackCooldownTimer: 0
 --- !u!1 &3325982861166663723
 GameObject:
   m_ObjectHideFlags: 0

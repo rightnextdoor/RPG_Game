@@ -36,7 +36,6 @@ public class StunnedStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : E
     public override void Enter()
     {
         base.Enter();
-
         PlayStateSounds(enterSounds);
 
         enemy.fX.InvokeRepeating("RedColorBlink", 0f, 0.1f);

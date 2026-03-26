@@ -31,6 +31,7 @@ public class AttackDetailDrawer : PropertyDrawer
         DrawHeader(ref y, position.x, width, "Shared");
         DrawField(ref y, position, property, "name");
         DrawField(ref y, position, property, "animBoolName");
+        DrawField(ref y, position, property, "stateName");
         DrawField(ref y, position, property, "action");
         DrawField(ref y, position, property, "preference");
         DrawField(ref y, position, property, "unlocked");
@@ -116,6 +117,7 @@ public class AttackDetailDrawer : PropertyDrawer
         h += HeaderHeight();
         h += FieldHeight(property, "name");
         h += FieldHeight(property, "animBoolName");
+        h += FieldHeight(property, "stateName");
         h += FieldHeight(property, "action");
         h += FieldHeight(property, "preference");
         h += FieldHeight(property, "unlocked");

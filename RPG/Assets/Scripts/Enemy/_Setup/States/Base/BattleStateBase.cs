@@ -209,17 +209,50 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
                     if (rangeMax > longAttackMaxRange)
                         longAttackMaxRange = rangeMax;
                     break;
+
+                case AbilityPreference.Mixed:
+                    if (rangeMin > mixedAttackMinRange)
+                        mixedAttackMinRange = rangeMin;
+
+                    if (rangeMax > mixedAttackMaxRange)
+                        mixedAttackMaxRange = rangeMax;
+                    break;
             }
         }
 
+        SetupMixedAttackFallback();
+    }
+
+    private void SetupMixedAttackFallback()
+    {
         if (shortAttackMinRange <= 0f && shortAttackMaxRange > 0f)
             shortAttackMinRange = shortAttackMaxRange * 0.5f;
 
         if (longAttackMinRange <= 0f && longAttackMaxRange > 0f)
             longAttackMinRange = longAttackMaxRange * 0.5f;
 
-        mixedAttackMinRange = shortAttackMaxRange;
-        mixedAttackMaxRange = longAttackMinRange;
+        if (mixedAttackMinRange <= 0f && mixedAttackMaxRange > 0f)
+            mixedAttackMinRange = mixedAttackMaxRange * 0.5f;
+
+        if (mixedAttackMaxRange <= 0f)
+        {
+            if (longAttackMinRange > 0f)
+                mixedAttackMaxRange = longAttackMinRange;
+            else if (longAttackMaxRange > 0f)
+                mixedAttackMaxRange = longAttackMaxRange * 0.5f;
+            else if (shortAttackMaxRange > 0f)
+                mixedAttackMaxRange = shortAttackMaxRange + (shortAttackMaxRange * 0.5f);
+        }
+
+        if (mixedAttackMinRange <= 0f)
+        {
+            if (shortAttackMaxRange > 0f)
+                mixedAttackMinRange = shortAttackMaxRange;
+            else if (longAttackMinRange > 0f)
+                mixedAttackMinRange = longAttackMinRange * 0.5f;
+            else if (longAttackMaxRange > 0f)
+                mixedAttackMinRange = longAttackMaxRange * 0.25f;
+        }
     }
 
     private void SetupSupportMaxRanges()

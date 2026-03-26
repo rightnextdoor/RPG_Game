@@ -19,6 +19,7 @@ public class StateDetail
 {
     #region Shared
     [Header("Shared")]
+    public string name;
     public string animBoolName;
     public EnemyStateType stateType;
     #endregion

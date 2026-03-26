@@ -94,6 +94,11 @@ public class EnemyTimelineAuthoringEditor : Editor
                 MessageType.Warning);
         }
 
+        EditorGUILayout.Space(10);
+
+        EditorGUILayout.LabelField("Selected Sound Settings", EditorStyles.boldLabel);
+        DrawSelectedSoundInspector(sceneEnemy ? sceneEnemy : enemy, attack.name, idxSound);
+
         EditorGUILayout.Space(8);
 
         if (GUILayout.Button("Insert Attack"))
@@ -190,6 +195,43 @@ public class EnemyTimelineAuthoringEditor : Editor
         var checkProp = checksProp.GetArrayElementAtIndex(checkIndex);
         EditorGUI.indentLevel++;
         EditorGUILayout.PropertyField(checkProp, includeChildren: true);
+        EditorGUI.indentLevel--;
+
+        enemySO.ApplyModifiedProperties();
+    }
+
+    private void DrawSelectedSoundInspector(Enemy enemyInstance, string attackName, int soundIndex)
+    {
+        if (!enemyInstance) return;
+
+        var enemySO = new SerializedObject(enemyInstance);
+        var attacksProp = enemySO.FindProperty("attackDetails");
+        if (attacksProp == null || !attacksProp.isArray) return;
+
+        SerializedProperty foundAttack = null;
+        for (int i = 0; i < attacksProp.arraySize; i++)
+        {
+            var el = attacksProp.GetArrayElementAtIndex(i);
+            var nameProp = el.FindPropertyRelative("name");
+            if (nameProp != null && nameProp.stringValue == attackName)
+            {
+                foundAttack = el;
+                break;
+            }
+        }
+        if (foundAttack == null) return;
+
+        var soundsProp = foundAttack.FindPropertyRelative("sounds");
+        if (soundsProp == null || !soundsProp.isArray || soundIndex < 0 || soundIndex >= soundsProp.arraySize)
+        {
+            EditorGUILayout.HelpBox("Selected attack has no sounds.", MessageType.Info);
+            return;
+        }
+
+        var soundProp = soundsProp.GetArrayElementAtIndex(soundIndex);
+
+        EditorGUI.indentLevel++;
+        EditorGUILayout.PropertyField(soundProp, includeChildren: true);
         EditorGUI.indentLevel--;
 
         enemySO.ApplyModifiedProperties();
