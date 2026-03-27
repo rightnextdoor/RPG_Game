@@ -50,14 +50,24 @@ public class Enemy_Skeleton : Enemy_Regular
 
     private void BuildStates()
     {
-        StateDetail idleDetail = GetStateDetail(EnemyStateType.Idle);
-        StateDetail moveDetail = GetStateDetail(EnemyStateType.Move);
-        StateDetail battleDetail = GetStateDetail(EnemyStateType.Battle);
-        StateDetail attack1Detail = GetStateDetailByName("Attack1");
-        StateDetail attack2Detail = GetStateDetailByName("Attack2");
-        StateDetail stunnedDetail = GetStateDetail(EnemyStateType.Stunned);
-        StateDetail deadDetail = GetStateDetail(EnemyStateType.Dead);
-        StateDetail evasionDetail = GetStateDetail(EnemyStateType.Evasion);
+        StateDetail idleDetail = null;
+        StateDetail moveDetail = null;
+        StateDetail battleDetail = null;
+        StateDetail attack1Detail = null;
+        StateDetail attack2Detail = null;
+        StateDetail stunnedDetail = null;
+        StateDetail deadDetail = null;
+        StateDetail evasionDetail = null;
+
+        AssignStateDetails(EnemyStateType.Idle, detail => idleDetail = detail);
+        AssignStateDetails(EnemyStateType.Move, detail => moveDetail = detail);
+        AssignStateDetails(EnemyStateType.Battle, detail => battleDetail = detail);
+        AssignStateDetails(EnemyStateType.Attack,
+            detail => attack1Detail = detail,
+            detail => attack2Detail = detail);
+        AssignStateDetails(EnemyStateType.Stunned, detail => stunnedDetail = detail);
+        AssignStateDetails(EnemyStateType.Dead, detail => deadDetail = detail);
+        AssignStateDetails(EnemyStateType.Evasion, detail => evasionDetail = detail);
 
         if (idleDetail != null)
         {
@@ -167,22 +177,20 @@ public class Enemy_Skeleton : Enemy_Regular
 
         foreach (var entry in abilityMap.Values)
         {
-            if (entry == null)
+            if (entry == null || string.IsNullOrWhiteSpace(entry.animBoolName))
                 continue;
 
             switch (entry.action)
             {
                 case BattleAction.Attack:
-                    if (entry.stateName == "Attack1" && attackState != null)
+                    if (attackState != null && attackState.animBoolName == entry.animBoolName)
                         entry.state = attackState;
-                    else if (entry.stateName == "Attack2" && attack2State != null)
+                    else if (attack2State != null && attack2State.animBoolName == entry.animBoolName)
                         entry.state = attack2State;
-                    else if (attackState != null)
-                        entry.state = attackState;
                     break;
 
                 case BattleAction.Evade:
-                    if (evasionState != null)
+                    if (evasionState != null && evasionState.animBoolName == entry.animBoolName)
                         entry.state = evasionState;
                     break;
 
@@ -190,7 +198,7 @@ public class Enemy_Skeleton : Enemy_Regular
                     break;
 
                 case BattleAction.Stunned:
-                    if (stunnedState != null)
+                    if (stunnedState != null && stunnedState.animBoolName == entry.animBoolName)
                     {
                         entry.state = stunnedState;
                         stunnedState.Configure(entry.stunDuration, entry.stunDirection);

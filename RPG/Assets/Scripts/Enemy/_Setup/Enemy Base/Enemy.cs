@@ -123,7 +123,6 @@ public class Enemy : Entity
             var entry = new AbilityEntry(
                 name: attackDetail.name,
                 animBoolName: attackDetail.animBoolName,
-                stateName: attackDetail.stateName,
                 state: null,
                 minCooldown: attackDetail.minCooldown,
                 maxCooldown: attackDetail.maxCooldown,
@@ -175,34 +174,42 @@ public class Enemy : Entity
         return null;
     }
 
-    public virtual StateDetail GetStateDetail(EnemyStateType stateType)
+    protected virtual void AssignStateDetails(EnemyStateType stateType, params System.Action<StateDetail>[] assignTargets)
     {
-        if (stateDetails == null || stateDetails.Count == 0)
-            return null;
+        if (assignTargets == null || assignTargets.Length == 0)
+            return;
 
-        for (int i = 0; i < stateDetails.Count; i++)
+        List<StateDetail> matchingDetails = new List<StateDetail>();
+
+        if (stateDetails != null && stateDetails.Count > 0)
         {
-            var detail = stateDetails[i];
-            if (detail != null && detail.stateType == stateType)
-                return detail;
+            for (int i = 0; i < stateDetails.Count; i++)
+            {
+                StateDetail detail = stateDetails[i];
+
+                if (detail == null)
+                    continue;
+
+                if (detail.stateType != stateType)
+                    continue;
+
+                matchingDetails.Add(detail);
+            }
         }
 
-        return null;
-    }
+        int assignCount = Mathf.Min(assignTargets.Length, matchingDetails.Count);
 
-    public virtual StateDetail GetStateDetailByName(string stateName)
-    {
-        if (stateDetails == null || stateDetails.Count == 0 || string.IsNullOrWhiteSpace(stateName))
-            return null;
-
-        for (int i = 0; i < stateDetails.Count; i++)
+        for (int i = 0; i < assignCount; i++)
         {
-            var detail = stateDetails[i];
-            if (detail != null && detail.name == stateName)
-                return detail;
+            assignTargets[i]?.Invoke(matchingDetails[i]);
         }
 
-        return null;
+        if (assignTargets.Length > matchingDetails.Count)
+        {
+            int missingCount = assignTargets.Length - matchingDetails.Count;
+
+            Debug.LogWarning($"{GetType().Name} needs {missingCount} more state detail of {stateType}");
+        }
     }
 
     #endregion

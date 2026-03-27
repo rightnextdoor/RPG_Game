@@ -19,7 +19,6 @@ public class AbilityEntry
 
     public string name;
     public string animBoolName;
-    public string stateName;
     public EnemyState state;
     public BattleAction action;
     public AbilityPreference preference;
@@ -84,7 +83,6 @@ public class AbilityEntry
     public AbilityEntry(
         string name,
         string animBoolName,
-        string stateName,
         EnemyState state,
         float minCooldown,
         float maxCooldown,
@@ -121,7 +119,6 @@ public class AbilityEntry
     {
         this.name = name;
         this.animBoolName = animBoolName;
-        this.stateName = stateName;
         this.state = state;
         this.action = action;
         this.preference = preference;

@@ -15,7 +15,6 @@ public class AttackDetail
     [Header("Shared")]
     public string name;
     public string animBoolName;
-    public string stateName;
     public BattleAction action;
     public AbilityPreference preference = AbilityPreference.Mixed;
     public bool unlocked = true;
