@@ -17,18 +17,14 @@ public class EnemyTimelineAuthoringEditor : Editor
         var t = (EnemyTimelineAuthoring)target;
         var so = serializedObject;
 
-        EditorGUILayout.PropertyField(so.FindProperty("profile"));
-        EditorGUILayout.Space(6);
-
         DrawPreviewSettings(so);
 
-        var sceneEnemy = t.GetComponentInParent<Enemy>(true);
-        var enemy = sceneEnemy ? sceneEnemy : (t.profile ? t.profile.GetEnemyPrototype() : null);
+        var enemy = t.GetComponentInParent<Enemy>(true);
 
         if (!enemy)
         {
             EditorGUILayout.HelpBox(
-                "No Enemy found. Put Enemy_Regular/Enemy_Boss on a parent of the Animator, or assign a Profile.",
+                "No Enemy found. Put Enemy_Regular/Enemy_Boss on a parent of the Animator.",
                 MessageType.Error);
             so.ApplyModifiedProperties();
             return;
@@ -85,7 +81,7 @@ public class EnemyTimelineAuthoringEditor : Editor
         EditorGUILayout.Space(10);
 
         EditorGUILayout.LabelField("Selected Check Settings", EditorStyles.boldLabel);
-        DrawSelectedCheckInspector(sceneEnemy ? sceneEnemy : enemy, attack.name, idxCheck);
+        DrawSelectedCheckInspector(enemy, attack.name, idxCheck);
 
         if (check == null || check.checkTransform == null)
         {
@@ -97,7 +93,7 @@ public class EnemyTimelineAuthoringEditor : Editor
         EditorGUILayout.Space(10);
 
         EditorGUILayout.LabelField("Selected Sound Settings", EditorStyles.boldLabel);
-        DrawSelectedSoundInspector(sceneEnemy ? sceneEnemy : enemy, attack.name, idxSound);
+        DrawSelectedSoundInspector(enemy, attack.name, idxSound);
 
         EditorGUILayout.Space(8);
 
@@ -138,7 +134,7 @@ public class EnemyTimelineAuthoringEditor : Editor
             }
             else
             {
-                RemoveLastAttackPointAndReassign(clip, sceneEnemy ? sceneEnemy : enemy);
+                RemoveLastAttackPointAndReassign(clip, enemy);
             }
         }
 
@@ -151,7 +147,7 @@ public class EnemyTimelineAuthoringEditor : Editor
             }
             else
             {
-                RemoveLastSoundPointAndReassign(clip, sceneEnemy ? sceneEnemy : enemy);
+                RemoveLastSoundPointAndReassign(clip, enemy);
             }
         }
 

@@ -61,8 +61,8 @@ public class Enemy : Entity
     [Space(2)]
     [Header("Battle Settings")]
     public AbilityPreference battlePreference = AbilityPreference.Mixed;
-    public float battleMinCooldown = 1.5f;
-    public float battleMaxCooldown = 2.5f;
+    public float battleMinCooldown = 1f;
+    public float battleMaxCooldown = 2f;
     protected bool battleStarted;
 
     [HideInInspector] public bool isSummon = false;
@@ -417,36 +417,71 @@ public class Enemy : Entity
 
             case AttackCheckShape.Arc:
                 {
-                    float rOuter = Mathf.Max(0f, check.arcRadius);
-                    float rInner = Mathf.Max(0f, check.arcInnerRadius);
+                    float radiusA = Mathf.Max(0f, check.arcRadius);
+                    float radiusB = Mathf.Max(0f, check.arcInnerRadius);
+
+                    float minRadius = Mathf.Min(radiusA, radiusB);
+                    float maxRadius = Mathf.Max(radiusA, radiusB);
+
                     float halfAng = Mathf.Abs(check.arcAngleDegrees) * 0.5f;
 
-                    Vector2 fwd = check.checkTransform.right;
-                    if (fwd.sqrMagnitude > 0f) fwd.Normalize();
-
-                    Collider2D[] colliders = Physics2D.OverlapCircleAll(check.checkTransform.position, rOuter, whatIsPlayer);
-
                     pos = check.checkTransform.position;
+
+                    Vector2 fwd = check.checkTransform.right;
+                    if (fwd.sqrMagnitude > 0f)
+                        fwd.Normalize();
+
+                    Collider2D[] colliders = Physics2D.OverlapCircleAll(pos, maxRadius);
+
+                    Vector2 leftDir = Quaternion.Euler(0f, 0f, -halfAng) * fwd;
+                    Vector2 rightDir = Quaternion.Euler(0f, 0f, halfAng) * fwd;
+
                     foreach (var hit in colliders)
                     {
-                        if (hit == null) continue;
-                        var player = hit.GetComponent<Player>();
-                        if (player == null) continue;
+                        if (hit == null || hit.GetComponent<Player>() == null)
+                            continue;
 
-                        Vector2 to = (Vector2)hit.bounds.center - pos;
-                        float d = to.magnitude;
-                        if (d <= rInner || d > rOuter) continue;
+                        bool hitArc = false;
 
-                        float ang = Vector2.Angle(fwd, to);
-                        if (ang <= halfAng)
+                        Vector2[] sampleTargets = new Vector2[]
                         {
-                            var target = hit.GetComponent<PlayerStats>();
-                            if (target != null) stats.DoDamage(target);
+            hit.bounds.center,
+            pos,
+            pos + fwd * maxRadius,
+            pos + fwd * minRadius,
+            pos + leftDir * maxRadius,
+            pos + rightDir * maxRadius,
+            pos + leftDir * minRadius,
+            pos + rightDir * minRadius
+                        };
+
+                        for (int i = 0; i < sampleTargets.Length; i++)
+                        {
+                            Vector2 samplePoint = hit.ClosestPoint(sampleTargets[i]);
+                            Vector2 to = samplePoint - pos;
+                            float d = to.magnitude;
+
+                            if (d < minRadius || d > maxRadius)
+                                continue;
+
+                            float ang = Vector2.Angle(fwd, to);
+                            if (ang > halfAng)
+                                continue;
+
+                            hitArc = true;
+                            break;
                         }
+
+                        if (!hitArc)
+                            continue;
+
+                        PlayerStats target = hit.GetComponent<PlayerStats>();
+                        if (target != null)
+                            stats.DoDamage(target);
                     }
+
                     break;
                 }
-
             case AttackCheckShape.Polygon:
                 {
                     if (check.polygonPoints == null || check.polygonPoints.Count < 3) break;

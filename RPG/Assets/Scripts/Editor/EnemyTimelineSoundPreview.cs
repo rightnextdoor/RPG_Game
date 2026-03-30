@@ -283,11 +283,7 @@ public static class EnemyTimelineSoundPreview
         if (authoring == null)
             return null;
 
-        var sceneEnemy = authoring.GetComponentInParent<Enemy>(true);
-        if (sceneEnemy != null)
-            return sceneEnemy;
-
-        return authoring.profile ? authoring.profile.GetEnemyPrototype() : null;
+        return authoring.GetComponentInParent<Enemy>(true);
     }
 
     private static AudioClip FindClipBySoundName(string soundName)
