@@ -27,8 +27,9 @@ public enum SpecialAnimationType
 [System.Serializable]
 public class AttackSpawnSpec
 {
+    [HideInInspector] public bool defaultsInitialized;
     #region Prefab
-    
+
     [Header("Prefab Basics")]
     [Tooltip("The name of the prefab to spawn.")]
     public string name;
@@ -121,7 +122,7 @@ public class AttackSpawnSpec
     public bool useExplosionTimer = false;
 
     [Tooltip("How long the explosion waits after starting before it reaches its blast-ready point.")]
-    public float explosionTimer = 0f;
+    public float explosionTimer = 1.5f;
 
     [Space(2)]
     [Tooltip("If true, the explosion uses animation as part of its explosion flow.")]

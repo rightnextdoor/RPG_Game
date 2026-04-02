@@ -11,6 +11,7 @@ public enum AbilityPreference
 [System.Serializable]
 public class AttackDetail
 {
+    [HideInInspector] public bool defaultsInitialized;
     #region Shared
     [Header("Shared")]
     public string name;
@@ -22,8 +23,8 @@ public class AttackDetail
     public bool canAttackAfterTeleport = false;
     public float chance = 1f;
 
-    public float minCooldown = 0f;
-    public float maxCooldown = 0f;
+    public float minCooldown = 1.5f;
+    public float maxCooldown = 2.5f;
     public float startCooldown = 0f;
 
     public float rangeMin;

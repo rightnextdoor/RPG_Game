@@ -129000,15 +129000,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5145552673677281695, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8173078681514149442, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8173078681514149442, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: battleMaxCooldown
@@ -129357,7 +129357,7 @@ PrefabInstance:
     - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: attackDetails.Array.data[4].spawnSpec.Array.data[0].control
       value: 
-      objectReference: {fileID: 7644891916077742246, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
+      objectReference: {fileID: 0}
     - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: attackDetails.Array.data[5].spawnSpec.Array.data[0].canMove
       value: 1
@@ -129365,7 +129365,7 @@ PrefabInstance:
     - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: attackDetails.Array.data[5].spawnSpec.Array.data[0].control
       value: 
-      objectReference: {fileID: 7644891916077742246, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
+      objectReference: {fileID: 0}
     - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: attackDetails.Array.data[4].attackChecks.Array.data[0].label
       value: Attack
@@ -129420,7 +129420,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: attackDetails.Array.data[4].spawnSpec.Array.data[0].collisionShape
-      value: 1
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
+      propertyPath: attackDetails.Array.data[5].spawnSpec.Array.data[0].collisionShape
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 8424249175281791491, guid: 3f956390d3201a948a282a66e0210d8e, type: 3}
       propertyPath: attackDetails.Array.data[4].attackChecks.Array.data[0].circleRadius
@@ -129565,15 +129569,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2711789263224693478, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2711789263224693478, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6982403007833585609, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
       propertyPath: attackDetails.Array.data[3].spawnSpec.Array.data[0].speed
-      value: 15
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 6982403007833585609, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
       propertyPath: attackDetails.Array.data[3].spawnSpec.Array.data[0].canGrow
@@ -129601,7 +129605,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6982403007833585609, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
       propertyPath: attackDetails.Array.data[3].spawnSpec.Array.data[0].movementType
-      value: 4
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6982403007833585609, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
       propertyPath: attackDetails.Array.data[3].spawnSpec.Array.data[0].explosionTimer
@@ -129627,9 +129631,21 @@ PrefabInstance:
       propertyPath: attackDetails.Array.data[3].spawnSpec.Array.data[0].homingRecoverUpStrength
       value: 1.5
       objectReference: {fileID: 0}
+    - target: {fileID: 6982403007833585609, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
+      propertyPath: attackDetails.Array.data[3].spawnSpec.Array.data[0].sounds.Array.data[0].soundPoints.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6982403007833585609, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
+      propertyPath: 'attackDetails.Array.data[3].spawnSpec.Array.data[0].sounds.Array.data[0].soundPoints.Array.data[0]'
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6991040809912671778, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
       propertyPath: m_Name
       value: Enemy_Shady (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6991040809912671778, guid: 96ab21172a5812847b2ae5389708ffc5, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

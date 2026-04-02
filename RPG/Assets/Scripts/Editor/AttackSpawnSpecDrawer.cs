@@ -13,6 +13,7 @@ public class AttackSpawnSpecDrawer : PropertyDrawer
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         EditorGUI.BeginProperty(position, label, property);
+        EnsureDefaults(property);
 
         Rect foldoutRect = new Rect(position.x, position.y, position.width, Line);
         property.isExpanded = EditorGUI.Foldout(foldoutRect, property.isExpanded, label, true);
@@ -218,5 +219,70 @@ public class AttackSpawnSpecDrawer : PropertyDrawer
 
         return space.height;
     }
+
+    #region Defaults
+    private void EnsureDefaults(SerializedProperty property)
+    {
+        SerializedProperty initProp = property.FindPropertyRelative("defaultsInitialized");
+        if (initProp == null || initProp.boolValue)
+            return;
+
+        SetBool(property, "canMove", false);
+        SetBool(property, "canParry", false);
+        SetFloat(property, "speed", 5f);
+        SetEnumIndex(property, "movementType", (int)SpecialMovementType.None);
+
+        SetFloat(property, "moveTimer", 2f);
+        SetFloat(property, "homingTurnSpeed", 4f);
+        SetFloat(property, "homingRecoverUpStrength", 1.5f);
+
+        SetInt(property, "maxLoops", 1);
+        SetFloat(property, "attackSpeedBoost", 3f);
+        SetFloat(property, "circleRadius", 2f);
+
+        SetEnumIndex(property, "collisionShape", (int)SpecialCollisionShape.Circle);
+
+        SetBool(property, "explodes", false);
+        SetFloat(property, "lifeTimer", 3f);
+        SetFloat(property, "destroyAfterTime", 3f);
+
+        SetBool(property, "canGrow", false);
+        SetFloat(property, "growSpeed", 1f);
+        SetFloat(property, "maxSize", 1f);
+
+        SetBool(property, "useExplosionTimer", false);
+        SetFloat(property, "explosionTimer", 1.5f);
+
+        SetBool(property, "hasAnimation", false);
+        SetEnumIndex(property, "animationType", (int)SpecialAnimationType.None);
+
+        initProp.boolValue = true;
+        property.serializedObject.ApplyModifiedProperties();
+    }
+
+    private static void SetBool(SerializedProperty root, string name, bool value)
+    {
+        var prop = root.FindPropertyRelative(name);
+        if (prop != null) prop.boolValue = value;
+    }
+
+    private static void SetFloat(SerializedProperty root, string name, float value)
+    {
+        var prop = root.FindPropertyRelative(name);
+        if (prop != null) prop.floatValue = value;
+    }
+
+    private static void SetInt(SerializedProperty root, string name, int value)
+    {
+        var prop = root.FindPropertyRelative(name);
+        if (prop != null) prop.intValue = value;
+    }
+
+    private static void SetEnumIndex(SerializedProperty root, string name, int value)
+    {
+        var prop = root.FindPropertyRelative(name);
+        if (prop != null) prop.enumValueIndex = value;
+    }
+    #endregion
 }
 #endif

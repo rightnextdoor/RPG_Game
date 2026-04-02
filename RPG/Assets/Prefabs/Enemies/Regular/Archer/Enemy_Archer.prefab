@@ -792,7 +792,8 @@ MonoBehaviour:
     enterSounds: []
     exitSounds: []
   attackDetails:
-  - name: Attack
+  - defaultsInitialized: 1
+    name: Attack
     animBoolName: Attack
     action: 1
     preference: 1
@@ -809,19 +810,19 @@ MonoBehaviour:
     attackAmount: 0
     attackTimeMin: 0
     attackTimeMax: 0
-    evasionSpeedMultiplier: 1.25
-    evasionDuration: 0.5
-    evadeBackAwayMin: 1.2
-    evadeBackAwayMax: 2
-    evadePassPastMin: 0.6
-    evadePassPastMax: 1
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 2.5
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 6.5
+    evadePassPastMin: 5
+    evadePassPastMax: 6.5
     evadeReducedFactor: 0.6
     evadeTinyRetreat: 0.35
     stunDuration: 1
     stunDirection: {x: 10, y: 12}
     canBeStunned: 0
     counterImage: {fileID: 0}
-    jumpAbilityVelocity: {x: 8, y: 12}
+    jumpAbilityVelocity: {x: 20, y: 12}
     jumpBack: 1
     attackChecks:
     - label: Attack
@@ -840,13 +841,14 @@ MonoBehaviour:
       arcInnerRadius: 0
       polygonPoints: []
     spawnSpec:
-    - name: Arrow
+    - defaultsInitialized: 1
+      name: Arrow
       attackPoints: 01000000
       prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
-      collisionShape: 2
+      collisionShape: 0
       explodePoints: 
       sounds: []
-      control: {fileID: 7644891916077742246, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
+      control: {fileID: 2839069534873013197, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
       canMove: 1
       canParry: 1
       speed: 7
@@ -864,7 +866,7 @@ MonoBehaviour:
       growSpeed: 1
       maxSize: 1
       useExplosionTimer: 0
-      explosionTimer: 0
+      explosionTimer: 1.5
       hasAnimation: 0
       animationType: 0
       animationBoolName: 
@@ -873,97 +875,17 @@ MonoBehaviour:
       soundPoints: 01000000
       delay: 0
       useTransform: 1
-  - name: Evade
+  - defaultsInitialized: 1
+    name: Evade
     animBoolName: Move
-    action: 1
-    preference: 0
-    unlocked: 1
-    cannotUseWithTeleport: 0
-    canAttackAfterTeleport: 0
-    chance: 1
-    minCooldown: 1
-    maxCooldown: 2
-    startCooldown: 0
-    rangeMin: 0
-    rangeMax: 10
-    lingerTime: 0
-    attackAmount: 0
-    attackTimeMin: 0
-    attackTimeMax: 0
-    evasionSpeedMultiplier: 1.25
-    evasionDuration: 0.5
-    evadeBackAwayMin: 1.2
-    evadeBackAwayMax: 2
-    evadePassPastMin: 0.6
-    evadePassPastMax: 1
-    evadeReducedFactor: 0.6
-    evadeTinyRetreat: 0.35
-    stunDuration: 1
-    stunDirection: {x: 10, y: 12}
-    canBeStunned: 0
-    counterImage: {fileID: 0}
-    jumpAbilityVelocity: {x: 8, y: 12}
-    jumpBack: 1
-    attackChecks:
-    - label: Attack
-      attackPoints: 
-      shape: 0
-      checkTransform: {fileID: 1240692613789147434}
-      debugDraw: 0
-      circleRadius: 0.4
-      boxSize: {x: 0, y: 0}
-      capsuleSize: {x: 0, y: 0}
-      capsuleDirection: 0
-      lineLength: 0
-      lineThickness: 0
-      arcRadius: 0
-      arcAngleDegrees: 0
-      arcInnerRadius: 0
-      polygonPoints: []
-    spawnSpec:
-    - name: Arrow
-      attackPoints: 
-      prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
-      collisionShape: 0
-      explodePoints: 
-      sounds: []
-      control: {fileID: 7644891916077742246, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
-      canMove: 0
-      canParry: 0
-      speed: 7
-      movementType: 0
-      moveTimer: 2
-      homingTurnSpeed: 4
-      homingRecoverUpStrength: 1.5
-      maxLoops: 1
-      attackSpeedBoost: 3
-      circleRadius: 2
-      explodes: 0
-      lifeTimer: 3
-      destroyAfterTime: 3
-      canGrow: 0
-      growSpeed: 1
-      maxSize: 1
-      useExplosionTimer: 0
-      explosionTimer: 0
-      hasAnimation: 0
-      animationType: 0
-      animationBoolName: 
-    sounds:
-    - name: ArcherAttack
-      soundPoints: 
-      delay: 0
-      useTransform: 1
-  - name: Jump
-    animBoolName: Jump
     action: 2
-    preference: 0
+    preference: 2
     unlocked: 1
     cannotUseWithTeleport: 0
     canAttackAfterTeleport: 0
     chance: 1
-    minCooldown: 1
-    maxCooldown: 2
+    minCooldown: 1.5
+    maxCooldown: 2.5
     startCooldown: 0
     rangeMin: 0
     rangeMax: 10
@@ -971,19 +893,19 @@ MonoBehaviour:
     attackAmount: 0
     attackTimeMin: 0
     attackTimeMax: 0
-    evasionSpeedMultiplier: 1.25
-    evasionDuration: 0.5
-    evadeBackAwayMin: 1.2
-    evadeBackAwayMax: 2
-    evadePassPastMin: 0.6
-    evadePassPastMax: 1
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 2.5
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 6.5
+    evadePassPastMin: 5
+    evadePassPastMax: 6.5
     evadeReducedFactor: 0.6
     evadeTinyRetreat: 0.35
     stunDuration: 1
     stunDirection: {x: 10, y: 12}
     canBeStunned: 0
     counterImage: {fileID: 0}
-    jumpAbilityVelocity: {x: 8, y: 12}
+    jumpAbilityVelocity: {x: 20, y: 12}
     jumpBack: 1
     attackChecks:
     - label: Attack
@@ -1002,7 +924,91 @@ MonoBehaviour:
       arcInnerRadius: 0
       polygonPoints: []
     spawnSpec:
-    - name: Arrow
+    - defaultsInitialized: 1
+      name: Arrow
+      attackPoints: 
+      prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
+      collisionShape: 0
+      explodePoints: 
+      sounds: []
+      control: {fileID: 7644891916077742246, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
+      canMove: 0
+      canParry: 0
+      speed: 5
+      movementType: 0
+      moveTimer: 2
+      homingTurnSpeed: 4
+      homingRecoverUpStrength: 1.5
+      maxLoops: 1
+      attackSpeedBoost: 3
+      circleRadius: 2
+      explodes: 0
+      lifeTimer: 3
+      destroyAfterTime: 3
+      canGrow: 0
+      growSpeed: 1
+      maxSize: 1
+      useExplosionTimer: 0
+      explosionTimer: 1.5
+      hasAnimation: 0
+      animationType: 0
+      animationBoolName: 
+    sounds:
+    - name: ArcherAttack
+      soundPoints: 
+      delay: 0
+      useTransform: 1
+  - defaultsInitialized: 1
+    name: Jump
+    animBoolName: Jump
+    action: 3
+    preference: 2
+    unlocked: 1
+    cannotUseWithTeleport: 0
+    canAttackAfterTeleport: 0
+    chance: 1
+    minCooldown: 1.5
+    maxCooldown: 2.5
+    startCooldown: 0
+    rangeMin: 0
+    rangeMax: 10
+    lingerTime: 0
+    attackAmount: 0
+    attackTimeMin: 0
+    attackTimeMax: 0
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 2.5
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 6.5
+    evadePassPastMin: 5
+    evadePassPastMax: 6.5
+    evadeReducedFactor: 0.6
+    evadeTinyRetreat: 0.35
+    stunDuration: 1
+    stunDirection: {x: 10, y: 12}
+    canBeStunned: 0
+    counterImage: {fileID: 0}
+    jumpAbilityVelocity: {x: 20, y: 12}
+    jumpBack: 1
+    attackChecks:
+    - label: Attack
+      attackPoints: 
+      shape: 0
+      checkTransform: {fileID: 1240692613789147434}
+      debugDraw: 0
+      circleRadius: 0.4
+      boxSize: {x: 0, y: 0}
+      capsuleSize: {x: 0, y: 0}
+      capsuleDirection: 0
+      lineLength: 0
+      lineThickness: 0
+      arcRadius: 0
+      arcAngleDegrees: 0
+      arcInnerRadius: 0
+      polygonPoints: []
+    spawnSpec:
+    - defaultsInitialized: 0
+      name: Arrow
       attackPoints: 
       prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
       collisionShape: 0
@@ -1035,16 +1041,17 @@ MonoBehaviour:
       soundPoints: 
       delay: 0
       useTransform: 1
-  - name: Stunned
+  - defaultsInitialized: 1
+    name: Stunned
     animBoolName: Stunned
-    action: 3
-    preference: 0
+    action: 4
+    preference: 2
     unlocked: 1
     cannotUseWithTeleport: 0
     canAttackAfterTeleport: 0
     chance: 1
-    minCooldown: 1
-    maxCooldown: 2
+    minCooldown: 1.5
+    maxCooldown: 2.5
     startCooldown: 0
     rangeMin: 0
     rangeMax: 10
@@ -1052,19 +1059,19 @@ MonoBehaviour:
     attackAmount: 0
     attackTimeMin: 0
     attackTimeMax: 0
-    evasionSpeedMultiplier: 1.25
-    evasionDuration: 0.5
-    evadeBackAwayMin: 1.2
-    evadeBackAwayMax: 2
-    evadePassPastMin: 0.6
-    evadePassPastMax: 1
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 2.5
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 6.5
+    evadePassPastMin: 5
+    evadePassPastMax: 6.5
     evadeReducedFactor: 0.6
     evadeTinyRetreat: 0.35
     stunDuration: 1
     stunDirection: {x: 10, y: 12}
     canBeStunned: 0
     counterImage: {fileID: 8440869614352377318}
-    jumpAbilityVelocity: {x: 8, y: 12}
+    jumpAbilityVelocity: {x: 20, y: 12}
     jumpBack: 1
     attackChecks:
     - label: Attack
@@ -1083,7 +1090,8 @@ MonoBehaviour:
       arcInnerRadius: 0
       polygonPoints: []
     spawnSpec:
-    - name: Arrow
+    - defaultsInitialized: 0
+      name: Arrow
       attackPoints: 
       prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
       collisionShape: 0

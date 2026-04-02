@@ -140,12 +140,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d987166f1567a14c872e5c23483cdbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTimelineAuthoring
-  profile: {fileID: 0}
-  selectedAttack: 
-  selectedCheck: 
   previewClipAudio: 1
-  lastAttackIndex: -1
-  lastCheckIndex: -1
 --- !u!1 &1674924028359996695
 GameObject:
   m_ObjectHideFlags: 0
@@ -15386,9 +15381,9 @@ MonoBehaviour:
     enterSounds: []
     exitSounds: []
   attackDetails:
-  - name: Attack
+  - defaultsInitialized: 1
+    name: Attack
     animBoolName: Attack
-    stateName: Attack1
     action: 1
     preference: 2
     unlocked: 1
@@ -15404,12 +15399,12 @@ MonoBehaviour:
     attackAmount: 1
     attackTimeMin: 0
     attackTimeMax: 0
-    evasionSpeedMultiplier: 1.25
-    evasionDuration: 0.5
-    evadeBackAwayMin: 1.2
-    evadeBackAwayMax: 2
-    evadePassPastMin: 0.6
-    evadePassPastMax: 1
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 2.5
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 6.5
+    evadePassPastMin: 5
+    evadePassPastMax: 6.5
     evadeReducedFactor: 0.6
     evadeTinyRetreat: 0.35
     stunDuration: 1
@@ -15440,17 +15435,17 @@ MonoBehaviour:
       soundPoints: 0100000002000000
       delay: 0
       useTransform: 1
-  - name: Attack2
+  - defaultsInitialized: 1
+    name: Attack2
     animBoolName: Attack2
-    stateName: Attack2
     action: 1
-    preference: 2
+    preference: 0
     unlocked: 1
     cannotUseWithTeleport: 0
     canAttackAfterTeleport: 0
-    chance: 3
-    minCooldown: 4
-    maxCooldown: 6
+    chance: 1
+    minCooldown: 1.5
+    maxCooldown: 2.5
     startCooldown: 0
     rangeMin: 0.5
     rangeMax: 2.2
@@ -15458,12 +15453,12 @@ MonoBehaviour:
     attackAmount: 1
     attackTimeMin: 0
     attackTimeMax: 0
-    evasionSpeedMultiplier: 1.25
-    evasionDuration: 0.5
-    evadeBackAwayMin: 1.2
-    evadeBackAwayMax: 2
-    evadePassPastMin: 0.6
-    evadePassPastMax: 1
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 2.5
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 6.5
+    evadePassPastMin: 5
+    evadePassPastMax: 6.5
     evadeReducedFactor: 0.6
     evadeTinyRetreat: 0.35
     stunDuration: 1
@@ -15509,17 +15504,17 @@ MonoBehaviour:
       soundPoints: 0100000002000000
       delay: 0
       useTransform: 1
-  - name: Evade
+  - defaultsInitialized: 1
+    name: Evade
     animBoolName: Move
-    stateName: 
     action: 2
-    preference: 2
+    preference: 0
     unlocked: 1
     cannotUseWithTeleport: 0
     canAttackAfterTeleport: 0
-    chance: 3
-    minCooldown: 4
-    maxCooldown: 6
+    chance: 1
+    minCooldown: 1.5
+    maxCooldown: 2.5
     startCooldown: 0
     rangeMin: 0
     rangeMax: 0.8
@@ -15528,7 +15523,7 @@ MonoBehaviour:
     attackTimeMin: 0
     attackTimeMax: 0
     evasionSpeedMultiplier: 1.8
-    evasionDuration: 3
+    evasionDuration: 2.5
     evadeBackAwayMin: 5
     evadeBackAwayMax: 6.5
     evadePassPastMin: 5
@@ -15578,17 +15573,17 @@ MonoBehaviour:
       soundPoints: 
       delay: 0
       useTransform: 1
-  - name: Stunned
+  - defaultsInitialized: 1
+    name: Stunned
     animBoolName: Stunned
-    stateName: 
     action: 4
-    preference: 2
+    preference: 0
     unlocked: 1
     cannotUseWithTeleport: 0
     canAttackAfterTeleport: 0
-    chance: 3
-    minCooldown: 4
-    maxCooldown: 6
+    chance: 1
+    minCooldown: 1.5
+    maxCooldown: 2.5
     startCooldown: 0
     rangeMin: 0.5
     rangeMax: 2.2
@@ -15596,12 +15591,12 @@ MonoBehaviour:
     attackAmount: 1
     attackTimeMin: 0
     attackTimeMax: 0
-    evasionSpeedMultiplier: 1.25
-    evasionDuration: 0.5
-    evadeBackAwayMin: 1.2
-    evadeBackAwayMax: 2
-    evadePassPastMin: 0.6
-    evadePassPastMax: 1
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 2.5
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 6.5
+    evadePassPastMin: 5
+    evadePassPastMax: 6.5
     evadeReducedFactor: 0.6
     evadeTinyRetreat: 0.35
     stunDuration: 1

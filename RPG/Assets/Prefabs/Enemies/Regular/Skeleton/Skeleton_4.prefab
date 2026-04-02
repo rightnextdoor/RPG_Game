@@ -323,9 +323,9 @@ MonoBehaviour:
     enterSounds: []
     exitSounds: []
   attackDetails:
-  - name: Attack
+  - defaultsInitialized: 1
+    name: Attack
     animBoolName: Attack
-    stateName: Attack1
     action: 1
     preference: 0
     unlocked: 1
@@ -341,12 +341,12 @@ MonoBehaviour:
     attackAmount: 1
     attackTimeMin: 0
     attackTimeMax: 0
-    evasionSpeedMultiplier: 1.25
-    evasionDuration: 0.5
-    evadeBackAwayMin: 1.2
-    evadeBackAwayMax: 2
-    evadePassPastMin: 0.6
-    evadePassPastMax: 1
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 2.5
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 6.5
+    evadePassPastMin: 5
+    evadePassPastMax: 6.5
     evadeReducedFactor: 0.6
     evadeTinyRetreat: 0.35
     stunDuration: 1
@@ -377,17 +377,17 @@ MonoBehaviour:
       soundPoints: 01000000
       delay: 0
       useTransform: 1
-  - name: Attack2
+  - defaultsInitialized: 1
+    name: Attack2
     animBoolName: Attack2
-    stateName: Attack2
     action: 1
     preference: 0
     unlocked: 1
     cannotUseWithTeleport: 0
     canAttackAfterTeleport: 0
     chance: 1
-    minCooldown: 2
-    maxCooldown: 4
+    minCooldown: 1.5
+    maxCooldown: 2.5
     startCooldown: 0
     rangeMin: 0.5
     rangeMax: 3.55
@@ -395,77 +395,8 @@ MonoBehaviour:
     attackAmount: 1
     attackTimeMin: 0
     attackTimeMax: 0
-    evasionSpeedMultiplier: 1.25
-    evasionDuration: 0.5
-    evadeBackAwayMin: 1.2
-    evadeBackAwayMax: 2
-    evadePassPastMin: 0.6
-    evadePassPastMax: 1
-    evadeReducedFactor: 0.6
-    evadeTinyRetreat: 0.35
-    stunDuration: 1
-    stunDirection: {x: 10, y: 12}
-    canBeStunned: 0
-    counterImage: {fileID: 0}
-    jumpAbilityVelocity: {x: 20, y: 12}
-    jumpBack: 1
-    attackChecks:
-    - label: Attack
-      attackPoints: 01000000
-      shape: 4
-      checkTransform: {fileID: 8307136111846976062}
-      debugDraw: 0
-      circleRadius: 0
-      boxSize: {x: 0, y: 0}
-      capsuleSize: {x: 1.33, y: 2.05}
-      capsuleDirection: 0
-      lineLength: 4
-      lineThickness: 1.1
-      arcRadius: 0
-      arcAngleDegrees: 0
-      arcInnerRadius: 0
-      polygonPoints: []
-    - label: Attack2
-      attackPoints: 0200000003000000
-      shape: 4
-      checkTransform: {fileID: 1406173170018145759}
-      debugDraw: 0
-      circleRadius: 0
-      boxSize: {x: 0, y: 0}
-      capsuleSize: {x: 1.33, y: 2.05}
-      capsuleDirection: 0
-      lineLength: 3.5
-      lineThickness: 2.03
-      arcRadius: 0
-      arcAngleDegrees: 0
-      arcInnerRadius: 0
-      polygonPoints: []
-    spawnSpec: []
-    sounds:
-    - name: SkeletonAttack
-      soundPoints: 010000000200000003000000
-      delay: 0
-      useTransform: 1
-  - name: Evade
-    animBoolName: Move
-    stateName: 
-    action: 2
-    preference: 2
-    unlocked: 1
-    cannotUseWithTeleport: 0
-    canAttackAfterTeleport: 0
-    chance: 1
-    minCooldown: 1
-    maxCooldown: 4
-    startCooldown: 0
-    rangeMin: 0
-    rangeMax: 1.33
-    lingerTime: 0
-    attackAmount: 1
-    attackTimeMin: 0
-    attackTimeMax: 0
     evasionSpeedMultiplier: 1.8
-    evasionDuration: 3
+    evasionDuration: 2.5
     evadeBackAwayMin: 5
     evadeBackAwayMax: 6.5
     evadePassPastMin: 5
@@ -515,17 +446,86 @@ MonoBehaviour:
       soundPoints: 010000000200000003000000
       delay: 0
       useTransform: 1
-  - name: Stunned
-    animBoolName: Stunned
-    stateName: 
-    action: 4
-    preference: 2
+  - defaultsInitialized: 1
+    name: Evade
+    animBoolName: Move
+    action: 2
+    preference: 0
     unlocked: 1
     cannotUseWithTeleport: 0
     canAttackAfterTeleport: 0
     chance: 1
-    minCooldown: 1
-    maxCooldown: 4
+    minCooldown: 1.5
+    maxCooldown: 2.5
+    startCooldown: 0
+    rangeMin: 0
+    rangeMax: 1.33
+    lingerTime: 0
+    attackAmount: 1
+    attackTimeMin: 0
+    attackTimeMax: 0
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 2.5
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 6.5
+    evadePassPastMin: 5
+    evadePassPastMax: 6.5
+    evadeReducedFactor: 0.6
+    evadeTinyRetreat: 0.35
+    stunDuration: 1
+    stunDirection: {x: 10, y: 12}
+    canBeStunned: 0
+    counterImage: {fileID: 0}
+    jumpAbilityVelocity: {x: 20, y: 12}
+    jumpBack: 1
+    attackChecks:
+    - label: Attack
+      attackPoints: 01000000
+      shape: 4
+      checkTransform: {fileID: 8307136111846976062}
+      debugDraw: 0
+      circleRadius: 0
+      boxSize: {x: 0, y: 0}
+      capsuleSize: {x: 1.33, y: 2.05}
+      capsuleDirection: 0
+      lineLength: 4
+      lineThickness: 1.1
+      arcRadius: 0
+      arcAngleDegrees: 0
+      arcInnerRadius: 0
+      polygonPoints: []
+    - label: Attack2
+      attackPoints: 0200000003000000
+      shape: 4
+      checkTransform: {fileID: 1406173170018145759}
+      debugDraw: 0
+      circleRadius: 0
+      boxSize: {x: 0, y: 0}
+      capsuleSize: {x: 1.33, y: 2.05}
+      capsuleDirection: 0
+      lineLength: 3.5
+      lineThickness: 2.03
+      arcRadius: 0
+      arcAngleDegrees: 0
+      arcInnerRadius: 0
+      polygonPoints: []
+    spawnSpec: []
+    sounds:
+    - name: SkeletonAttack
+      soundPoints: 010000000200000003000000
+      delay: 0
+      useTransform: 1
+  - defaultsInitialized: 1
+    name: Stunned
+    animBoolName: Stunned
+    action: 4
+    preference: 0
+    unlocked: 1
+    cannotUseWithTeleport: 0
+    canAttackAfterTeleport: 0
+    chance: 1
+    minCooldown: 1.5
+    maxCooldown: 2.5
     startCooldown: 0
     rangeMin: 0.5
     rangeMax: 3.55
@@ -533,12 +533,12 @@ MonoBehaviour:
     attackAmount: 1
     attackTimeMin: 0
     attackTimeMax: 0
-    evasionSpeedMultiplier: 1.25
-    evasionDuration: 0.5
-    evadeBackAwayMin: 1.2
-    evadeBackAwayMax: 2
-    evadePassPastMin: 0.6
-    evadePassPastMax: 1
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 2.5
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 6.5
+    evadePassPastMin: 5
+    evadePassPastMax: 6.5
     evadeReducedFactor: 0.6
     evadeTinyRetreat: 0.35
     stunDuration: 1
@@ -15819,12 +15819,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d987166f1567a14c872e5c23483cdbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTimelineAuthoring
-  profile: {fileID: 0}
-  selectedAttack: 
-  selectedCheck: 
   previewClipAudio: 1
-  lastAttackIndex: -1
-  lastCheckIndex: -1
 --- !u!1 &8966187798321408793
 GameObject:
   m_ObjectHideFlags: 0

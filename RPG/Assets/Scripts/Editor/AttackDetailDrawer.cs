@@ -9,6 +9,7 @@ public class AttackDetailDrawer : PropertyDrawer
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         EditorGUI.BeginProperty(position, label, property);
+        EnsureDefaults(property);
 
         property.isExpanded = EditorGUI.Foldout(
             new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight),
@@ -224,4 +225,65 @@ public class AttackDetailDrawer : PropertyDrawer
         SerializedProperty prop = root.FindPropertyRelative(relativeName);
         return prop != null ? prop.stringValue : string.Empty;
     }
+
+    #region
+    private void EnsureDefaults(SerializedProperty property)
+    {
+        SerializedProperty initProp = property.FindPropertyRelative("defaultsInitialized");
+        if (initProp == null || initProp.boolValue)
+            return;
+
+        SetEnumIndex(property, "preference", (int)AbilityPreference.Mixed);
+        SetBool(property, "unlocked", true);
+        SetFloat(property, "chance", 1f);
+
+        SetFloat(property, "minCooldown", 1.5f);
+        SetFloat(property, "maxCooldown", 2.5f);
+        SetFloat(property, "startCooldown", 0f);
+
+        SetFloat(property, "lingerTime", 0f);
+
+        SetFloat(property, "evasionSpeedMultiplier", 1.80f);
+        SetFloat(property, "evasionDuration", 2.5f);
+        SetFloat(property, "evadeBackAwayMin", 5f);
+        SetFloat(property, "evadeBackAwayMax", 6.5f);
+        SetFloat(property, "evadePassPastMin", 5f);
+        SetFloat(property, "evadePassPastMax", 6.5f);
+        SetFloat(property, "evadeReducedFactor", 0.6f);
+        SetFloat(property, "evadeTinyRetreat", 0.35f);
+
+        SetFloat(property, "stunDuration", 1f);
+        SetVector2(property, "stunDirection", new Vector2(10f, 12f));
+
+        SetVector2(property, "jumpAbilityVelocity", new Vector2(20f, 12f));
+        SetBool(property, "jumpBack", true);
+
+        initProp.boolValue = true;
+        property.serializedObject.ApplyModifiedProperties();
+    }
+
+    private static void SetBool(SerializedProperty root, string name, bool value)
+    {
+        var prop = root.FindPropertyRelative(name);
+        if (prop != null) prop.boolValue = value;
+    }
+
+    private static void SetFloat(SerializedProperty root, string name, float value)
+    {
+        var prop = root.FindPropertyRelative(name);
+        if (prop != null) prop.floatValue = value;
+    }
+
+    private static void SetEnumIndex(SerializedProperty root, string name, int value)
+    {
+        var prop = root.FindPropertyRelative(name);
+        if (prop != null) prop.enumValueIndex = value;
+    }
+
+    private static void SetVector2(SerializedProperty root, string name, Vector2 value)
+    {
+        var prop = root.FindPropertyRelative(name);
+        if (prop != null) prop.vector2Value = value;
+    }
+    #endregion
 }
