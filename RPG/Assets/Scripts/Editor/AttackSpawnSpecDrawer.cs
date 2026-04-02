@@ -40,6 +40,7 @@ public class AttackSpawnSpecDrawer : PropertyDrawer
         SerializedProperty canMove = property.FindPropertyRelative("canMove");
         if (canMove != null && canMove.boolValue)
         {
+            DrawProp(ref y, position, property, "canParry");
             DrawProp(ref y, position, property, "speed");
             DrawProp(ref y, position, property, "movementType");
 
@@ -121,6 +122,7 @@ public class AttackSpawnSpecDrawer : PropertyDrawer
         SerializedProperty canMove = property.FindPropertyRelative("canMove");
         if (canMove != null && canMove.boolValue)
         {
+            height += GetPropHeight(property, "canParry");
             height += GetPropHeight(property, "speed");
             height += GetPropHeight(property, "movementType");
 

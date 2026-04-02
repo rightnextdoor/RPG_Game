@@ -844,8 +844,11 @@ MonoBehaviour:
       attackPoints: 01000000
       prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
       collisionShape: 2
+      explodePoints: 
+      sounds: []
       control: {fileID: 7644891916077742246, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
       canMove: 1
+      canParry: 1
       speed: 7
       movementType: 1
       moveTimer: 2
@@ -855,7 +858,16 @@ MonoBehaviour:
       attackSpeedBoost: 3
       circleRadius: 2
       explodes: 0
-      timer: 0
+      lifeTimer: 3
+      destroyAfterTime: 3
+      canGrow: 0
+      growSpeed: 1
+      maxSize: 1
+      useExplosionTimer: 0
+      explosionTimer: 0
+      hasAnimation: 0
+      animationType: 0
+      animationBoolName: 
     sounds:
     - name: ArcherAttack
       soundPoints: 01000000
@@ -913,8 +925,11 @@ MonoBehaviour:
       attackPoints: 
       prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
       collisionShape: 0
+      explodePoints: 
+      sounds: []
       control: {fileID: 7644891916077742246, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
       canMove: 0
+      canParry: 0
       speed: 7
       movementType: 0
       moveTimer: 2
@@ -924,7 +939,16 @@ MonoBehaviour:
       attackSpeedBoost: 3
       circleRadius: 2
       explodes: 0
-      timer: 0
+      lifeTimer: 3
+      destroyAfterTime: 3
+      canGrow: 0
+      growSpeed: 1
+      maxSize: 1
+      useExplosionTimer: 0
+      explosionTimer: 0
+      hasAnimation: 0
+      animationType: 0
+      animationBoolName: 
     sounds:
     - name: ArcherAttack
       soundPoints: 
@@ -982,8 +1006,11 @@ MonoBehaviour:
       attackPoints: 
       prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
       collisionShape: 0
+      explodePoints: 
+      sounds: []
       control: {fileID: 7644891916077742246, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
       canMove: 0
+      canParry: 0
       speed: 7
       movementType: 0
       moveTimer: 2
@@ -993,7 +1020,16 @@ MonoBehaviour:
       attackSpeedBoost: 3
       circleRadius: 2
       explodes: 0
-      timer: 0
+      lifeTimer: 3
+      destroyAfterTime: 3
+      canGrow: 0
+      growSpeed: 1
+      maxSize: 1
+      useExplosionTimer: 0
+      explosionTimer: 0
+      hasAnimation: 0
+      animationType: 0
+      animationBoolName: 
     sounds:
     - name: ArcherAttack
       soundPoints: 
@@ -1051,8 +1087,11 @@ MonoBehaviour:
       attackPoints: 
       prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
       collisionShape: 0
+      explodePoints: 
+      sounds: []
       control: {fileID: 7644891916077742246, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
       canMove: 0
+      canParry: 0
       speed: 7
       movementType: 0
       moveTimer: 2
@@ -1062,7 +1101,16 @@ MonoBehaviour:
       attackSpeedBoost: 3
       circleRadius: 2
       explodes: 0
-      timer: 0
+      lifeTimer: 3
+      destroyAfterTime: 3
+      canGrow: 0
+      growSpeed: 1
+      maxSize: 1
+      useExplosionTimer: 0
+      explosionTimer: 0
+      hasAnimation: 0
+      animationType: 0
+      animationBoolName: 
     sounds:
     - name: ArcherAttack
       soundPoints: 

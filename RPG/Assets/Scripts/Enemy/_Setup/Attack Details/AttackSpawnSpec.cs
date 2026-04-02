@@ -59,6 +59,7 @@ public class AttackSpawnSpec
     public bool canMove = false;
     [Space(2)]
     [Header("Movement")]
+    public bool canParry = false;
     [Tooltip("Initial speed for the projectile (usually multiplied by facingDir).")]
     public float speed = 5f;
 

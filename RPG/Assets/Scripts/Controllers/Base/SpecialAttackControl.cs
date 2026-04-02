@@ -14,9 +14,6 @@ public abstract class SpecialAttackControl : MonoBehaviour
     private Rigidbody2D rb;
     protected List<AttackSpawnSpec> spawnSpecs;
 
-    [SerializeField] protected List<int> explodePoints = new();
-    [SerializeField] protected StateSound[] sounds;
-
     [SerializeField] private SpecialMovement movement;
     [SerializeField] private SpecialCollision specialCollision;
     [SerializeField] private SpecialDamage specialDamage;
@@ -129,6 +126,11 @@ public abstract class SpecialAttackControl : MonoBehaviour
         if (specialCollision == null) return;
 
         specialCollision.StuckInto();
+    }
+
+    public virtual bool FlipProjectile()
+    {
+        return false;
     }
     #endregion
 

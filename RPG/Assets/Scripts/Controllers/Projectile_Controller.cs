@@ -1,15 +1,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Arrow_Controller : SpecialAttackControl
+public class Projectile_Controller : SpecialAttackControl
 {
     private bool flipped;
+    private AttackSpawnSpec currentSpec;
 
     public override void Setup(CharacterStats _stats, List<AttackSpawnSpec> _spawnSpecs)
     {
         base.Setup(_stats, _spawnSpecs);
 
-        AttackSpawnSpec currentSpec = null;
+        currentSpec = null;
         if (spawnSpecs != null && spawnSpecs.Count > 0)
             currentSpec = spawnSpecs[0];
 
@@ -41,14 +42,18 @@ public class Arrow_Controller : SpecialAttackControl
         }
     }
 
-    public void FlipArrow()
+    public override bool FlipProjectile()
     {
+        if(!currentSpec.canParry)
+            return false;
+
         if (flipped)
-            return;
+            return false;
 
         ChangeDirection();
         ChangeTargetLayer("Enemy");
 
         flipped = true;
+        return true;
     }
 }
