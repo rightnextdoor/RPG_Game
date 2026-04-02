@@ -10,6 +10,20 @@ public enum SpecialMovementType
     Dive
 }
 
+public enum SpecialCollisionShape
+{
+    Circle,
+    Box,
+    Capsule
+}
+
+public enum SpecialAnimationType
+{
+    None,
+    Trigger,
+    Bool
+}
+
 [System.Serializable]
 public class AttackSpawnSpec
 {
@@ -23,12 +37,13 @@ public class AttackSpawnSpec
 
     [Tooltip("The projectile or special attack prefab to spawn.")]
     public GameObject prefab;
-    
-    [Tooltip("If true, the prefab will only spawn once per ON event (OFF resets it).")]
-    public bool spawnOncePerOn = true;
-    
-    [Tooltip("Optional SFX cue name to play when this prefab is spawned.")]
-    public string sfxOnSpawn;
+
+    [Tooltip("Which overlap shape this explosion uses.")]
+    public SpecialCollisionShape collisionShape = SpecialCollisionShape.Circle;
+
+    public List<int> explodePoints = new();
+    public StateSound[] sounds;
+
     #endregion
 
     #region Control
@@ -38,6 +53,10 @@ public class AttackSpawnSpec
     [Tooltip("The special attack controller used to run this attack.")]
     public SpecialAttackControl control;
 
+    #region Movement
+
+    [Space(6)]
+    public bool canMove = false;
     [Space(2)]
     [Header("Movement")]
     [Tooltip("Initial speed for the projectile (usually multiplied by facingDir).")]
@@ -71,27 +90,47 @@ public class AttackSpawnSpec
     public float circleRadius = 2f;
     #endregion
 
+    #endregion
+
     #region Explosion
-    [Space(2)]
-    [Header("Explosion Settings")]
-    [Tooltip("If true, this prefab will explode after a delay.")]
+    [Space(6)]
+    [Tooltip("If true, this spawned attack uses explosion behavior.")]
     public bool explodes = false;
 
-    [Tooltip("Explosion radius (only used if explodes = true).")]
-    public float explosionRadius = 1f;
+    [Space(2)]
+    [Header("Explosion Settings")]
+    [Tooltip("How long this projectile can live before it triggers the explosion if nothing hits it first.")]
+    public float lifeTimer = 3f;
 
-    [Tooltip("Time before the explosion triggers (only used if explodes = true).")]
-    public float explosionTimer = 2f;
+    [Tooltip("Fallback time before this object destroys itself after the explosion finishes, in case no animation destroy event is used.")]
+    public float destroyAfterTime = 3f;
 
-    [Header("Growth Settings")]
-    [Tooltip("If true, this prefab will grow over time until max size is reached.")]
-    public bool enableGrowth = false;
+    [Space(2)]
+    [Tooltip("If true, the explosion will grow before reaching its blast point.")]
+    public bool canGrow = false;
 
-    [Tooltip("Growth speed per second (only used if enableGrowth = true).")]
+    [Tooltip("How quickly the explosion grows toward its maximum size.")]
     public float growSpeed = 1f;
 
-    [Tooltip("Maximum size scale (only used if enableGrowth = true).")]
-    public float maxSize = 2f;
+    [Tooltip("The maximum scale the explosion can grow to before moving to the next explosion step.")]
+    public float maxSize = 1f;
+
+    [Space(2)]
+    [Tooltip("If true, the explosion uses a timer after it has already started.")]
+    public bool useExplosionTimer = false;
+
+    [Tooltip("How long the explosion waits after starting before it reaches its blast-ready point.")]
+    public float explosionTimer = 0f;
+
+    [Space(2)]
+    [Tooltip("If true, the explosion uses animation as part of its explosion flow.")]
+    public bool hasAnimation = false;
+
+    [Tooltip("Which animator parameter type this explosion uses.")]
+    public SpecialAnimationType animationType = SpecialAnimationType.None;
+
+    [Tooltip("The animation bool name the child uses to start the explosion animation.")]
+    public string animationBoolName;
     #endregion
 
     #endregion

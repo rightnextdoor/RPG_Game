@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(SpecialMovement))]
 [RequireComponent(typeof(SpecialCollision))]
 [RequireComponent(typeof(SpecialDamage))]
+[RequireComponent(typeof(SpecialExplosion))]
 public abstract class SpecialAttackControl : MonoBehaviour
 {
     protected Player player;
@@ -12,9 +14,13 @@ public abstract class SpecialAttackControl : MonoBehaviour
     private Rigidbody2D rb;
     protected List<AttackSpawnSpec> spawnSpecs;
 
+    [SerializeField] protected List<int> explodePoints = new();
+    [SerializeField] protected StateSound[] sounds;
+
     [SerializeField] private SpecialMovement movement;
     [SerializeField] private SpecialCollision specialCollision;
     [SerializeField] private SpecialDamage specialDamage;
+    [SerializeField] private SpecialExplosion specialExplosion;
 
     public virtual void Setup(CharacterStats _stats, List<AttackSpawnSpec> _spawnSpecs)
     {
@@ -33,11 +39,22 @@ public abstract class SpecialAttackControl : MonoBehaviour
         movement = GetComponent<SpecialMovement>();
         specialCollision = GetComponent<SpecialCollision>();
         specialDamage = GetComponent<SpecialDamage>();
+        specialExplosion = GetComponent<SpecialExplosion>();
     }
 
     protected virtual void Update()
     {
     }
+
+    #region Animation Trigger
+    public virtual void ExplosionPointTrigger(string pointName)
+    {
+    }
+
+    public virtual void SpecialSoundPointTrigger(string pointName)
+    {
+    }
+    #endregion
 
     #region Movement
     protected virtual void Movement(AttackSpawnSpec spec)
@@ -63,6 +80,13 @@ public abstract class SpecialAttackControl : MonoBehaviour
     #endregion
 
     #region Collision
+    protected void CheckCollisionShape(SpecialCollisionShape collisionShape)
+    {
+        if (specialCollision == null) return;
+
+        specialCollision.CheckCollisionShape(collisionShape);
+    }
+
     protected bool TryGetHit(out Collider2D hitCollision, out SpecialHitType hitType)
     {
         if (specialCollision == null)
@@ -73,6 +97,14 @@ public abstract class SpecialAttackControl : MonoBehaviour
         }
 
         return specialCollision.TryGetHit(out hitCollision, out hitType);
+    }
+
+    protected Collider2D[] GetOverlapHits(SpecialCollisionShape explosionShape)
+    {
+        if (specialCollision == null)
+            return new Collider2D[0];
+
+        return specialCollision.GetOverlapHits(explosionShape);
     }
 
     protected void ClearHit()
@@ -108,7 +140,7 @@ public abstract class SpecialAttackControl : MonoBehaviour
         specialDamage.DoDamage(targets);
     }
 
-    protected void SelfDestroy()
+    public void SelfDestroy()
     {
         if (specialDamage == null) return;
 
@@ -120,6 +152,43 @@ public abstract class SpecialAttackControl : MonoBehaviour
         if (specialDamage == null) return;
 
         specialDamage.DestroyAfter(time, useOwnerDeath);
+    }
+    #endregion
+
+    #region Explosion
+    protected void Explosion(AttackSpawnSpec spec)
+    {
+        if (specialExplosion == null || spec == null) return;
+
+        specialExplosion.Setup(spec);
+    }
+
+    protected void StartExplosion()
+    {
+        if (specialExplosion == null) return;
+
+        specialExplosion.StartExplosion();
+    }
+
+    protected bool ExplosionStarted()
+    {
+        if (specialExplosion == null) return false;
+
+        return specialExplosion.ExplosionStarted();
+    }
+
+    protected void FinishExplosion()
+    {
+        if (specialExplosion == null) return;
+
+        specialExplosion.FinishExplosion();
+    }
+
+    protected bool ExplosionFinished()
+    {
+        if (specialExplosion == null) return false;
+
+        return specialExplosion.ExplosionFinished();
     }
     #endregion
 }

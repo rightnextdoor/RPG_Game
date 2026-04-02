@@ -291,12 +291,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d987166f1567a14c872e5c23483cdbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTimelineAuthoring
-  profile: {fileID: 0}
-  selectedAttack: 
-  selectedCheck: 
   previewClipAudio: 1
-  lastAttackIndex: -1
-  lastCheckIndex: -1
 --- !u!1 &4429384550155033987
 GameObject:
   m_ObjectHideFlags: 0
@@ -799,15 +794,14 @@ MonoBehaviour:
   attackDetails:
   - name: Attack
     animBoolName: Attack
-    stateName: 
-    action: 0
+    action: 1
     preference: 1
     unlocked: 1
     cannotUseWithTeleport: 0
     canAttackAfterTeleport: 0
     chance: 1
-    minCooldown: 1
-    maxCooldown: 2
+    minCooldown: 1.5
+    maxCooldown: 2.5
     startCooldown: 0
     rangeMin: 0
     rangeMax: 10
@@ -849,9 +843,9 @@ MonoBehaviour:
     - name: Arrow
       attackPoints: 01000000
       prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
-      spawnOncePerOn: 0
-      sfxOnSpawn: 
+      collisionShape: 2
       control: {fileID: 7644891916077742246, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
+      canMove: 1
       speed: 7
       movementType: 1
       moveTimer: 2
@@ -861,11 +855,7 @@ MonoBehaviour:
       attackSpeedBoost: 3
       circleRadius: 2
       explodes: 0
-      explosionRadius: 0
-      explosionTimer: 0
-      enableGrowth: 0
-      growSpeed: 0
-      maxSize: 0
+      timer: 0
     sounds:
     - name: ArcherAttack
       soundPoints: 01000000
@@ -873,7 +863,6 @@ MonoBehaviour:
       useTransform: 1
   - name: Evade
     animBoolName: Move
-    stateName: 
     action: 1
     preference: 0
     unlocked: 1
@@ -923,9 +912,9 @@ MonoBehaviour:
     - name: Arrow
       attackPoints: 
       prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
-      spawnOncePerOn: 0
-      sfxOnSpawn: 
+      collisionShape: 0
       control: {fileID: 7644891916077742246, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
+      canMove: 0
       speed: 7
       movementType: 0
       moveTimer: 2
@@ -935,11 +924,7 @@ MonoBehaviour:
       attackSpeedBoost: 3
       circleRadius: 2
       explodes: 0
-      explosionRadius: 0
-      explosionTimer: 0
-      enableGrowth: 0
-      growSpeed: 0
-      maxSize: 0
+      timer: 0
     sounds:
     - name: ArcherAttack
       soundPoints: 
@@ -947,7 +932,6 @@ MonoBehaviour:
       useTransform: 1
   - name: Jump
     animBoolName: Jump
-    stateName: 
     action: 2
     preference: 0
     unlocked: 1
@@ -997,9 +981,9 @@ MonoBehaviour:
     - name: Arrow
       attackPoints: 
       prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
-      spawnOncePerOn: 0
-      sfxOnSpawn: 
+      collisionShape: 0
       control: {fileID: 7644891916077742246, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
+      canMove: 0
       speed: 7
       movementType: 0
       moveTimer: 2
@@ -1009,11 +993,7 @@ MonoBehaviour:
       attackSpeedBoost: 3
       circleRadius: 2
       explodes: 0
-      explosionRadius: 0
-      explosionTimer: 0
-      enableGrowth: 0
-      growSpeed: 0
-      maxSize: 0
+      timer: 0
     sounds:
     - name: ArcherAttack
       soundPoints: 
@@ -1021,7 +1001,6 @@ MonoBehaviour:
       useTransform: 1
   - name: Stunned
     animBoolName: Stunned
-    stateName: 
     action: 3
     preference: 0
     unlocked: 1
@@ -1071,9 +1050,9 @@ MonoBehaviour:
     - name: Arrow
       attackPoints: 
       prefab: {fileID: 7808861630263311754, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
-      spawnOncePerOn: 0
-      sfxOnSpawn: 
+      collisionShape: 0
       control: {fileID: 7644891916077742246, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
+      canMove: 0
       speed: 7
       movementType: 0
       moveTimer: 2
@@ -1083,11 +1062,7 @@ MonoBehaviour:
       attackSpeedBoost: 3
       circleRadius: 2
       explodes: 0
-      explosionRadius: 0
-      explosionTimer: 0
-      enableGrowth: 0
-      growSpeed: 0
-      maxSize: 0
+      timer: 0
     sounds:
     - name: ArcherAttack
       soundPoints: 

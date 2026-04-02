@@ -13,6 +13,9 @@ public class Arrow_Controller : SpecialAttackControl
         if (spawnSpecs != null && spawnSpecs.Count > 0)
             currentSpec = spawnSpecs[0];
 
+        if (currentSpec != null)
+            CheckCollisionShape(currentSpec.collisionShape);
+
         Movement(currentSpec);
     }
 

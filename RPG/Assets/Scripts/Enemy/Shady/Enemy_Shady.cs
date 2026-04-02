@@ -5,19 +5,6 @@ using UnityEngine;
 
 public class Enemy_Shady : Enemy_Regular
 {
-    [Header("Shady specific")]
-    //public float battleStateMoveSpeed;
-    public Transform specialAttack;
-    public float specialAttackRadius = 1.2f;
-
-    [SerializeField] private GameObject explosivePrefab;
-    private GameObject currentBall;
-    [SerializeField] private float growSpeed;
-    [SerializeField] private float maxSize;
-
-    [SerializeField] private float explosionSpeed = 7;
-    [SerializeField] private float explosionTimer = 3;
-
     public CooldownSystem cooldownSystem { get; private set; }
     public AbilityHub abilityHub { get; private set; }
     #region States
@@ -299,25 +286,7 @@ public class Enemy_Shady : Enemy_Regular
             cd.enabled = false;
         }
         stateMachine.ChangeState(deadState);
-    }
-
-    public override void AnimationSpecialAttackTrigger()
-    {
-        CreateBall();
-        currentBall.GetComponent<Explosive_Controller>().SetupExplosive(stats, growSpeed, maxSize, specialAttackRadius, explosionSpeed, explosionTimer);
-    }
-
-    private void CreateBall()
-    {
-        currentBall = Instantiate(explosivePrefab, specialAttack.position, Quaternion.identity);
-        currentBall.transform.position = specialAttack.position;
-    }
-
-    protected override void OnDrawGizmos()
-    {
-        base.OnDrawGizmos();
-        Gizmos.DrawWireSphere(specialAttack.position, specialAttackRadius);
-    }
+    } 
 
     public override void SelfDestroy() => Destroy(gameObject);
 }

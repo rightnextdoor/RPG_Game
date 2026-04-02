@@ -266,7 +266,7 @@ Transform:
   m_GameObject: {fileID: 3494640042400452541}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.35, y: 0.49, z: 0}
+  m_LocalPosition: {x: 0.303, y: 0.516, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -501,12 +501,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d987166f1567a14c872e5c23483cdbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTimelineAuthoring
-  profile: {fileID: 0}
-  selectedAttack: 
-  selectedCheck: 
   previewClipAudio: 1
-  lastAttackIndex: -1
-  lastCheckIndex: -1
 --- !u!1 &5914353494759342800
 GameObject:
   m_ObjectHideFlags: 0
@@ -1129,6 +1124,90 @@ MonoBehaviour:
       soundPoints: 01000000
       delay: 0
       useTransform: 1
+  - name: Attack
+    animBoolName: Attack
+    action: 1
+    preference: 1
+    unlocked: 1
+    cannotUseWithTeleport: 0
+    canAttackAfterTeleport: 0
+    chance: 0
+    minCooldown: 1.5
+    maxCooldown: 2.5
+    startCooldown: 0
+    rangeMin: 0
+    rangeMax: 10
+    lingerTime: 0
+    attackAmount: 0
+    attackTimeMin: 0
+    attackTimeMax: 0
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 4
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 10
+    evadePassPastMin: 5
+    evadePassPastMax: 10
+    evadeReducedFactor: 0.6
+    evadeTinyRetreat: 0.35
+    stunDuration: 1
+    stunDirection: {x: 10, y: 12}
+    canBeStunned: 0
+    counterImage: {fileID: 556552288427255572}
+    jumpAbilityVelocity: {x: 0, y: 0}
+    jumpBack: 0
+    attackChecks:
+    - label: Attack
+      attackPoints: 01000000
+      shape: 0
+      checkTransform: {fileID: 38657904299698884}
+      debugDraw: 0
+      circleRadius: 0.57
+      boxSize: {x: 2, y: 2}
+      capsuleSize: {x: 2, y: 2}
+      capsuleDirection: 0
+      lineLength: 0
+      lineThickness: 0
+      arcRadius: 1.46
+      arcAngleDegrees: 60.16
+      arcInnerRadius: 2.02
+      polygonPoints: []
+    spawnSpec:
+    - name: Explosion
+      attackPoints: 01000000
+      prefab: {fileID: 6716726427099878741, guid: bc464ad7b7b86d74b832331ef517693b, type: 3}
+      collisionShape: 0
+      explodePoints: 01000000
+      sounds:
+      - name: Explosion
+        soundPoints: 01000000
+        delay: 0
+        useTransform: 1
+      control: {fileID: 4815306682902332354, guid: bc464ad7b7b86d74b832331ef517693b, type: 3}
+      canMove: 1
+      speed: 7
+      movementType: 1
+      moveTimer: 0
+      homingTurnSpeed: 0
+      homingRecoverUpStrength: 0
+      maxLoops: 0
+      attackSpeedBoost: 0
+      circleRadius: 0
+      explodes: 1
+      lifeTimer: 3
+      destroyAfterTime: 3
+      canGrow: 1
+      growSpeed: 15
+      maxSize: 6
+      useExplosionTimer: 0
+      explosionTimer: 0
+      hasAnimation: 1
+      animationType: 1
+      animationBoolName: Explode
+    sounds:
+    - name: ShadyAttack
+      soundPoints: 01000000
+      delay: 0
+      useTransform: 1
   battlePreference: 1
   battleMinCooldown: 1
   battleMaxCooldown: 2
@@ -1142,13 +1221,6 @@ MonoBehaviour:
   patrolSnapshotDone: 0
   traverseStopMinSeconds: 1
   traverseStopMaxSeconds: 2.5
-  specialAttack: {fileID: 38657904299698884}
-  specialAttackRadius: 2.5
-  explosivePrefab: {fileID: 6716726427099878741, guid: bc464ad7b7b86d74b832331ef517693b, type: 3}
-  growSpeed: 10
-  maxSize: 7
-  explosionSpeed: 7
-  explosionTimer: 2
 --- !u!1 &7274081805827016418
 GameObject:
   m_ObjectHideFlags: 0
