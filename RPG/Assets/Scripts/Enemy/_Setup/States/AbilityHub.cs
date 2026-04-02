@@ -3,97 +3,199 @@ using UnityEngine;
 
 public class AbilityHub
 {
-    public AbilityEntry TryPick(IDictionary<string, AbilityEntry> abilityMap, float playerDistance)
+    private readonly List<AbilityEntry> buildList = new();
+    private readonly List<AbilityEntry> attackAbilities = new();
+    private readonly List<AbilityEntry> evadeAbilities = new();
+    private readonly List<AbilityEntry> jumpAbilities = new();
+    private readonly List<AbilityEntry> teleportAbilities = new();
+
+    private CooldownSystem cooldownSystem;
+    
+    private float exactPreferenceWeight = 1.5f;
+    private float mixedPreferenceWeight = 1.1f;
+    private float oppositePreferenceWeight = 0.6f;
+
+    #region Setup
+    public void Setup(CooldownSystem _cooldownSystem)
     {
-        if (abilityMap == null || abilityMap.Count == 0) return null;
-
-        var eligible = BuildEligibleList(abilityMap, playerDistance);
-        if (eligible.Count == 0) return null;
-
-        while (eligible.Count > 0)
-        {
-            var chosen = WeightedPickByChance(eligible);
-            if (TryConsumeCooldown(chosen))
-                return chosen;
-
-            eligible.Remove(chosen);
-        }
-
-        return null;
+        cooldownSystem = _cooldownSystem;
     }
 
-    private List<AbilityEntry> BuildEligibleList(IDictionary<string, AbilityEntry> abilityMap, float playerDistance)
+    public void BuildAbilityLists(IDictionary<string, AbilityEntry> abilityMap)
     {
-        var list = new List<AbilityEntry>(abilityMap.Count);
+        attackAbilities.Clear();
+        evadeAbilities.Clear();
+        jumpAbilities.Clear();
+        teleportAbilities.Clear();
+
+        if (abilityMap == null || abilityMap.Count == 0)
+            return;
 
         foreach (var kvp in abilityMap)
         {
-            var entry = kvp.Value;
-            if (entry == null) continue;
-            if (!entry.unlocked) continue;
-
-            bool hasMin = entry.rangeMin.HasValue;
-            bool hasMax = entry.rangeMax.HasValue;
-
-            bool noRangeByNulls = !hasMin && !hasMax;
-            bool noRangeByZeros = hasMin && hasMax &&
-                                  Mathf.Approximately(entry.rangeMin.Value, 0f) &&
-                                  Mathf.Approximately(entry.rangeMax.Value, 0f);
-
-            if (noRangeByNulls || noRangeByZeros)
-            {
-                list.Add(entry);
+            AbilityEntry entry = kvp.Value;
+            if (entry == null)
                 continue;
-            }
 
-            if (hasMin && !hasMax)
+            switch (entry.action)
             {
-                if (playerDistance >= entry.rangeMin.Value) list.Add(entry);
-                continue;
-            }
+                case BattleAction.Attack:
+                    attackAbilities.Add(entry);
+                    break;
 
-            if (!hasMin && hasMax)
-            {
-                if (playerDistance <= entry.rangeMax.Value) list.Add(entry);
-                continue;
-            }
+                case BattleAction.Evade:
+                    evadeAbilities.Add(entry);
+                    break;
 
-            // both set
-            if (playerDistance >= entry.rangeMin.Value && playerDistance <= entry.rangeMax.Value)
-                list.Add(entry);
+                case BattleAction.Jump:
+                    jumpAbilities.Add(entry);
+                    break;
+
+                case BattleAction.Teleport:
+                    teleportAbilities.Add(entry);
+                    break;
+            }
         }
-
-        return list;
     }
 
-    private AbilityEntry WeightedPickByChance(List<AbilityEntry> candidates)
+    #endregion
+
+    public AbilityEntry GetAbility(BattleAction action, AbilityPreference preference)
     {
-        float total = 0f;
-        foreach (var candidate in candidates)
-            total += 1f + Mathf.Max(0f, candidate.chance); 
-
-        float roll = Random.Range(0f, total);
-        float accum = 0f;
-
-        foreach (var candidate in candidates)
+        switch (action)
         {
-            accum += 1f + Mathf.Max(0f, candidate.chance);
-            if (roll < accum) return candidate; 
-        }
+            case BattleAction.Attack:
+                return GetAbilityFromList(attackAbilities, preference);
 
-        return candidates[candidates.Count - 1];
+            case BattleAction.Evade:
+                return GetAbilityFromList(evadeAbilities, preference);
+
+            case BattleAction.Jump:
+                return GetAbilityFromList(jumpAbilities, preference);
+
+            case BattleAction.Teleport:
+                return GetAbilityFromList(teleportAbilities, preference);
+
+            default:
+                return null;
+        }
     }
 
-
-
-    private bool TryConsumeCooldown(AbilityEntry entry)
+    private AbilityEntry GetAbilityFromList(List<AbilityEntry> sourceList, AbilityPreference preference)
     {
-        if (Time.time >= entry.lastTimeUsed + entry.cooldown)
-        {
-            entry.cooldown = Random.Range(entry.minCooldown, entry.maxCooldown);
-            entry.lastTimeUsed = Time.time;
-            return true;
-        }
-        return false;
+        FilterAbilities(sourceList);
+
+        if (buildList.Count == 0)
+            return null;
+
+        return ChooseAbility(sourceList, preference);
     }
+
+    private void FilterAbilities(List<AbilityEntry> sourceList)
+    {
+        buildList.Clear();
+
+        if (sourceList == null || sourceList.Count == 0)
+            return;
+
+        foreach (var entry in sourceList)
+        {
+            if (entry == null)
+                continue;
+
+            if (!entry.unlocked)
+                continue;
+
+            if (!cooldownSystem.IsAbilityReady(entry.action, entry.name))
+                continue;
+
+            buildList.Add(entry);
+        }
+    }
+
+    #region Choose ability
+    private AbilityEntry ChooseAbility(List<AbilityEntry> sourceList, AbilityPreference preference)
+    {
+        float totalWeight = 0f;
+
+        foreach (var entry in buildList)
+            totalWeight += GetWeight(entry, preference);
+
+        if (totalWeight <= 0f)
+            return null;
+
+        float roll = Random.Range(0f, totalWeight);
+        float currentWeight = 0f;
+
+        foreach (var entry in buildList)
+        {
+            currentWeight += GetWeight(entry, preference);
+
+            if (roll <= currentWeight)
+            {
+                UpdateRepeatStreak(sourceList, entry);
+                return entry;
+            }
+        }
+
+        AbilityEntry chosenEntry = buildList[buildList.Count - 1];
+        UpdateRepeatStreak(sourceList, chosenEntry);
+        return chosenEntry;
+    }
+
+    private float GetWeight(AbilityEntry entry, AbilityPreference preference)
+    {
+        if (entry == null)
+            return 0f;
+
+        float chanceWeight = entry.chance <= 0f ? 1f : entry.chance;
+        float preferenceWeight = GetPreferenceWeight(preference, entry.preference);
+        float repeatWeight = GetRepeatWeight(entry.repeatStreak);
+
+        return chanceWeight * preferenceWeight * repeatWeight;
+    }
+
+    private float GetPreferenceWeight(AbilityPreference requestedPreference, AbilityPreference abilityPreference)
+    {
+        if (requestedPreference == abilityPreference)
+            return exactPreferenceWeight;
+
+        if (requestedPreference == AbilityPreference.Mixed || abilityPreference == AbilityPreference.Mixed)
+            return mixedPreferenceWeight;
+
+        return oppositePreferenceWeight;
+    }
+
+    private float GetRepeatWeight(int repeatStreak)
+    {
+        switch (repeatStreak)
+        {
+            case 0:
+                return 1f;
+            case 1:
+                return 0.75f;
+            case 2:
+                return 0.5f;
+            default:
+                return 0.35f;
+        }
+    }
+
+    private void UpdateRepeatStreak(List<AbilityEntry> sourceList, AbilityEntry chosenEntry)
+    {
+        if (sourceList == null || sourceList.Count == 0 || chosenEntry == null)
+            return;
+
+        foreach (var entry in sourceList)
+        {
+            if (entry == null)
+                continue;
+
+            if (entry == chosenEntry)
+                entry.repeatStreak++;
+            else
+                entry.repeatStreak = 0;
+        }
+    }
+    #endregion
 }

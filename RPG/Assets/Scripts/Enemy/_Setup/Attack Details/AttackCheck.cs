@@ -17,6 +17,7 @@ public class AttackCheck
 {
     [Header("Identity")]
     public string label;
+    public List<int> attackPoints = new();
     public AttackCheckShape shape = AttackCheckShape.Point;
 
     [Tooltip("Anchor for this check (bone/empty).")]
@@ -144,33 +145,37 @@ public class AttackCheck
     private static void DrawArc2D(float innerR, float outerR, float angleDeg)
     {
         int steps = Mathf.Max(8, Mathf.CeilToInt(Mathf.Abs(angleDeg) / 6f));
+        float halfAng = angleDeg * 0.5f;
+        float startAng = -halfAng;
         float step = angleDeg / steps;
 
-        Vector3 prevOuter = Polar2D(outerR, 0);
+        Vector3 prevOuter = Polar2D(outerR, startAng);
         for (int i = 1; i <= steps; i++)
         {
-            Vector3 nextOuter = Polar2D(outerR, step * i);
+            float ang = startAng + step * i;
+            Vector3 nextOuter = Polar2D(outerR, ang);
             UnityEditor.Handles.DrawLine(prevOuter, nextOuter);
             prevOuter = nextOuter;
         }
 
         if (innerR > 0f)
         {
-            Vector3 prevInner = Polar2D(innerR, 0);
+            Vector3 prevInner = Polar2D(innerR, startAng);
             for (int i = 1; i <= steps; i++)
             {
-                Vector3 nextInner = Polar2D(innerR, step * i);
+                float ang = startAng + step * i;
+                Vector3 nextInner = Polar2D(innerR, ang);
                 UnityEditor.Handles.DrawLine(prevInner, nextInner);
                 prevInner = nextInner;
             }
 
-            UnityEditor.Handles.DrawLine(Polar2D(innerR, 0), Polar2D(outerR, 0));
-            UnityEditor.Handles.DrawLine(Polar2D(innerR, angleDeg), Polar2D(outerR, angleDeg));
+            UnityEditor.Handles.DrawLine(Polar2D(innerR, startAng), Polar2D(outerR, startAng));
+            UnityEditor.Handles.DrawLine(Polar2D(innerR, halfAng), Polar2D(outerR, halfAng));
         }
         else
         {
-            UnityEditor.Handles.DrawLine(Vector3.zero, Polar2D(outerR, 0));
-            UnityEditor.Handles.DrawLine(Vector3.zero, Polar2D(outerR, angleDeg));
+            UnityEditor.Handles.DrawLine(Vector3.zero, Polar2D(outerR, startAng));
+            UnityEditor.Handles.DrawLine(Vector3.zero, Polar2D(outerR, halfAng));
         }
     }
 

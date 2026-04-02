@@ -3,7 +3,8 @@ using UnityEngine;
 
 public class Enemy_Skeleton : Enemy_Regular
 {
-
+    public CooldownSystem cooldownSystem { get; private set; }
+    public AbilityHub abilityHub { get; private set; }
     #region States
     public IdleStateBase<Enemy_Skeleton> idleState { get; private set; }
     public MoveStateBase<Enemy_Skeleton> moveState { get; private set; }
@@ -18,10 +19,8 @@ public class Enemy_Skeleton : Enemy_Regular
     protected override void Awake()
     {
         base.Awake();
-        BuildStates();
+        SetupStates();
     }
-
-
 
     protected override void Update()
     {
@@ -34,100 +33,138 @@ public class Enemy_Skeleton : Enemy_Regular
         stateMachine.Initialize(idleState);
     }
 
+    private void SetupStates()
+    {
+        BuildStates();
+        MapAbilityStates();
+
+        cooldownSystem = new CooldownSystem();
+        cooldownSystem.Setup(abilityMap, battleMinCooldown, battleMaxCooldown);
+
+        abilityHub = new AbilityHub();
+        abilityHub.BuildAbilityLists(abilityMap);
+        abilityHub.Setup(cooldownSystem);
+
+        battleState?.Configure(abilityHub, cooldownSystem, abilityMap, battlePreference);
+    }
+
     private void BuildStates()
     {
-        idleState = new IdleWithTargets(
-                    this, stateMachine, "Idle",
-                    moveFactory: () => moveState,
-                    battleFactory: () => battleState,
-                    enterSounds: null,
-                    exitSounds: new System.Collections.Generic.List<StateSound> {
-                new StateSound { name = "SkeletonIdle", useTransform = true }
-                    }
-                );
-        moveState = new MoveStateBase<Enemy_Skeleton>(
-            this,
-            stateMachine,
-            "Move",
-            idleState: () => idleState,
-            battleState: () => battleState
-        );
-        battleState = new BattleStateBase<Enemy_Skeleton>(
-            this,
-            stateMachine,
-            "Battle",
-            idleState: () => idleState,
-            nextState: () => idleState
-        );
-        AttackDetail detailAttack = null;
-        AttackDetail detailAttack2 = null;
+        StateDetail idleDetail = null;
+        StateDetail moveDetail = null;
+        StateDetail battleDetail = null;
+        StateDetail attack1Detail = null;
+        StateDetail attack2Detail = null;
+        StateDetail stunnedDetail = null;
+        StateDetail deadDetail = null;
+        StateDetail evasionDetail = null;
 
-        if (attackDetails != null && attackDetails.Count > 0)
+        AssignStateDetails(EnemyStateType.Idle, detail => idleDetail = detail);
+        AssignStateDetails(EnemyStateType.Move, detail => moveDetail = detail);
+        AssignStateDetails(EnemyStateType.Battle, detail => battleDetail = detail);
+        AssignStateDetails(EnemyStateType.Attack,
+            detail => attack1Detail = detail,
+            detail => attack2Detail = detail);
+        AssignStateDetails(EnemyStateType.Stunned, detail => stunnedDetail = detail);
+        AssignStateDetails(EnemyStateType.Dead, detail => deadDetail = detail);
+        AssignStateDetails(EnemyStateType.Evasion, detail => evasionDetail = detail);
+
+        if (idleDetail != null)
         {
-            detailAttack = attackDetails.Find(d => d != null && d.name == "Attack")
-                           ?? attackDetails[0];
-
-            if (attackDetails.Count > 1)
-                detailAttack2 = attackDetails.Find(d => d != null && d.name == "Attack2")
-                                ?? attackDetails[1];
-            else
-                detailAttack2 = detailAttack;
+            idleState = new IdleWithTargets(
+                this,
+                stateMachine,
+                idleDetail.animBoolName,
+                moveFactory: () => moveState,
+                battleFactory: () => battleState,
+                enterSounds: ToSoundList(idleDetail.enterSounds),
+                exitSounds: ToSoundList(idleDetail.exitSounds)
+            );
         }
-        if (detailAttack != null)
+
+        if (moveDetail != null)
+        {
+            moveState = new MoveStateBase<Enemy_Skeleton>(
+                this,
+                stateMachine,
+                moveDetail.animBoolName,
+                idleState: () => idleState,
+                battleState: () => battleState,
+                enterSounds: ToSoundList(moveDetail.enterSounds),
+                exitSounds: ToSoundList(moveDetail.exitSounds)
+            );
+        }
+
+        if (battleDetail != null)
+        {
+            battleState = new BattleStateBase<Enemy_Skeleton>(
+                this,
+                stateMachine,
+                battleDetail.animBoolName,
+                idleState: () => idleState,
+                nextState: () => idleState,
+                enterSounds: ToSoundList(battleDetail.enterSounds),
+                exitSounds: ToSoundList(battleDetail.exitSounds)
+            );
+        }
+
+        if (attack1Detail != null)
         {
             attackState = new AttackStateBase<Enemy_Skeleton>(
                 this,
                 stateMachine,
-                detailAttack,
-                nextStateFactory: () => battleState
+                attack1Detail.animBoolName,
+                nextStateFactory: () => battleState,
+                enterSounds: ToSoundList(attack1Detail.enterSounds),
+                exitSounds: ToSoundList(attack1Detail.exitSounds)
             );
         }
 
-        if (detailAttack2 != null)
+        if (attack2Detail != null)
         {
             attack2State = new AttackStateBase<Enemy_Skeleton>(
                 this,
                 stateMachine,
-                detailAttack2,
-                nextStateFactory: () => battleState
+                attack2Detail.animBoolName,
+                nextStateFactory: () => battleState,
+                enterSounds: ToSoundList(attack2Detail.enterSounds),
+                exitSounds: ToSoundList(attack2Detail.exitSounds)
             );
         }
-        stunnedState = new StunnedStateBase<Enemy_Skeleton>(
-            this,
-            stateMachine,
-            "Stunned",
-            nextState: () => battleState
-        );
-        deadState = new DeadStateBase<Enemy_Skeleton>(
-            this,
-            stateMachine,
-            "Die",
-            enterSounds: new List<StateSound> {
-                new StateSound { name = "SkeletonDie", useTransform = true }
-            },
-            exitSounds: null
-        );
-        evasionState = new EvasionStateBase<Enemy_Skeleton>(
-            this,
-            stateMachine,
-            "Move",
-            battleState: () => battleState
-        );
 
-        if (abilityMap != null)
+        if (stunnedDetail != null)
         {
-            if (abilityMap.TryGetValue("Attack", out var a1) && a1 != null)
-                a1.state = attackState;
+            stunnedState = new StunnedStateBase<Enemy_Skeleton>(
+                this,
+                stateMachine,
+                stunnedDetail.animBoolName,
+                nextState: () => battleState,
+                enterSounds: ToSoundList(stunnedDetail.enterSounds),
+                exitSounds: ToSoundList(stunnedDetail.exitSounds)
+            );
+        }
 
-            if (abilityMap.TryGetValue("Attack2", out var a2) && a2 != null)
-                a2.state = attack2State;
+        if (deadDetail != null)
+        {
+            deadState = new DeadStateBase<Enemy_Skeleton>(
+                this,
+                stateMachine,
+                deadDetail.animBoolName,
+                enterSounds: ToSoundList(deadDetail.enterSounds),
+                exitSounds: ToSoundList(deadDetail.exitSounds)
+            );
+        }
 
-            if (abilityMap.TryGetValue("Evade", out var mv) && mv != null)
-            {
-                mv.state = evasionState;
-                mv.action = BattleAction.Evade;
-                mv.unlocked = true;
-            }
+        if (evasionDetail != null)
+        {
+            evasionState = new EvasionStateBase<Enemy_Skeleton>(
+                this,
+                stateMachine,
+                evasionDetail.animBoolName,
+                battleState: () => battleState,
+                enterSounds: ToSoundList(evasionDetail.enterSounds),
+                exitSounds: ToSoundList(evasionDetail.exitSounds)
+            );
         }
     }
 
@@ -135,27 +172,57 @@ public class Enemy_Skeleton : Enemy_Regular
     {
         base.MapAbilityStates();
 
-        if (abilityMap.TryGetValue("Attack", out var a1) && a1 != null)
-        {
-            a1.state = attackState;
-        }
+        if (abilityMap == null || abilityMap.Count == 0)
+            return;
 
-        if (abilityMap.TryGetValue("Attack2", out var a2) && a2 != null)
+        foreach (var entry in abilityMap.Values)
         {
-            a2.state = attack2State;
-        }
+            if (entry == null || string.IsNullOrWhiteSpace(entry.animBoolName))
+                continue;
 
-        abilityMap["Evade"] = new AbilityEntry(
-            name: "Evade",
-            animBoolName: "Move",
-            state: evasionState,
-            rangeMin: evadeRangeMin,
-            rangeMax: evadeRangeMax,
-            minCooldown: evasionCooldownMin,
-            maxCooldown: evasionCooldownMax,
-            chance: 1f,
-            action: BattleAction.Evade
-        );
+            switch (entry.action)
+            {
+                case BattleAction.Attack:
+                    if (attackState != null && attackState.animBoolName == entry.animBoolName)
+                        entry.state = attackState;
+                    else if (attack2State != null && attack2State.animBoolName == entry.animBoolName)
+                        entry.state = attack2State;
+                    break;
+
+                case BattleAction.Evade:
+                    if (evasionState != null && evasionState.animBoolName == entry.animBoolName)
+                        entry.state = evasionState;
+                    break;
+
+                case BattleAction.Jump:
+                    break;
+
+                case BattleAction.Stunned:
+                    if (stunnedState != null && stunnedState.animBoolName == entry.animBoolName)
+                    {
+                        entry.state = stunnedState;
+                        stunnedState.Configure(entry.stunDuration, entry.stunDirection);
+                    }
+                    break;
+
+                case BattleAction.Teleport:
+                    break;
+            }
+        }
+    }
+
+    public override void StartBattle()
+    {
+        base.StartBattle();
+        cooldownSystem?.ApplyStartCooldowns();
+    }
+
+    private List<StateSound> ToSoundList(StateSound[] sounds)
+    {
+        if (sounds == null || sounds.Length == 0)
+            return null;
+
+        return new List<StateSound>(sounds);
     }
 
     private sealed class IdleWithTargets : IdleStateBase<Enemy_Skeleton>
@@ -169,8 +236,8 @@ public class Enemy_Skeleton : Enemy_Regular
             string animBool,
             System.Func<EnemyState> moveFactory,
             System.Func<EnemyState> battleFactory,
-            System.Collections.Generic.List<StateSound> enterSounds = null,
-            System.Collections.Generic.List<StateSound> exitSounds = null
+            List<StateSound> enterSounds = null,
+            List<StateSound> exitSounds = null
         ) : base(enemy, sm, animBool, enterSounds, exitSounds)
         {
             this.moveFactory = moveFactory;
@@ -179,6 +246,21 @@ public class Enemy_Skeleton : Enemy_Regular
 
         protected override EnemyState MoveState => moveFactory?.Invoke();
         protected override EnemyState BattleState => battleFactory?.Invoke();
+    }
+
+    public override void ChangeBattleCooldownRange(float minCooldown, float maxCooldown)
+    {
+        cooldownSystem?.ChangeBattleCooldownRange(minCooldown, maxCooldown);
+    }
+
+    public override void TempChangeBattleCooldownRange(float minCooldown, float maxCooldown, float duration)
+    {
+        cooldownSystem?.TempChangeBattleCooldownRange(minCooldown, maxCooldown, duration);
+    }
+
+    public override void PauseBattleCooldown(bool pause)
+    {
+        cooldownSystem?.PauseBattleCooldown(pause);
     }
 
 

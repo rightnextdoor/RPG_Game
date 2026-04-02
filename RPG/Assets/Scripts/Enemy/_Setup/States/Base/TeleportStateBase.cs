@@ -27,6 +27,11 @@ public class TeleportStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : 
         nextProvider = next;
     }
 
+    public virtual void SetNextState(Func<EnemyState> next)
+    {
+        nextProvider = next;
+    }
+
     public override void Enter()
     {
         base.Enter();

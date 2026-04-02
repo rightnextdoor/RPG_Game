@@ -38,6 +38,11 @@ public class JumpStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         configuredIsBack = isJumpBack;
     }
 
+    public virtual void SetNextState(Func<EnemyState> next)
+    {
+        nextProvider = next;
+    }
+
     public override void Enter()
     {
         base.Enter();

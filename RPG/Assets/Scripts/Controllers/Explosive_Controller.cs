@@ -1,91 +1,136 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Explosive_Controller : MonoBehaviour
+public class Explosive_Controller : SpecialAttackControl
 {
     private Animator anim;
-    private CharacterStats myStats;
-    private float growSpeed = 15;
-    private float maxSize = 6;
-    private float explosionRadius;
+    private AttackSpawnSpec currentSpec;
 
-    private bool canGrow;
-
-    private CircleCollider2D cd => GetComponent<CircleCollider2D>();
-    private Player player;
-    private float explosionTimer;
-    private float moveSpeed;
-    [SerializeField] private float distanceToExplosion = 1;
-    private bool canMove;
-
-    private void Update()
+    public override void Setup(CharacterStats _stats, List<AttackSpawnSpec> _spawnSpecs)
     {
-        explosionTimer -= Time.deltaTime;
+        base.Setup(_stats, _spawnSpecs);
 
-        if (explosionTimer < 0)
-        {
-            FinishExplosion();
-        }
-        if(canMove)
-            MoveToPlayer();
-
-        if (canGrow)
-            transform.localScale = Vector2.Lerp(transform.lossyScale, new Vector2(maxSize, maxSize), growSpeed * Time.deltaTime);
-
-        if (maxSize - transform.lossyScale.x < .5f)
-        {
-            canGrow = false;
-            anim.SetTrigger("Explode");
-        }
-
-    }
-
-    private void MoveToPlayer()
-    {
-        if (player == null)
-            return;
-        transform.position = Vector2.MoveTowards(transform.position, player.transform.position, moveSpeed * Time.deltaTime);
-        if (Vector2.Distance(transform.position, player.transform.position) < distanceToExplosion)
-        {
-            FinishExplosion();
-        }
-    }
-
-    public void SetupExplosive(CharacterStats _mystats, float _growSpeed, float _maxSize, float _radius, float _moveSpeed, float _explosionTimer)
-    {
         anim = GetComponent<Animator>();
 
-        myStats = _mystats;
-        growSpeed = _growSpeed;
-        maxSize = _maxSize;
-        explosionRadius = _radius;
-        player = PlayerManager.instance.player;
-        moveSpeed = _moveSpeed;
-        explosionTimer = _explosionTimer;
-        canMove = true;
+        currentSpec = null;
+        if (spawnSpecs != null && spawnSpecs.Count > 0)
+            currentSpec = spawnSpecs[0];
+
+        if (currentSpec != null)
+            CheckCollisionShape(currentSpec.collisionShape);
+
+        Movement(currentSpec);
+        Explosion(currentSpec);
     }
 
-    private void AnimationExplodeEvent()
+    protected override void Update()
     {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
-        AudioManager.instance.PlaySFX("Explosion", transform);
-        foreach (var hit in colliders)
+        base.Update();
+
+        if (TryGetHit(out Collider2D hitCollision, out SpecialHitType hitType))
         {
-            if (hit.GetComponent<CharacterStats>() != null)
-            {
-                hit.GetComponent<Entity>().SetupKnockbackDir(transform);
-                myStats.DoDamage(hit.GetComponent<CharacterStats>());         
-            }
+            if (hitType == SpecialHitType.Target || hitType == SpecialHitType.Ground)
+                StartExplosionFlow();
+        }
+
+        if (ExplosionStarted())
+            StartExplosionFlow();
+
+        if (ExplosionFinished())
+            FinishExplosionFlow();
+    }
+
+    private void StartExplosionFlow()
+    {
+        StopMovement();
+        StartExplosion();
+        StartExplosionAnimation();
+    }
+
+    private void StartExplosionAnimation()
+    {
+        if (anim == null || currentSpec == null || !currentSpec.hasAnimation)
+            return;
+
+        if (string.IsNullOrWhiteSpace(currentSpec.animationBoolName))
+            return;
+
+        switch (currentSpec.animationType)
+        {
+            case SpecialAnimationType.Trigger:
+                anim.SetTrigger(currentSpec.animationBoolName);
+                break;
+
+            case SpecialAnimationType.Bool:
+                anim.SetBool(currentSpec.animationBoolName, true);
+                break;
         }
     }
 
-    private void FinishExplosion()
+    private void FinishExplosionFlow()
     {
-        canGrow = true;
-        canMove = false;
-        //anim.SetTrigger("Explode");
+        if (currentSpec == null)
+            return;
+
+        Collider2D[] hits = GetOverlapHits(currentSpec.collisionShape);
+        PlayFinishSounds();
+        DoDamage(hits);
+        DestroyAfter(currentSpec.destroyAfterTime, true);
     }
 
-    private void SelfDestroy() => Destroy(gameObject);
+    private void PlayFinishSounds()
+    {
+        if (currentSpec == null || currentSpec.sounds == null || currentSpec.sounds.Length == 0)
+            return;
+
+        foreach (var sound in currentSpec.sounds)
+        {
+            if (sound.soundPoints != null && sound.soundPoints.Count > 0)
+                continue;
+
+            sound.Play(transform);
+        }
+    }
+
+    public override void ExplosionPointTrigger(string pointName)
+    {
+        if (currentSpec == null || string.IsNullOrWhiteSpace(pointName))
+            return;
+
+        if (!pointName.StartsWith("explodePoint"))
+            return;
+
+        string numberText = pointName.Substring("explodePoint".Length);
+        if (!int.TryParse(numberText, out int explodePoint))
+            return;
+
+        if (currentSpec.explodePoints == null || !currentSpec.explodePoints.Contains(explodePoint))
+            return;
+
+        FinishExplosion();
+    }
+
+    public override void SpecialSoundPointTrigger(string pointName)
+    {
+        if (currentSpec == null || currentSpec.sounds == null || string.IsNullOrWhiteSpace(pointName))
+            return;
+
+        if (!pointName.StartsWith("soundPoint"))
+            return;
+
+        string numberText = pointName.Substring("soundPoint".Length);
+        if (!int.TryParse(numberText, out int soundPoint))
+            return;
+
+        foreach (var sound in currentSpec.sounds)
+        {
+            if (sound.soundPoints == null)
+                continue;
+
+            if (!sound.soundPoints.Contains(soundPoint))
+                continue;
+
+            sound.Play(transform);
+        }
+    }
 }

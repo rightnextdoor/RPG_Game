@@ -4849,11 +4849,11 @@ GameObject:
   - component: {fileID: 7663256083150488546}
   - component: {fileID: 6682799514076667110}
   - component: {fileID: 8027170961210174647}
-  - component: {fileID: 7644891916077742246}
   - component: {fileID: -7692180443046858900}
-  - component: {fileID: 5331285267263067061}
   - component: {fileID: -8422351933896091358}
   - component: {fileID: 2542482121084778816}
+  - component: {fileID: 7106571991389324627}
+  - component: {fileID: 2839069534873013197}
   m_Layer: 0
   m_Name: Arrow_Controller
   m_TagString: Untagged
@@ -5000,21 +5000,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
---- !u!114 &7644891916077742246
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7808861630263311754}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 235e607ea0af56b498371ce429949944, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  movement: {fileID: -7692180443046858900}
-  specialCollision: {fileID: 5331285267263067061}
-  specialDamage: {fileID: 2542482121084778816}
 --- !u!114 &-7692180443046858900
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5033,21 +5018,6 @@ MonoBehaviour:
     m_Bits: 8
   homingGroundProbeDistance: 10
   minGroundClearance: 1.5
---- !u!114 &5331285267263067061
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7808861630263311754}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43a2400a86de9b34597b6a2315fd872a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpecialCollision
-  defaultTargetLayerName: Player
-  groundLayerName: Ground
-  platformTag: Platform
 --- !u!114 &-8422351933896091358
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5075,3 +5045,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 027cfe0752472924ea22009ecb46c4fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpecialDamage
+--- !u!114 &7106571991389324627
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7808861630263311754}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 920c54093dd1c794894e5ee58fd539fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpecialExplosion
+--- !u!114 &2839069534873013197
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7808861630263311754}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c930c025a1af1204bba7c2387a66e970, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Projectile_Controller
+  explodePoints: 
+  sounds: []
+  movement: {fileID: -7692180443046858900}
+  specialCollision: {fileID: -8422351933896091358}
+  specialDamage: {fileID: 2542482121084778816}
+  specialExplosion: {fileID: 7106571991389324627}

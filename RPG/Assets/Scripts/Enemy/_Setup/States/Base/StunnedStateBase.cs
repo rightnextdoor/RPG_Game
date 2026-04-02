@@ -10,6 +10,9 @@ public class StunnedStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : E
     private readonly List<StateSound> enterSounds;
     private readonly List<StateSound> exitSounds;
 
+    private float stunDuration;
+    private Vector2 stunDirection;
+
     public StunnedStateBase(
         TEnemy enemyBase,
         EnemyStateMachine stateMachine,
@@ -24,17 +27,21 @@ public class StunnedStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : E
         this.exitSounds = exitSounds ?? Empty;
     }
 
+    public void Configure(float stunDuration, Vector2 stunDirection)
+    {
+        this.stunDuration = stunDuration;
+        this.stunDirection = stunDirection;
+    }
+
     public override void Enter()
     {
         base.Enter();
-
         PlayStateSounds(enterSounds);
 
         enemy.fX.InvokeRepeating("RedColorBlink", 0f, 0.1f);
-        stateTimer = enemy.stunDuration;
+        stateTimer = stunDuration;
 
-        var dir = enemy.stunDirection; 
-        rb.linearVelocity = new Vector2(-enemy.facingDir * dir.x, dir.y);
+        rb.linearVelocity = new Vector2(-enemy.facingDir * stunDirection.x, stunDirection.y);
     }
 
     public override void Exit()

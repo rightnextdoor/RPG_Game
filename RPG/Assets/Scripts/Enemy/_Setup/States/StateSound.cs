@@ -1,9 +1,11 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
 public struct StateSound
 {
     public string name;
+    public List<int> soundPoints;
     public float delay;
     public bool useTransform;
     public float? distance;
@@ -11,6 +13,7 @@ public struct StateSound
     public StateSound(string name, float delay = 0f, bool useTransform = false, float? distance = null)
     {
         this.name = name;
+        this.soundPoints = new List<int>();
         this.delay = delay;
         this.useTransform = useTransform;
         this.distance = distance;

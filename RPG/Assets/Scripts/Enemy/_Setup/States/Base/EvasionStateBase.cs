@@ -12,7 +12,6 @@ public class EvasionStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : E
 
     private Func<EnemyState> nextState;
     private Func<EnemyState> attackState;
-    private float? rangeMin, rangeMax;
     private Intent intent;
     private bool configured;
 
@@ -23,6 +22,18 @@ public class EvasionStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : E
     private int moveDir;
     private bool bounceMode;
     private int primaryKind;
+
+    private float evasionDuration;
+    private float evasionSpeedMultiplier;
+    private float evadeBackAwayMin;
+    private float evadeBackAwayMax;
+    private float evadePassPastMin;
+    private float evadePassPastMax;
+    private float evadeReducedFactor;
+
+    private float attackMaxRange;
+    private float attackStopPercent = 0.8f;
+    private float attackStopRange;
 
     private static readonly List<StateSound> _empty = new List<StateSound>();
 
@@ -40,31 +51,70 @@ public class EvasionStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : E
         this.exitSounds = exitSounds ?? _empty;
     }
 
-    public void ConfigureMoveAndAttack(Func<EnemyState> next, Func<EnemyState> attack, float? min, float? max)
+    public void ConfigureMoveAndAttack(
+    Func<EnemyState> next,
+    Func<EnemyState> attack,
+    AbilityEntry entry,
+    AbilityEntry attackEntry)
     {
         if (next == null) throw new ArgumentNullException(nameof(next));
         if (attack == null) throw new ArgumentNullException(nameof(attack));
+        if (entry == null) throw new ArgumentNullException(nameof(entry));
+        if (attackEntry == null) throw new ArgumentNullException(nameof(attackEntry));
 
         intent = Intent.MoveAndAttack;
         nextState = next;
         attackState = attack;
-        rangeMin = min;
-        rangeMax = max;
+
+        evasionDuration = entry.evasionDuration;
+        evasionSpeedMultiplier = entry.evasionSpeedMultiplier;
+        evadeBackAwayMin = entry.evadeBackAwayMin;
+        evadeBackAwayMax = entry.evadeBackAwayMax;
+        evadePassPastMin = entry.evadePassPastMin;
+        evadePassPastMax = entry.evadePassPastMax;
+        evadeReducedFactor = entry.evadeReducedFactor;
+
+        attackMaxRange = Mathf.Max(0f, attackEntry.rangeMax ?? 0f);
+        attackStopRange = attackMaxRange > 0f
+            ? Mathf.Max(0f, attackMaxRange * attackStopPercent)
+            : 0f;
+
         configured = true;
-
-
     }
 
-    public void ConfigureFlee(Func<EnemyState> next)
+    public void ConfigureFlee(
+    Func<EnemyState> next,
+    AbilityEntry entry)
     {
         if (next == null) throw new ArgumentNullException(nameof(next));
+        if (entry == null) throw new ArgumentNullException(nameof(entry));
 
         intent = Intent.Flee;
         nextState = next;
         attackState = null;
-        rangeMin = rangeMax = null;
-        configured = true;
 
+        evasionDuration = entry.evasionDuration;
+        evasionSpeedMultiplier = entry.evasionSpeedMultiplier;
+        evadeBackAwayMin = entry.evadeBackAwayMin;
+        evadeBackAwayMax = entry.evadeBackAwayMax;
+        evadePassPastMin = entry.evadePassPastMin;
+        evadePassPastMax = entry.evadePassPastMax;
+        evadeReducedFactor = entry.evadeReducedFactor;
+
+        attackMaxRange = 0f;
+        attackStopRange = 0f;
+
+        configured = true;
+    }
+
+    public virtual void SetNextState(Func<EnemyState> next)
+    {
+        nextState = next;
+    }
+
+    public virtual void SetAttackState(Func<EnemyState> attack)
+    {
+        attackState = attack;
     }
 
     public override void Enter()
@@ -77,7 +127,7 @@ public class EvasionStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : E
             return;
         }
 
-        stateTimer = enemy.evasionDuration;
+        stateTimer = evasionDuration;
         bounceMode = false;
         attempts.Clear();
 
@@ -122,7 +172,7 @@ public class EvasionStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : E
 
     private void TickEscape()
     {
-        float speed = enemy.moveSpeed * enemy.evasionSpeedMultiplier * moveDir;
+        float speed = enemy.moveSpeed * evasionSpeedMultiplier * moveDir;
         enemy.SetVelocity(speed, rb.linearVelocity.y);
 
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
@@ -136,24 +186,33 @@ public class EvasionStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : E
             return;
         }
 
-        travelRemaining -= Mathf.Abs(speed) * Time.deltaTime;
-        if (travelRemaining > 0f) return;
+        if (intent == Intent.MoveAndAttack && IsInAttackStopRange())
+        {
+            enemy.SetZeroVelocity();
+            FacePlayerNow();
+            stateMachine.ChangeState(attackState());
+            return;
+        }
 
-        if (intent == Intent.MoveAndAttack)
+        travelRemaining -= Mathf.Abs(speed) * Time.deltaTime;
+        if (travelRemaining > 0f)
+            return;
+
+        enemy.SetZeroVelocity();
+
+        if (intent == Intent.MoveAndAttack && attackMaxRange <= 0f)
         {
             FacePlayerNow();
-
             stateMachine.ChangeState(attackState());
+            return;
         }
-        else
-        {
-            stateMachine.ChangeState(nextState());
-        }
+
+        stateMachine.ChangeState(nextState());
     }
 
     private void TickBounce()
     {
-        float speed = enemy.moveSpeed * enemy.evasionSpeedMultiplier * moveDir;
+        float speed = enemy.moveSpeed * evasionSpeedMultiplier * moveDir;
         enemy.SetVelocity(speed, rb.linearVelocity.y);
 
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
@@ -176,7 +235,6 @@ public class EvasionStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : E
         int away = -toward;
         int alt = 1 - primaryKind;
 
-        // Primary full
         attempts.Add(new Attempt
         {
             kind = primaryKind,
@@ -184,7 +242,6 @@ public class EvasionStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : E
             dist = Mathf.Max(0.05f, primaryFull)
         });
 
-        // Alternate full
         attempts.Add(new Attempt
         {
             kind = alt,
@@ -192,52 +249,58 @@ public class EvasionStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : E
             dist = Mathf.Max(0.05f, alternateFull)
         });
 
-        // Primary reduced
         attempts.Add(new Attempt
         {
             kind = primaryKind,
             dir = (primaryKind == 0 ? away : toward),
-            dist = Mathf.Max(0.05f, primaryFull * Mathf.Clamp01(enemy.evadeReducedFactor))
+            dist = Mathf.Max(0.05f, primaryFull * Mathf.Clamp01(evadeReducedFactor))
         });
 
-        // Alternate reduced
         attempts.Add(new Attempt
         {
             kind = alt,
             dir = (alt == 0 ? away : toward),
-            dist = Mathf.Max(0.05f, alternateFull * Mathf.Clamp01(enemy.evadeReducedFactor))
+            dist = Mathf.Max(0.05f, alternateFull * Mathf.Clamp01(evadeReducedFactor))
         });
     }
 
     private void ComputeFullDistances(float dx, out float primaryFull, out float alternateFull)
     {
-        // Defaults (no band or Flee)
+        float padding = 1f;
+
         float backFull = UnityEngine.Random.Range(
-            Mathf.Min(enemy.evadeBackAwayMin, enemy.evadeBackAwayMax),
-            Mathf.Max(enemy.evadeBackAwayMin, enemy.evadeBackAwayMax)
+            Mathf.Min(evadeBackAwayMin, evadeBackAwayMax),
+            Mathf.Max(evadeBackAwayMin, evadeBackAwayMax)
         );
+
         float passFull = dx + UnityEngine.Random.Range(
-            Mathf.Min(enemy.evadePassPastMin, enemy.evadePassPastMax),
-            Mathf.Max(enemy.evadePassPastMin, enemy.evadePassPastMax)
+            Mathf.Min(evadePassPastMin, evadePassPastMax),
+            Mathf.Max(evadePassPastMin, evadePassPastMax)
         );
 
-        if (intent == Intent.MoveAndAttack && rangeMin.HasValue && rangeMax.HasValue)
+        if (intent == Intent.MoveAndAttack)
         {
-            float min = rangeMin.Value;
-            float max = rangeMax.Value;
+            if (attackMaxRange > 0f)
+            {
+                backFull = attackMaxRange + padding;
+                passFull = dx + attackMaxRange + padding;
+            }
+            else
+            {
+                backFull += padding;
+                passFull += padding;
+            }
+        }
 
-            float backDist = (dx < min) ? (min - dx) : Mathf.Max(0.05f, enemy.evadeTinyRetreat);
-
-            float mid = (min + max) * 0.5f;
-            float passDist = dx + Mathf.Max(0.05f, mid);
-
-            if (primaryKind == 0) { primaryFull = backDist; alternateFull = passDist; }
-            else { primaryFull = passDist; alternateFull = backDist; }
+        if (primaryKind == 0)
+        {
+            primaryFull = backFull;
+            alternateFull = passFull;
         }
         else
         {
-            if (primaryKind == 0) { primaryFull = backFull; alternateFull = passFull; }
-            else { primaryFull = passFull; alternateFull = backFull; }
+            primaryFull = passFull;
+            alternateFull = backFull;
         }
     }
 
@@ -286,6 +349,22 @@ public class EvasionStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : E
     {
         int toward = TowardPlayerDir();
         if (enemy.facingDir != toward) enemy.Flip();
+    }
+
+    private bool IsInAttackStopRange()
+    {
+        if (intent != Intent.MoveAndAttack)
+            return false;
+
+        if (attackMaxRange <= 0f || attackStopRange <= 0f)
+            return false;
+
+        var player = PlayerUtils.GetPlayerSafe();
+        if (player == null)
+            return false;
+
+        float dx = Mathf.Abs(player.transform.position.x - enemy.transform.position.x);
+        return dx >= attackStopRange;
     }
 
     private void PlayStateSounds(List<StateSound> sounds)

@@ -177,7 +177,8 @@ public class Enemy_Boss : Enemy
 
     public virtual void FindPosition()
     {
-        if (teleportForAttack && CurrentAbilityEntry != null)
+        //add new teleport for attack to this if check
+        if (CurrentAbilityEntry != null)
         {
             Transform playerTransform = PlayerUtils.GetPlayerSafe()?.transform;
             if (playerTransform != null)

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class AttackStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enemy
@@ -11,19 +12,23 @@ public class AttackStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected bool isLingering;
 
     public AttackStateBase(
-        TEnemy enemyBase,
-        EnemyStateMachine stateMachine,
-        AttackDetail attackDetail,
-        System.Func<EnemyState> nextStateFactory
-    ) : base(enemyBase, stateMachine, attackDetail != null ? attackDetail.animBoolName : string.Empty)
+    TEnemy enemyBase,
+    EnemyStateMachine stateMachine,
+    string animBoolName,
+    System.Func<EnemyState> nextStateFactory,
+    List<StateSound> enterSounds = null,
+    List<StateSound> exitSounds = null
+    ) : base(enemyBase, stateMachine, animBoolName)
     {
-        Configure(attackDetail, nextStateFactory);
+        this.nextStateFactory = nextStateFactory;
     }
 
-    public void Configure(AttackDetail attackDetail, System.Func<EnemyState> nextFactory)
+    public void Configure(AttackDetail attackDetail, System.Func<EnemyState> nextFactory = null)
     {
         detail = attackDetail;
-        nextStateFactory = nextFactory;
+
+        if (nextFactory != null)
+            nextStateFactory = nextFactory;
 
         int amount = Mathf.Max(1, attackDetail.attackAmount);
         remainingAttacks = amount;
@@ -31,9 +36,15 @@ public class AttackStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         isLingering = false;
     }
 
+    public virtual void SetNextState(System.Func<EnemyState> nextFactory)
+    {
+        nextStateFactory = nextFactory;
+    }
+
     public override void Enter()
     {
         base.Enter();
+        enemy.SetCurrentAttackDetail(detail);
         stateTimer = 0f;
         isLingering = false;
     }
@@ -60,6 +71,7 @@ public class AttackStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     public override void Exit()
     {
         base.Exit();
+        enemy.ClearCurrentAttackDetail();
     }
 
     protected virtual void SingleAttack()

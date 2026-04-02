@@ -32,12 +32,6 @@ public class Enemy_Regular : Enemy
 
     #endregion
 
-    [Space(2)]
-    [Header("Stunned info")]
-    public float stunDuration = 1;
-    public Vector2 stunDirection = new Vector2(10, 12);
-    protected bool canBeStunned;
-    [SerializeField] protected GameObject counterImage;
     protected override void Awake()
     {
         base.Awake();
@@ -90,26 +84,57 @@ public class Enemy_Regular : Enemy
     #region Counter Attack Window
     public override void OpenCounterAttackWindow()
     {
-        canBeStunned = true;
-        counterImage.SetActive(true);
+        var stunnedDetail = GetStunnedDetail();
+        if (stunnedDetail == null)
+            return;
+
+        stunnedDetail.canBeStunned = true;
+
+        if (stunnedDetail.counterImage != null)
+            stunnedDetail.counterImage.SetActive(true);
     }
 
     public override void CloseCounterAttackWindow()
     {
-        canBeStunned = false;
-        counterImage.SetActive(false);
-    }
-    #endregion
+        var stunnedDetail = GetStunnedDetail();
+        if (stunnedDetail == null)
+            return;
 
+        stunnedDetail.canBeStunned = false;
+
+        if (stunnedDetail.counterImage != null)
+            stunnedDetail.counterImage.SetActive(false);
+    }
     public override bool CanBeStunned()
     {
-        if (canBeStunned)
+        var stunnedDetail = GetStunnedDetail();
+        if (stunnedDetail == null)
+            return false;
+
+        if (stunnedDetail.canBeStunned)
         {
             CloseCounterAttackWindow();
             return true;
         }
+
         return false;
     }
+    private AttackDetail GetStunnedDetail()
+    {
+        if (attackDetails == null || attackDetails.Count == 0)
+            return null;
+
+        for (int i = 0; i < attackDetails.Count; i++)
+        {
+            var detail = attackDetails[i];
+            if (detail != null && detail.action == BattleAction.Stunned)
+                return detail;
+        }
+
+        return null;
+    }
+    #endregion
+
 
     public void SummonEnemy(bool _isSummon)
     {

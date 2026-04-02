@@ -123,7 +123,7 @@ public class Enemy_Wizard : Enemy_Boss
     {
         base.FindPosition();
         AudioManager.instance.PlaySFX("Wizard_TeleportOut");
-        AudioManager.instance.PlaySFXWithDelay("Phoenix",1f);
+        AudioManager.instance.PlaySFXWithDelay("Phoenix", 1f);
     }
 
     protected override void OnDrawGizmos()
