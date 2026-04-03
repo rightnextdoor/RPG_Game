@@ -61,6 +61,7 @@ public class Enemy : Entity
     [Space(2)]
     [Header("Battle Settings")]
     public AbilityPreference battlePreference = AbilityPreference.Mixed;
+    public float battleSpeedMultiplier = 1f;
     public float battleMinCooldown = 1f;
     public float battleMaxCooldown = 2f;
     protected bool battleStarted;

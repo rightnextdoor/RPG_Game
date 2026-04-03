@@ -33,6 +33,7 @@ public class Enemy_Skeleton : Enemy_Regular
         stateMachine.Initialize(idleState);
     }
 
+    #region Setup
     private void SetupStates()
     {
         BuildStates();
@@ -263,6 +264,7 @@ public class Enemy_Skeleton : Enemy_Regular
         cooldownSystem?.PauseBattleCooldown(pause);
     }
 
+    #endregion
 
     public override bool CanBeStunned()
     {

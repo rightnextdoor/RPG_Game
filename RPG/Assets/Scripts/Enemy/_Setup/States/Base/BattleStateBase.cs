@@ -993,7 +993,7 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         if (enemy.IsWallDetected() || !enemy.IsGroundDetected()) return;
 
         FlipTowardsPlayer();
-        enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, enemy.rb.linearVelocity.y);
+        enemy.SetVelocity(enemy.moveSpeed * enemy.battleSpeedMultiplier * enemy.facingDir, enemy.rb.linearVelocity.y);
     }
 
     private void StopBattleMovement()
