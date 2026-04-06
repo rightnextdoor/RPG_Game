@@ -773,7 +773,6 @@ public class Enemy : Entity
     #region Combat Helper
     public virtual void SelfDestroy()
     {
-
     }
     
     public virtual bool CanBeStunned()

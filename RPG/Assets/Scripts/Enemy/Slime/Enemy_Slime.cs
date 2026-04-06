@@ -15,8 +15,7 @@ public class Enemy_Slime : Enemy_Regular
     [SerializeField] private SlimeType slimeType;
     [SerializeField] private int slimesToCreate;
     [SerializeField] private GameObject slimePrefab;
-    [SerializeField] private Vector2 minCreationVelocity;
-    [SerializeField] private Vector2 maxCreationVelocity;
+    [SerializeField] private Vector2 playerJumpPadding = new Vector2(1.15f, 1.35f);
 
     public CooldownSystem cooldownSystem { get; private set; }
     public AbilityHub abilityHub { get; private set; }
@@ -35,7 +34,6 @@ public class Enemy_Slime : Enemy_Regular
     {
         base.Awake();
 
-        //SetupDefaultFacingDir(-1);
         SetupStates();
     }
 
@@ -288,33 +286,198 @@ public class Enemy_Slime : Enemy_Regular
         if (slimeType == SlimeType.small)
             return;
 
-        CreateSlimes(slimesToCreate, slimePrefab);
+        CreateSlimes();
     }
 
-    private void CreateSlimes(int _amountOfSlimes, GameObject _slimePrefab)
+    #region Create Slimes
+    private void CreateSlimes()
     {
-        for (int i = 0; i < _amountOfSlimes; i++)
-        {
-            GameObject newSlime = Instantiate(_slimePrefab, transform.position, Quaternion.identity);
+        int slimeCount = Mathf.Max(1, Random.Range(1, Mathf.Max(1, slimesToCreate) + 1));
+        List<Vector2> landingSpots = new List<Vector2>();
+        float deadSlimeHeight = GetSlimeHeight();
 
-            newSlime.GetComponent<Enemy_Slime>().SetupSlime(facingDir);
+        for (int i = 0; i < slimeCount; i++)
+            landingSpots.Add(GetSplitLandingSpot(landingSpots));
+
+        for (int i = 0; i < slimeCount; i++)
+        {
+            GameObject newSlime = Instantiate(slimePrefab, transform.position, Quaternion.identity);
+            Enemy_Slime slime = newSlime.GetComponent<Enemy_Slime>();
+
+            if (slime != null)
+                slime.SetupSlime(landingSpots[i], deadSlimeHeight);
         }
     }
 
-    public void SetupSlime(int _facingDir)
+    private void SetupSlime(Vector2 landingSpot, float deadSlimeHeight)
     {
-        if (_facingDir != facingDir)
-            Flip();
-
-        float xVelocity = Random.Range(minCreationVelocity.x, maxCreationVelocity.x);
-        float yVelocity = Random.Range(minCreationVelocity.y, maxCreationVelocity.y);
-
-        isKnocked = true;
-
-        GetComponent<Rigidbody2D>().linearVelocity = new Vector2 (xVelocity * -facingDir, yVelocity);
-
-        Invoke("CancelKnockback", 1.5f);
+        FacePlayer();
+        JumpToLandingSpot(landingSpot, deadSlimeHeight);
     }
 
-    private void CancelKnockback() => isKnocked = false;
+    private void JumpToLandingSpot(Vector2 landingSpot, float deadSlimeHeight)
+    {
+        Rigidbody2D slimeRb = GetComponent<Rigidbody2D>();
+        if (slimeRb == null)
+            return;
+
+        float gravityScale = slimeRb.gravityScale;
+        if (gravityScale <= 0f)
+            gravityScale = 1f;
+
+        float gravity = Mathf.Abs(Physics2D.gravity.y) * gravityScale;
+        if (gravity <= 0f)
+            gravity = 9.81f;
+
+        Transform player = PlayerManager.instance?.player?.transform;
+        float playerHeight = deadSlimeHeight;
+
+        if (player != null)
+        {
+            CapsuleCollider2D playerCollider = player.GetComponent<CapsuleCollider2D>();
+            if (playerCollider != null)
+                playerHeight = playerCollider.bounds.size.y;
+            else
+            {
+                SpriteRenderer playerSprite = player.GetComponentInChildren<SpriteRenderer>();
+                if (playerSprite != null)
+                    playerHeight = playerSprite.bounds.size.y;
+            }
+        }
+
+        Vector2 startPos = slimeRb.position;
+        float distanceX = landingSpot.x - startPos.x;
+
+        float extraHeight = Random.Range(playerJumpPadding.x, playerJumpPadding.y);
+        float jumpHeight = playerHeight + extraHeight;
+
+        float yVelocity = Mathf.Sqrt(2f * gravity * jumpHeight);
+        float airTime = (2f * yVelocity) / gravity;
+        float xVelocity = Mathf.Abs(distanceX) <= 0.01f ? 0f : distanceX / airTime;
+
+        isKnocked = true;
+        slimeRb.linearVelocity = Vector2.zero;
+        slimeRb.linearVelocity = new Vector2(xVelocity, yVelocity);
+
+        StartCoroutine(WaitForSplitLanding(slimeRb));
+    }
+
+    private IEnumerator WaitForSplitLanding(Rigidbody2D slimeRb)
+    {
+        while (slimeRb != null && slimeRb.linearVelocity.y > 0.01f)
+            yield return null;
+
+        while (slimeRb != null && !IsGroundDetected())
+            yield return null;
+
+        isKnocked = false;
+    }
+
+    #region Helpers
+    private void FacePlayer()
+    {
+        Transform player = PlayerManager.instance?.player?.transform;
+        if (player == null)
+            return;
+
+        if (player.position.x > transform.position.x && facingDir == -1)
+            Flip();
+        else if (player.position.x < transform.position.x && facingDir == 1)
+            Flip();
+    }
+
+    private Vector2 GetSplitLandingSpot(List<Vector2> usedSpots)
+    {
+        float deadWidth = GetSlimeWidth();
+        float splitWidth = deadWidth * Random.Range(1.7f, 1.9f);
+        float halfWidth = splitWidth * 0.5f;
+
+        float childWidth = GetChildSlimeWidth();
+        float minSpacing = childWidth * 0.75f;
+
+        Vector2 center = transform.position;
+        Vector2 bestSpot = center;
+        float bestDistance = -1f;
+
+        for (int i = 0; i < 10; i++)
+        {
+            float xOffset = Random.Range(-halfWidth, halfWidth);
+            Vector2 candidate = new Vector2(center.x + xOffset, center.y);
+            float closestDistance = GetClosestLandingDistance(candidate, usedSpots);
+
+            if (closestDistance >= minSpacing)
+                return candidate;
+
+            if (closestDistance > bestDistance)
+            {
+                bestDistance = closestDistance;
+                bestSpot = candidate;
+            }
+        }
+
+        return bestSpot;
+    }
+
+    private float GetClosestLandingDistance(Vector2 spot, List<Vector2> usedSpots)
+    {
+        if (usedSpots == null || usedSpots.Count == 0)
+            return float.MaxValue;
+
+        float closest = float.MaxValue;
+
+        foreach (Vector2 used in usedSpots)
+        {
+            float distance = Mathf.Abs(spot.x - used.x);
+            if (distance < closest)
+                closest = distance;
+        }
+
+        return closest;
+    }
+
+    private float GetSlimeWidth()
+    {
+        CapsuleCollider2D slimeCollider = cd != null ? cd : GetComponent<CapsuleCollider2D>();
+        if (slimeCollider != null)
+            return slimeCollider.bounds.size.x;
+
+        SpriteRenderer slimeSprite = sr != null ? sr : GetComponentInChildren<SpriteRenderer>();
+        if (slimeSprite != null)
+            return slimeSprite.bounds.size.x;
+
+        return transform.lossyScale.x;
+    }
+
+    private float GetSlimeHeight()
+    {
+        CapsuleCollider2D slimeCollider = cd != null ? cd : GetComponent<CapsuleCollider2D>();
+        if (slimeCollider != null)
+            return slimeCollider.bounds.size.y;
+
+        SpriteRenderer slimeSprite = sr != null ? sr : GetComponentInChildren<SpriteRenderer>();
+        if (slimeSprite != null)
+            return slimeSprite.bounds.size.y;
+
+        return transform.lossyScale.y;
+    }
+
+    private float GetChildSlimeWidth()
+    {
+        if (slimePrefab == null)
+            return 1f;
+
+        CapsuleCollider2D childCollider = slimePrefab.GetComponent<CapsuleCollider2D>();
+        if (childCollider != null)
+            return childCollider.size.x * Mathf.Abs(slimePrefab.transform.lossyScale.x);
+
+        SpriteRenderer childSprite = slimePrefab.GetComponentInChildren<SpriteRenderer>();
+        if (childSprite != null)
+            return childSprite.bounds.size.x;
+
+        return slimePrefab.transform.lossyScale.x;
+    }
+
+    #endregion
+
+    #endregion
 }
