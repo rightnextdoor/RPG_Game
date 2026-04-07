@@ -41,6 +41,7 @@ public class AttackSpawnSpecDrawer : PropertyDrawer
         SerializedProperty canMove = property.FindPropertyRelative("canMove");
         if (canMove != null && canMove.boolValue)
         {
+            DrawProp(ref y, position, property, "canStuckInto");
             DrawProp(ref y, position, property, "canParry");
             DrawProp(ref y, position, property, "speed");
             DrawProp(ref y, position, property, "movementType");
@@ -90,10 +91,11 @@ public class AttackSpawnSpecDrawer : PropertyDrawer
                 DrawProp(ref y, position, property, "explosionTimer");
             }
 
-            DrawProp(ref y, position, property, "hasAnimation");
+            DrawProp(ref y, position, property, "hasAnimation");       
             SerializedProperty hasAnimation = property.FindPropertyRelative("hasAnimation");
             if (hasAnimation != null && hasAnimation.boolValue)
             {
+                DrawProp(ref y, position, property, "animationInChild");
                 DrawProp(ref y, position, property, "animationType");
                 DrawProp(ref y, position, property, "animationBoolName");
             }
@@ -123,6 +125,7 @@ public class AttackSpawnSpecDrawer : PropertyDrawer
         SerializedProperty canMove = property.FindPropertyRelative("canMove");
         if (canMove != null && canMove.boolValue)
         {
+            height += GetPropHeight(property, "canStuckInto");
             height += GetPropHeight(property, "canParry");
             height += GetPropHeight(property, "speed");
             height += GetPropHeight(property, "movementType");
@@ -176,6 +179,7 @@ public class AttackSpawnSpecDrawer : PropertyDrawer
             SerializedProperty hasAnimation = property.FindPropertyRelative("hasAnimation");
             if (hasAnimation != null && hasAnimation.boolValue)
             {
+                height += GetPropHeight(property, "animationInChild");
                 height += GetPropHeight(property, "animationType");
                 height += GetPropHeight(property, "animationBoolName");
             }
@@ -228,6 +232,7 @@ public class AttackSpawnSpecDrawer : PropertyDrawer
             return;
 
         SetBool(property, "canMove", false);
+        SetBool(property, "canStuckInto", false);
         SetBool(property, "canParry", false);
         SetFloat(property, "speed", 5f);
         SetEnumIndex(property, "movementType", (int)SpecialMovementType.None);
@@ -254,6 +259,7 @@ public class AttackSpawnSpecDrawer : PropertyDrawer
         SetFloat(property, "explosionTimer", 1.5f);
 
         SetBool(property, "hasAnimation", false);
+        SetBool(property, "animationInChild", false);
         SetEnumIndex(property, "animationType", (int)SpecialAnimationType.None);
 
         initProp.boolValue = true;

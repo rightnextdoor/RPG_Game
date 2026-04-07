@@ -4,31 +4,22 @@ using UnityEngine;
 
 public class Enemy_Wizard_Female : Enemy_Regular
 {
-    [Header("Projectile specific info")]
-    [SerializeField] private GameObject projectilePrefab;
-    [SerializeField] private float projectileSpeed = 6f;
-    [SerializeField] private float projectileExplosionTimer = 3f;
-
+    public CooldownSystem cooldownSystem { get; private set; }
+    public AbilityHub abilityHub { get; private set; }
     #region States
-    public Wizard_Female_IdleState idleState { get; private set; }
-    public Wizard_Female_MoveState moveState { get; private set; }
-    public Wizard_Female_BattleState battleState { get; private set; }
-    public Wizard_Female_AttackState attackState { get; private set; }
-    public Wizard_Female_DeadState deadState { get; private set; }
-    public Wizard_Female_EvasionState evasionState { get; private set; }
+    public IdleStateBase<Enemy_Wizard_Female> idleState { get; private set; }
+    public MoveStateBase<Enemy_Wizard_Female> moveState { get; private set; }
+    public BattleStateBase<Enemy_Wizard_Female> battleState { get; private set; }
+    public AttackStateBase<Enemy_Wizard_Female> attackState { get; private set; }
+    public DeadStateBase<Enemy_Wizard_Female> deadState { get; private set; }
+    public EvasionStateBase<Enemy_Wizard_Female> evasionState { get; private set; }
 
     #endregion
 
     protected override void Awake()
     {
         base.Awake();
-
-        idleState = new Wizard_Female_IdleState(this, stateMachine, "Idle", this);
-        moveState = new Wizard_Female_MoveState(this, stateMachine, "Move", this);
-        battleState = new Wizard_Female_BattleState(this, stateMachine, "Battle", this);
-        attackState = new Wizard_Female_AttackState(this, stateMachine, "Attack", this);;
-        deadState = new Wizard_Female_DeadState(this, stateMachine, "Die", this);
-        evasionState = new Wizard_Female_EvasionState(this, stateMachine, "Move", this);
+        SetupStates();
     }
 
     protected override void Start()
@@ -37,12 +28,209 @@ public class Enemy_Wizard_Female : Enemy_Regular
         stateMachine.Initialize(idleState);
     }
 
+    #region Setup
+    private void SetupStates()
+    {
+        BuildStates();
+        MapAbilityStates();
+
+        cooldownSystem = new CooldownSystem();
+        cooldownSystem.Setup(abilityMap, battleMinCooldown, battleMaxCooldown);
+
+        abilityHub = new AbilityHub();
+        abilityHub.BuildAbilityLists(abilityMap);
+        abilityHub.Setup(cooldownSystem);
+
+        battleState?.Configure(abilityHub, cooldownSystem, abilityMap, battlePreference);
+    }
+
+    private void BuildStates()
+    {
+        StateDetail idleDetail = null;
+        StateDetail moveDetail = null;
+        StateDetail battleDetail = null;
+        StateDetail attack1Detail = null;
+        StateDetail deadDetail = null;
+        StateDetail evasionDetail = null;
+
+        AssignStateDetails(EnemyStateType.Idle, detail => idleDetail = detail);
+        AssignStateDetails(EnemyStateType.Move, detail => moveDetail = detail);
+        AssignStateDetails(EnemyStateType.Battle, detail => battleDetail = detail);
+        AssignStateDetails(EnemyStateType.Attack, detail => attack1Detail = detail);
+        AssignStateDetails(EnemyStateType.Dead, detail => deadDetail = detail);
+        AssignStateDetails(EnemyStateType.Evasion, detail => evasionDetail = detail);
+
+        if (idleDetail != null)
+        {
+            idleState = new IdleWithTargets(
+                this,
+                stateMachine,
+                idleDetail.animBoolName,
+                moveFactory: () => moveState,
+                battleFactory: () => battleState,
+                enterSounds: ToSoundList(idleDetail.enterSounds),
+                exitSounds: ToSoundList(idleDetail.exitSounds)
+            );
+        }
+
+        if (moveDetail != null)
+        {
+            moveState = new MoveStateBase<Enemy_Wizard_Female>(
+                this,
+                stateMachine,
+                moveDetail.animBoolName,
+                idleState: () => idleState,
+                battleState: () => battleState,
+                enterSounds: ToSoundList(moveDetail.enterSounds),
+                exitSounds: ToSoundList(moveDetail.exitSounds)
+            );
+        }
+
+        if (battleDetail != null)
+        {
+            battleState = new BattleStateBase<Enemy_Wizard_Female>(
+                this,
+                stateMachine,
+                battleDetail.animBoolName,
+                idleState: () => idleState,
+                nextState: () => idleState,
+                enterSounds: ToSoundList(battleDetail.enterSounds),
+                exitSounds: ToSoundList(battleDetail.exitSounds)
+            );
+        }
+
+        if (attack1Detail != null)
+        {
+            attackState = new AttackStateBase<Enemy_Wizard_Female>(
+                this,
+                stateMachine,
+                attack1Detail.animBoolName,
+                nextStateFactory: () => battleState,
+                enterSounds: ToSoundList(attack1Detail.enterSounds),
+                exitSounds: ToSoundList(attack1Detail.exitSounds)
+            );
+        }
+
+        if (deadDetail != null)
+        {
+            deadState = new DeadStateBase<Enemy_Wizard_Female>(
+                this,
+                stateMachine,
+                deadDetail.animBoolName,
+                enterSounds: ToSoundList(deadDetail.enterSounds),
+                exitSounds: ToSoundList(deadDetail.exitSounds)
+            );
+        }
+
+        if (evasionDetail != null)
+        {
+            evasionState = new EvasionStateBase<Enemy_Wizard_Female>(
+                this,
+                stateMachine,
+                evasionDetail.animBoolName,
+                battleState: () => battleState,
+                enterSounds: ToSoundList(evasionDetail.enterSounds),
+                exitSounds: ToSoundList(evasionDetail.exitSounds)
+            );
+        }
+    }
+
+    protected override void MapAbilityStates()
+    {
+        base.MapAbilityStates();
+
+        if (abilityMap == null || abilityMap.Count == 0)
+            return;
+
+        foreach (var entry in abilityMap.Values)
+        {
+            if (entry == null || string.IsNullOrWhiteSpace(entry.animBoolName))
+                continue;
+
+            switch (entry.action)
+            {
+                case BattleAction.Attack:
+                    if (attackState != null && attackState.animBoolName == entry.animBoolName)
+                        entry.state = attackState;
+                    break;
+
+                case BattleAction.Evade:
+                    if (evasionState != null && evasionState.animBoolName == entry.animBoolName)
+                        entry.state = evasionState;
+                    break;
+
+                case BattleAction.Jump:
+                    break;
+
+                case BattleAction.Stunned:
+                    break;
+
+                case BattleAction.Teleport:
+                    break;
+            }
+        }
+    }
+
+    public override void StartBattle()
+    {
+        base.StartBattle();
+        cooldownSystem?.ApplyStartCooldowns();
+    }
+
+    private List<StateSound> ToSoundList(StateSound[] sounds)
+    {
+        if (sounds == null || sounds.Length == 0)
+            return null;
+
+        return new List<StateSound>(sounds);
+    }
+
+    private sealed class IdleWithTargets : IdleStateBase<Enemy_Wizard_Female>
+    {
+        private readonly System.Func<EnemyState> moveFactory;
+        private readonly System.Func<EnemyState> battleFactory;
+
+        public IdleWithTargets(
+            Enemy_Wizard_Female enemy,
+            EnemyStateMachine sm,
+            string animBool,
+            System.Func<EnemyState> moveFactory,
+            System.Func<EnemyState> battleFactory,
+            List<StateSound> enterSounds = null,
+            List<StateSound> exitSounds = null
+        ) : base(enemy, sm, animBool, enterSounds, exitSounds)
+        {
+            this.moveFactory = moveFactory;
+            this.battleFactory = battleFactory;
+        }
+
+        protected override EnemyState MoveState => moveFactory?.Invoke();
+        protected override EnemyState BattleState => battleFactory?.Invoke();
+    }
+
+    public override void ChangeBattleCooldownRange(float minCooldown, float maxCooldown)
+    {
+        cooldownSystem?.ChangeBattleCooldownRange(minCooldown, maxCooldown);
+    }
+
+    public override void TempChangeBattleCooldownRange(float minCooldown, float maxCooldown, float duration)
+    {
+        cooldownSystem?.TempChangeBattleCooldownRange(minCooldown, maxCooldown, duration);
+    }
+
+    public override void PauseBattleCooldown(bool pause)
+    {
+        cooldownSystem?.PauseBattleCooldown(pause);
+    }
+
+    #endregion
+
     public override void Die()
     {
         base.Die();
         if (stats.isDeadZone)
         {
-            deadState = new Wizard_Female_DeadState(this, stateMachine, "Idle", this);
+            deadState = new DeadStateBase<Enemy_Wizard_Female>(this, stateMachine, "Idle");
             anim.SetBool(lastAnimBoolName, true);
             anim.speed = 0;
             cd.enabled = false;
@@ -51,19 +239,5 @@ public class Enemy_Wizard_Female : Enemy_Regular
         stateMachine.ChangeState(deadState);
     }
 
-    public override void AnimationSpecialAttackTrigger()
-    {
-        Transform player = PlayerManager.instance.player.transform;
-        Vector3 direction = player.position - wallCheck.position;
-
-        if (direction.x < 1 && direction.x > -1)
-        {
-            stateMachine.ChangeState(evasionState);
-            return;
-        }
-
-        GameObject projectile = Instantiate(projectilePrefab, attackCheck.position, Quaternion.identity);
-        projectile.GetComponent<WizardProjectile_Controller>().SetupProjectile(projectileSpeed * facingDir, stats, attackCheckRadius, projectileExplosionTimer, player.position, direction);
-        //AudioManager.instance.PlaySFX("ArcherAttack", transform);
-    }
+   
 }

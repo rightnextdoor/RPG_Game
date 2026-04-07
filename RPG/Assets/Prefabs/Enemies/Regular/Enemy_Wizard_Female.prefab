@@ -212,7 +212,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!50 &6378068040683211006
 Rigidbody2D:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -223,8 +223,8 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0.05
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
   m_GravityScale: 12
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -245,6 +245,7 @@ CapsuleCollider2D:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1055382422950251549}
   m_Enabled: 1
+  serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -268,7 +269,8 @@ CapsuleCollider2D:
     m_Bits: 4294967295
   m_IsTrigger: 0
   m_UsedByEffector: 0
-  m_UsedByComposite: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
   m_Offset: {x: -0.13468933, y: -0.072135925}
   m_Size: {x: 0.9163208, y: 3.2666626}
   m_Direction: 0
@@ -402,21 +404,27 @@ MonoBehaviour:
   attackCheck: {fileID: 5217913362286963104}
   attackCheckRadius: 0.5
   groundCheck: {fileID: 3900239014585238121}
-  groundCheackDistance: 1
+  groundCheckDistance: 1
   wallCheck: {fileID: 8063138871256768416}
   wallCheckDistance: 1.74
   whatIsGround:
     serializedVersion: 2
     m_Bits: 8
+  boundaryTouchedOnMove: 0
   whatIsPlayer:
     serializedVersion: 2
     m_Bits: 64
   playerDistance: 20
+  idleTime: 2
   canPatrol: 1
   moveSpeed: 5
-  idleTime: 2
   moveTime: 5
   battleTime: 7
+  evasionTimer: 1.5
+  evasionSpeed: 10
+  evasionDistance: 1.5
+  minEvasionCooldown: 0
+  maxEvasionCooldown: 0.5
   agroDistance: 2
   rangeAttackDistance: 15
   rangeAttackCooldown: 0
@@ -428,19 +436,224 @@ MonoBehaviour:
   minMeleeAttackCooldown: 1
   maxMeleeAttackCooldown: 2
   lastTimeMeleeAttacked: 0
-  evasionTimer: 1.5
-  evasionSpeed: 10
-  evasionDistance: 1.5
-  minEvasionCooldown: 0
-  maxEvasionCooldown: 0.5
+  stateDetails:
+  - name: Idle
+    animBoolName: Idle
+    stateType: 4
+    enterSounds: []
+    exitSounds: []
+  - name: Move
+    animBoolName: Move
+    stateType: 6
+    enterSounds: []
+    exitSounds: []
+  - name: Battle
+    animBoolName: Battle
+    stateType: 1
+    enterSounds: []
+    exitSounds: []
+  - name: Attack
+    animBoolName: Attack
+    stateType: 0
+    enterSounds: []
+    exitSounds: []
+  - name: Dead
+    animBoolName: Die
+    stateType: 2
+    enterSounds:
+    - name: Wizard_Die
+      soundPoints: 
+      delay: 0
+      useTransform: 1
+    exitSounds: []
+  - name: Evade
+    animBoolName: Move
+    stateType: 3
+    enterSounds: []
+    exitSounds: []
+  attackDetails:
+  - defaultsInitialized: 1
+    name: Attack
+    animBoolName: Attack
+    action: 1
+    preference: 1
+    unlocked: 1
+    cannotUseWithTeleport: 0
+    canAttackAfterTeleport: 0
+    chance: 1
+    minCooldown: 1.5
+    maxCooldown: 2.5
+    startCooldown: 0
+    rangeMin: 0
+    rangeMax: 10
+    lingerTime: 0
+    attackAmount: 0
+    attackTimeMin: 0
+    attackTimeMax: 0
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 2.5
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 6.5
+    evadePassPastMin: 5
+    evadePassPastMax: 6.5
+    evadeReducedFactor: 0.6
+    evadeTinyRetreat: 0.35
+    stunDuration: 1
+    stunDirection: {x: 10, y: 12}
+    canBeStunned: 0
+    counterImage: {fileID: 0}
+    jumpAbilityVelocity: {x: 20, y: 12}
+    jumpBack: 1
+    attackChecks:
+    - label: Attack
+      attackPoints: 01000000
+      shape: 0
+      checkTransform: {fileID: 5217913362286963104}
+      debugDraw: 0
+      circleRadius: 0
+      boxSize: {x: 0, y: 0}
+      capsuleSize: {x: 0, y: 0}
+      capsuleDirection: 0
+      lineLength: 0
+      lineThickness: 0
+      arcRadius: 0
+      arcAngleDegrees: 0
+      arcInnerRadius: 0
+      polygonPoints: []
+    spawnSpec:
+    - defaultsInitialized: 1
+      name: Attack
+      attackPoints: 01000000
+      prefab: {fileID: 5239122869349850047, guid: e6d4ba1b85472ed4d9420d00fc3a35db, type: 3}
+      collisionShape: 0
+      explodePoints: 01000000
+      sounds:
+      - name: Explosion
+        soundPoints: 01000000
+        delay: 0
+        useTransform: 1
+      control: {fileID: 7686985976177310507, guid: e6d4ba1b85472ed4d9420d00fc3a35db, type: 3}
+      canMove: 1
+      canParry: 0
+      speed: 5
+      movementType: 1
+      moveTimer: 2
+      homingTurnSpeed: 4
+      homingRecoverUpStrength: 1.5
+      maxLoops: 1
+      attackSpeedBoost: 3
+      circleRadius: 2
+      explodes: 1
+      lifeTimer: 3
+      destroyAfterTime: 3
+      canGrow: 0
+      growSpeed: 3
+      maxSize: 4
+      useExplosionTimer: 0
+      explosionTimer: 1.5
+      hasAnimation: 1
+      animationInChild: 1
+      animationType: 1
+      animationBoolName: Explode
+    sounds: []
+  - defaultsInitialized: 1
+    name: Evade
+    animBoolName: Move
+    action: 2
+    preference: 2
+    unlocked: 1
+    cannotUseWithTeleport: 0
+    canAttackAfterTeleport: 0
+    chance: 1
+    minCooldown: 1.5
+    maxCooldown: 2.5
+    startCooldown: 0
+    rangeMin: 0
+    rangeMax: 2
+    lingerTime: 0
+    attackAmount: 0
+    attackTimeMin: 0
+    attackTimeMax: 0
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 2.5
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 6.5
+    evadePassPastMin: 5
+    evadePassPastMax: 6.5
+    evadeReducedFactor: 0.6
+    evadeTinyRetreat: 0.35
+    stunDuration: 1
+    stunDirection: {x: 10, y: 12}
+    canBeStunned: 0
+    counterImage: {fileID: 0}
+    jumpAbilityVelocity: {x: 20, y: 12}
+    jumpBack: 1
+    attackChecks:
+    - label: Attack
+      attackPoints: 01000000
+      shape: 0
+      checkTransform: {fileID: 5217913362286963104}
+      debugDraw: 0
+      circleRadius: 0
+      boxSize: {x: 0, y: 0}
+      capsuleSize: {x: 0, y: 0}
+      capsuleDirection: 0
+      lineLength: 0
+      lineThickness: 0
+      arcRadius: 0
+      arcAngleDegrees: 0
+      arcInnerRadius: 0
+      polygonPoints: []
+    spawnSpec:
+    - defaultsInitialized: 1
+      name: Attack
+      attackPoints: 01000000
+      prefab: {fileID: 5239122869349850047, guid: e6d4ba1b85472ed4d9420d00fc3a35db, type: 3}
+      collisionShape: 0
+      explodePoints: 01000000
+      sounds:
+      - name: Explosion
+        soundPoints: 01000000
+        delay: 0
+        useTransform: 1
+      control: {fileID: 8171577936189461038, guid: e6d4ba1b85472ed4d9420d00fc3a35db, type: 3}
+      canMove: 1
+      canParry: 0
+      speed: 5
+      movementType: 1
+      moveTimer: 2
+      homingTurnSpeed: 4
+      homingRecoverUpStrength: 1.5
+      maxLoops: 1
+      attackSpeedBoost: 3
+      circleRadius: 2
+      explodes: 1
+      lifeTimer: 3
+      destroyAfterTime: 3
+      canGrow: 1
+      growSpeed: 8
+      maxSize: 10
+      useExplosionTimer: 0
+      explosionTimer: 1.5
+      hasAnimation: 1
+      animationInChild: 0
+      animationType: 1
+      animationBoolName: Explode
+    sounds: []
+  battlePreference: 1
+  battleSpeedMultiplier: 1
+  battleMinCooldown: 1
+  battleMaxCooldown: 2
   isSummon: 0
   enemyData: {fileID: 0}
-  stunDuration: 1
-  stunDirection: {x: 10, y: 12}
-  counterImage: {fileID: 5652358819666155444}
-  projectilePrefab: {fileID: 5239122869349850047, guid: e6d4ba1b85472ed4d9420d00fc3a35db, type: 3}
-  projectileSpeed: 6
-  projectileExplosionTimer: 3
+  moveMode: 0
+  moveSpeedMultiplier: 1
+  randomizeFacingOnMoveEnter: 1
+  patrolAreaAnchor: {fileID: 0}
+  patrolAreaSize: {x: 10, y: 4}
+  patrolSnapshotDone: 0
+  traverseStopMinSeconds: 1
+  traverseStopMaxSeconds: 2.5
 --- !u!1 &1651950593932415361
 GameObject:
   m_ObjectHideFlags: 0
@@ -568,6 +781,7 @@ GameObject:
   - component: {fileID: 2112826192969750820}
   - component: {fileID: 2192440505559663953}
   - component: {fileID: 1941931453373913437}
+  - component: {fileID: 3506890321487920475}
   m_Layer: 0
   m_Name: Animator
   m_TagString: Untagged
@@ -592,6 +806,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &2112826192969750820
 SpriteRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -607,6 +822,11 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -628,9 +848,11 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -763691063
   m_SortingLayer: 7
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_Sprite: {fileID: 462434960, guid: 735aa1fb81fd7e14297d8dca10e5c5b8, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -640,11 +862,10 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!95 &2192440505559663953
 Animator:
-  serializedVersion: 5
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -658,6 +879,7 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
@@ -675,6 +897,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8891cf8231703214d9b57412371cdbbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &3506890321487920475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1844536693768143759}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d987166f1567a14c872e5c23483cdbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyTimelineAuthoring
+  previewClipAudio: 1
 --- !u!1 &4432126971487568779
 GameObject:
   m_ObjectHideFlags: 0
@@ -784,6 +1019,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &5597000569269118635
 SpriteRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -799,6 +1035,11 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -820,9 +1061,11 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -763691063
   m_SortingLayer: 7
   m_SortingOrder: -10
+  m_MaskInteraction: 0
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 0.8235294, g: 0.078431375, b: 0.078431375, a: 0.6862745}
   m_FlipX: 0
@@ -832,7 +1075,6 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &6742181034580624922
 GameObject:

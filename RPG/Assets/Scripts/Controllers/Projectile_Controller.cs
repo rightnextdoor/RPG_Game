@@ -30,13 +30,15 @@ public class Projectile_Controller : SpecialAttackControl
         if (hitType == SpecialHitType.Target)
         {
             DoDamage(new Collider2D[] { hitCollision });
-            StuckInto();
+            if(currentSpec.canStuckInto)
+                StuckInto();
             DestroyAfter(Random.Range(5, 7), true);
             ClearHit();
         }
         else if (hitType == SpecialHitType.Ground)
         {
-            StuckInto();
+            if (currentSpec.canStuckInto)
+                StuckInto();
             DestroyAfter(Random.Range(5, 7), true);
             ClearHit();
         }

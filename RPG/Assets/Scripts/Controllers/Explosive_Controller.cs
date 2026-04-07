@@ -10,11 +10,14 @@ public class Explosive_Controller : SpecialAttackControl
     {
         base.Setup(_stats, _spawnSpecs);
 
-        anim = GetComponent<Animator>();
-
         currentSpec = null;
         if (spawnSpecs != null && spawnSpecs.Count > 0)
             currentSpec = spawnSpecs[0];
+
+        if (currentSpec != null && currentSpec.animationInChild)
+            anim = GetComponentInChildren<Animator>();
+        else
+            anim = GetComponent<Animator>();
 
         if (currentSpec != null)
             CheckCollisionShape(currentSpec.collisionShape);

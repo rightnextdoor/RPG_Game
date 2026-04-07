@@ -60,6 +60,7 @@ public class AttackSpawnSpec
     public bool canMove = false;
     [Space(2)]
     [Header("Movement")]
+    public bool canStuckInto = false;
     public bool canParry = false;
     [Tooltip("Initial speed for the projectile (usually multiplied by facingDir).")]
     public float speed = 5f;
@@ -127,6 +128,9 @@ public class AttackSpawnSpec
     [Space(2)]
     [Tooltip("If true, the explosion uses animation as part of its explosion flow.")]
     public bool hasAnimation = false;
+
+    [Tooltip("If true, the explosion animator is found on a child object instead of the root object.")]
+    public bool animationInChild = false;
 
     [Tooltip("Which animator parameter type this explosion uses.")]
     public SpecialAnimationType animationType = SpecialAnimationType.None;

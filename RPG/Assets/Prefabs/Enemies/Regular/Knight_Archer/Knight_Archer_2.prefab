@@ -5853,6 +5853,7 @@ MonoBehaviour:
       sounds: []
       control: {fileID: 2839069534873013197, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
       canMove: 1
+      canStuckInto: 1
       canParry: 1
       speed: 7
       movementType: 2
@@ -5871,6 +5872,7 @@ MonoBehaviour:
       useExplosionTimer: 0
       explosionTimer: 1.5
       hasAnimation: 0
+      animationInChild: 0
       animationType: 0
       animationBoolName: 
     sounds:
@@ -5936,6 +5938,7 @@ MonoBehaviour:
       sounds: []
       control: {fileID: 2839069534873013197, guid: 05e29a3b65b9e3541a533756875c1688, type: 3}
       canMove: 1
+      canStuckInto: 1
       canParry: 0
       speed: 8
       movementType: 4
@@ -5954,6 +5957,7 @@ MonoBehaviour:
       useExplosionTimer: 0
       explosionTimer: 1.5
       hasAnimation: 0
+      animationInChild: 0
       animationType: 0
       animationBoolName: 
     sounds:
@@ -6016,6 +6020,7 @@ MonoBehaviour:
       delay: 0
       useTransform: 1
   battlePreference: 1
+  battleSpeedMultiplier: 1
   battleMinCooldown: 1
   battleMaxCooldown: 2
   isSummon: 0
