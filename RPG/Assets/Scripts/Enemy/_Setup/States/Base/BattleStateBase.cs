@@ -604,6 +604,17 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     private void RunSelectedAttackPlan(float playerDistance)
     {
+        if (selectedAttackEntry == null)
+            return;
+
+        float minRange = selectedAttackEntry.rangeMin ?? 0f;
+
+        if (playerDistance < minRange)
+        {
+            ResetInvalidSelectedAttack();
+            return;
+        }
+
         if (!CheckSelectedAttackRange(playerDistance))
         {
             HandoffToNextPlan();
@@ -1006,6 +1017,13 @@ public class BattleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     #endregion
 
     #region Helpers
+
+    private void ResetInvalidSelectedAttack()
+    {
+        ResetHandoff();
+        selectedAttackEntry = null;
+        selectedSupportEntry = null;
+    }
     private void CommitSelectedAttack(AbilityEntry entry, SupportPlanDecision? decision = null)
     {
         if (entry == null)
