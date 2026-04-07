@@ -95,7 +95,9 @@ public class EnemyTimelineAuthoringEditor : Editor
         EditorGUILayout.LabelField("Selected Sound Settings", EditorStyles.boldLabel);
         DrawSelectedSoundInspector(enemy, attack.name, idxSound);
 
-        EditorGUILayout.Space(8);
+        EditorGUILayout.Space(10);
+        EditorGUILayout.LabelField("Insert Events", EditorStyles.boldLabel);
+        EditorGUILayout.Space(4);
 
         if (GUILayout.Button("Insert Attack"))
         {
@@ -125,6 +127,22 @@ public class EnemyTimelineAuthoringEditor : Editor
             }
         }
 
+        if (GUILayout.Button("Insert Animation Finish"))
+            AddSimpleEventAtPlayhead("AnimationTrigger");
+
+        if (GUILayout.Button("Insert Self Destroy"))
+            AddSimpleEventAtPlayhead("SelfDestroy");
+
+        if (GUILayout.Button("Insert Open Counter Window"))
+            AddSimpleEventAtPlayhead("OpenCounterWindow");
+
+        if (GUILayout.Button("Insert Close Counter Window"))
+            AddSimpleEventAtPlayhead("CloseCounterWindow");
+
+        EditorGUILayout.Space(10);
+        EditorGUILayout.LabelField("Remove Events", EditorStyles.boldLabel);
+        EditorGUILayout.Space(4);
+
         if (GUILayout.Button("Remove Attack"))
         {
             var clip = AnimationWindowUtil.GetActiveClip();
@@ -150,6 +168,18 @@ public class EnemyTimelineAuthoringEditor : Editor
                 RemoveLastSoundPointAndReassign(clip, enemy);
             }
         }
+
+        if (GUILayout.Button("Remove Animation Finish"))
+            RemoveLastSimpleEvent("AnimationTrigger");
+
+        if (GUILayout.Button("Remove Self Destroy"))
+            RemoveLastSimpleEvent("SelfDestroy");
+
+        if (GUILayout.Button("Remove Open Counter Window"))
+            RemoveLastSimpleEvent("OpenCounterWindow");
+
+        if (GUILayout.Button("Remove Close Counter Window"))
+            RemoveLastSimpleEvent("CloseCounterWindow");
 
         so.ApplyModifiedProperties();
     }
@@ -462,6 +492,34 @@ public class EnemyTimelineAuthoringEditor : Editor
                 {
                     pointProp.intValue = value - 1;
                 }
+            }
+        }
+    }
+
+    private static void AddSimpleEventAtPlayhead(string method)
+    {
+        AddEventAtPlayhead(method, string.Empty);
+    }
+
+    private static void RemoveLastSimpleEvent(string methodName)
+    {
+        var clip = AnimationWindowUtil.GetActiveClip();
+        if (clip == null)
+        {
+            Debug.LogWarning("No active Animation Clip selected in Animation Window.");
+            return;
+        }
+
+        var list = AnimationUtility.GetAnimationEvents(clip).ToList();
+
+        for (int i = list.Count - 1; i >= 0; i--)
+        {
+            if (list[i].functionName == methodName)
+            {
+                list.RemoveAt(i);
+                AnimationUtility.SetAnimationEvents(clip, list.ToArray());
+                EditorUtility.SetDirty(clip);
+                return;
             }
         }
     }

@@ -283,6 +283,4 @@ public class Enemy_Archer : Enemy_Regular
         stateMachine.ChangeState(deadState);
     }
 
-    public override void SelfDestroy() => Destroy(gameObject);
-
 }

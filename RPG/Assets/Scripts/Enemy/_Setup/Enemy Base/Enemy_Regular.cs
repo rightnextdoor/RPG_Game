@@ -60,7 +60,6 @@ public class Enemy_Regular : Enemy
         if (enemyData != null)
             enemyData.isDead = true;
 
-        Destroy(gameObject, 2f);
     }
 
     private IEnumerator CheckWithDelay()

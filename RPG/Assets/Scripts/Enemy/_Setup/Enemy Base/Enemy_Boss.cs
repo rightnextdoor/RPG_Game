@@ -76,7 +76,6 @@ public class Enemy_Boss : Enemy
         BossHealthBarManager.instance.BossFightOver();
         EnemyManager.instance.UpdateBosses();
         UnlockEquipment();
-        Destroy(gameObject, 4f);
     }
 
     public virtual bool CheckToStartFight()

@@ -27,7 +27,9 @@ public class DeadStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         PlayStateSounds(enterSounds);
 
         enemy.stats.MakeInvincible(true);
-        enemy.SelfDestroy();
+
+        HideHealthBar();
+        StopDeathVisuals();
     }
 
     public override void Update()
@@ -42,6 +44,26 @@ public class DeadStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
     {
         base.Exit();
         PlayStateSounds(exitSounds);
+    }
+
+    protected virtual void HideHealthBar()
+    {
+        UI_HealthBar healthBar = enemy.GetComponentInChildren<UI_HealthBar>();
+        if (healthBar != null)
+            healthBar.HidHealthBar();
+    }
+
+    protected virtual void StopDeathVisuals()
+    {
+        ParticleSystem[] particles = enemy.GetComponentsInChildren<ParticleSystem>();
+
+        for (int i = 0; i < particles.Length; i++)
+        {
+            if (particles[i] == null)
+                continue;
+
+            particles[i].Stop(true, ParticleSystemStopBehavior.StopEmitting);
+        }
     }
 
     private void PlayStateSounds(List<StateSound> sounds)

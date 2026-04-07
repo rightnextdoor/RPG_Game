@@ -1003,16 +1003,17 @@ MonoBehaviour:
     enterSounds: []
     exitSounds: []
   attackDetails:
-  - name: Evade
+  - defaultsInitialized: 1
+    name: Evade
     animBoolName: Move
     action: 2
-    preference: 2
+    preference: 0
     unlocked: 1
     cannotUseWithTeleport: 0
     canAttackAfterTeleport: 0
-    chance: 0
-    minCooldown: 2
-    maxCooldown: 4
+    chance: 1
+    minCooldown: 1.5
+    maxCooldown: 2.5
     startCooldown: 0
     rangeMin: 0
     rangeMax: 0.8
@@ -1021,32 +1022,33 @@ MonoBehaviour:
     attackTimeMin: 0
     attackTimeMax: 0
     evasionSpeedMultiplier: 1.8
-    evasionDuration: 4
+    evasionDuration: 2.5
     evadeBackAwayMin: 5
-    evadeBackAwayMax: 10
+    evadeBackAwayMax: 6.5
     evadePassPastMin: 5
-    evadePassPastMax: 10
+    evadePassPastMax: 6.5
     evadeReducedFactor: 0.6
     evadeTinyRetreat: 0.35
-    stunDuration: 0
-    stunDirection: {x: 0, y: 0}
+    stunDuration: 1
+    stunDirection: {x: 10, y: 12}
     canBeStunned: 0
     counterImage: {fileID: 0}
-    jumpAbilityVelocity: {x: 0, y: 0}
-    jumpBack: 0
+    jumpAbilityVelocity: {x: 20, y: 12}
+    jumpBack: 1
     attackChecks: []
     spawnSpec: []
     sounds: []
-  - name: Stunned
+  - defaultsInitialized: 1
+    name: Stunned
     animBoolName: Stunned
     action: 4
-    preference: 2
+    preference: 0
     unlocked: 1
     cannotUseWithTeleport: 0
     canAttackAfterTeleport: 0
-    chance: 0
-    minCooldown: 0
-    maxCooldown: 0
+    chance: 1
+    minCooldown: 1.5
+    maxCooldown: 2.5
     startCooldown: 0
     rangeMin: 0
     rangeMax: 0
@@ -1055,30 +1057,31 @@ MonoBehaviour:
     attackTimeMin: 0
     attackTimeMax: 0
     evasionSpeedMultiplier: 1.8
-    evasionDuration: 4
+    evasionDuration: 2.5
     evadeBackAwayMin: 5
-    evadeBackAwayMax: 10
+    evadeBackAwayMax: 6.5
     evadePassPastMin: 5
-    evadePassPastMax: 10
+    evadePassPastMax: 6.5
     evadeReducedFactor: 0.6
     evadeTinyRetreat: 0.35
     stunDuration: 1
     stunDirection: {x: 10, y: 12}
     canBeStunned: 0
     counterImage: {fileID: 556552288427255572}
-    jumpAbilityVelocity: {x: 0, y: 0}
-    jumpBack: 0
+    jumpAbilityVelocity: {x: 20, y: 12}
+    jumpBack: 1
     attackChecks: []
     spawnSpec: []
     sounds: []
-  - name: Melee
+  - defaultsInitialized: 1
+    name: Melee
     animBoolName: Melee
     action: 1
     preference: 2
     unlocked: 1
     cannotUseWithTeleport: 0
     canAttackAfterTeleport: 0
-    chance: 0
+    chance: 1
     minCooldown: 1.5
     maxCooldown: 2.5
     startCooldown: 0
@@ -1089,19 +1092,19 @@ MonoBehaviour:
     attackTimeMin: 0
     attackTimeMax: 0
     evasionSpeedMultiplier: 1.8
-    evasionDuration: 4
+    evasionDuration: 2.5
     evadeBackAwayMin: 5
-    evadeBackAwayMax: 10
+    evadeBackAwayMax: 6.5
     evadePassPastMin: 5
-    evadePassPastMax: 10
+    evadePassPastMax: 6.5
     evadeReducedFactor: 0.6
     evadeTinyRetreat: 0.35
     stunDuration: 1
     stunDirection: {x: 10, y: 12}
     canBeStunned: 0
     counterImage: {fileID: 556552288427255572}
-    jumpAbilityVelocity: {x: 0, y: 0}
-    jumpBack: 0
+    jumpAbilityVelocity: {x: 20, y: 12}
+    jumpBack: 1
     attackChecks:
     - label: Melee
       attackPoints: 01000000
@@ -1124,14 +1127,15 @@ MonoBehaviour:
       soundPoints: 01000000
       delay: 0
       useTransform: 1
-  - name: Attack
+  - defaultsInitialized: 1
+    name: Attack
     animBoolName: Attack
     action: 1
     preference: 1
     unlocked: 1
     cannotUseWithTeleport: 0
     canAttackAfterTeleport: 0
-    chance: 0
+    chance: 1
     minCooldown: 1.5
     maxCooldown: 2.5
     startCooldown: 0
@@ -1142,19 +1146,19 @@ MonoBehaviour:
     attackTimeMin: 0
     attackTimeMax: 0
     evasionSpeedMultiplier: 1.8
-    evasionDuration: 4
+    evasionDuration: 2.5
     evadeBackAwayMin: 5
-    evadeBackAwayMax: 10
+    evadeBackAwayMax: 6.5
     evadePassPastMin: 5
-    evadePassPastMax: 10
+    evadePassPastMax: 6.5
     evadeReducedFactor: 0.6
     evadeTinyRetreat: 0.35
     stunDuration: 1
     stunDirection: {x: 10, y: 12}
     canBeStunned: 0
     counterImage: {fileID: 556552288427255572}
-    jumpAbilityVelocity: {x: 0, y: 0}
-    jumpBack: 0
+    jumpAbilityVelocity: {x: 20, y: 12}
+    jumpBack: 1
     attackChecks:
     - label: Attack
       attackPoints: 01000000
@@ -1172,7 +1176,8 @@ MonoBehaviour:
       arcInnerRadius: 2.02
       polygonPoints: []
     spawnSpec:
-    - name: Explosion
+    - defaultsInitialized: 1
+      name: Explosion
       attackPoints: 01000000
       prefab: {fileID: 6716726427099878741, guid: bc464ad7b7b86d74b832331ef517693b, type: 3}
       collisionShape: 0
@@ -1184,22 +1189,23 @@ MonoBehaviour:
         useTransform: 1
       control: {fileID: 4815306682902332354, guid: bc464ad7b7b86d74b832331ef517693b, type: 3}
       canMove: 1
-      speed: 7
+      canParry: 0
+      speed: 5
       movementType: 1
-      moveTimer: 0
-      homingTurnSpeed: 0
-      homingRecoverUpStrength: 0
-      maxLoops: 0
-      attackSpeedBoost: 0
-      circleRadius: 0
+      moveTimer: 2
+      homingTurnSpeed: 4
+      homingRecoverUpStrength: 1.5
+      maxLoops: 1
+      attackSpeedBoost: 3
+      circleRadius: 2
       explodes: 1
       lifeTimer: 3
       destroyAfterTime: 3
       canGrow: 1
-      growSpeed: 15
-      maxSize: 6
+      growSpeed: 10
+      maxSize: 10
       useExplosionTimer: 0
-      explosionTimer: 0
+      explosionTimer: 1.5
       hasAnimation: 1
       animationType: 1
       animationBoolName: Explode
@@ -1209,6 +1215,7 @@ MonoBehaviour:
       delay: 0
       useTransform: 1
   battlePreference: 1
+  battleSpeedMultiplier: 1
   battleMinCooldown: 1
   battleMaxCooldown: 2
   isSummon: 0
