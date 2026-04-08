@@ -69,12 +69,12 @@ public class Enemy_Archer : Enemy_Regular
 
         if (idleDetail != null)
         {
-            idleState = new IdleWithTargets(
+            idleState = new IdleStateBase<Enemy_Archer>(
                 this,
                 stateMachine,
                 idleDetail.animBoolName,
-                moveFactory: () => moveState,
-                battleFactory: () => battleState,
+                moveState: () => moveState,
+                battleState: () => battleState,
                 enterSounds: ToSoundList(idleDetail.enterSounds),
                 exitSounds: ToSoundList(idleDetail.exitSounds)
             );
@@ -217,29 +217,6 @@ public class Enemy_Archer : Enemy_Regular
             return null;
 
         return new List<StateSound>(sounds);
-    }
-
-    private sealed class IdleWithTargets : IdleStateBase<Enemy_Archer>
-    {
-        private readonly System.Func<EnemyState> moveFactory;
-        private readonly System.Func<EnemyState> battleFactory;
-
-        public IdleWithTargets(
-            Enemy_Archer enemy,
-            EnemyStateMachine sm,
-            string animBool,
-            System.Func<EnemyState> moveFactory,
-            System.Func<EnemyState> battleFactory,
-            List<StateSound> enterSounds = null,
-            List<StateSound> exitSounds = null
-        ) : base(enemy, sm, animBool, enterSounds, exitSounds)
-        {
-            this.moveFactory = moveFactory;
-            this.battleFactory = battleFactory;
-        }
-
-        protected override EnemyState MoveState => moveFactory?.Invoke();
-        protected override EnemyState BattleState => battleFactory?.Invoke();
     }
 
     public override void ChangeBattleCooldownRange(float minCooldown, float maxCooldown)

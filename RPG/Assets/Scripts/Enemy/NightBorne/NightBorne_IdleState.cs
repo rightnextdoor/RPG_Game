@@ -24,20 +24,20 @@ public class NightBorne_IdleState : NightBorne_GroundedState
     {
         base.Update();
 
-        if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
-        {
-            if (stateTimer < 0f)
-            {
-                if (enemy.canPatrol)
-                {
-                    enemy.Flip();
-                    stateMachine.ChangeState(enemy.moveState);
-                }
-            }
-        }
+        //if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
+        //{
+        //    if (stateTimer < 0f)
+        //    {
+        //        if (enemy.canPatrol)
+        //        {
+        //            enemy.Flip();
+        //            stateMachine.ChangeState(enemy.moveState);
+        //        }
+        //    }
+        //}
 
-        if (stateTimer < 0f && enemy.canPatrol)
-            stateMachine.ChangeState(enemy.moveState);
+        //if (stateTimer < 0f && enemy.canPatrol)
+        //    stateMachine.ChangeState(enemy.moveState);
 
     }
 }

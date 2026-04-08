@@ -1,12 +1,14 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class IdleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enemy
 {
-    protected virtual EnemyState MoveState => null;
-    protected virtual EnemyState BattleState => null;
+    private static readonly List<StateSound> Empty = new();
 
-    private static readonly List<StateSound> Empty = new List<StateSound>(0);
+    private readonly Func<EnemyState> moveState;
+    private readonly Func<EnemyState> battleState;
+
     private readonly List<StateSound> enterSounds;
     private readonly List<StateSound> exitSounds;
 
@@ -14,10 +16,14 @@ public class IdleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         Enemy enemyBase,
         EnemyStateMachine stateMachine,
         string animBoolName,
+        Func<EnemyState> moveState,
+        Func<EnemyState> battleState,
         List<StateSound> enterSounds = null,
         List<StateSound> exitSounds = null
     ) : base(enemyBase, stateMachine, animBoolName)
     {
+        this.moveState = moveState;
+        this.battleState = battleState;
         this.enterSounds = enterSounds ?? Empty;
         this.exitSounds = exitSounds ?? Empty;
     }
@@ -35,19 +41,21 @@ public class IdleStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
         base.Update();
         stateTimer -= Time.deltaTime;
 
-        if (BattleState != null && enemy.IsPlayerDetected())
+        EnemyState nextBattleState = battleState != null ? battleState() : null;
+        if (nextBattleState != null && enemy.IsPlayerDetected())
         {
-            stateMachine.ChangeState(BattleState);
+            stateMachine.ChangeState(nextBattleState);
             return;
         }
 
-        if (enemy.canPatrol && stateTimer <= 0f)
+        if (stateTimer <= 0f)
         {
             if (enemy.IsWallDetected() || !enemy.IsGroundDetected() || enemy.boundaryTouchedOnMove)
                 enemy.Flip();
 
-            if (MoveState != null)
-                stateMachine.ChangeState(MoveState);
+            EnemyState nextMoveState = moveState != null ? moveState() : null;
+            if (nextMoveState != null)
+                stateMachine.ChangeState(nextMoveState);
         }
     }
 

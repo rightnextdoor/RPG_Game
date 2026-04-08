@@ -15,7 +15,6 @@ public class Enemy : Entity
     public float idleTime = 2;
 
     [Header("Move info")]
-    public bool canPatrol = true; // remove after update of all enemies
     public float moveSpeed = 1.5f;
 
     public float moveTime = 5;

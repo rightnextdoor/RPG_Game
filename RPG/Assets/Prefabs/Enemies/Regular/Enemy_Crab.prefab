@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 150583571966835727}
   - component: {fileID: 6661822120399414835}
   - component: {fileID: 453654047094575345}
+  - component: {fileID: 4083281112093189826}
+  - component: {fileID: 8057642321693986219}
   m_Layer: 0
   m_Name: Animator
   m_TagString: Untagged
@@ -35,6 +37,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!212 &6661822120399414835
 SpriteRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -50,6 +53,11 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -71,9 +79,11 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -763691063
   m_SortingLayer: 7
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 0da421a9824618840b4f3eafc640449d, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -83,11 +93,10 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!95 &453654047094575345
 Animator:
-  serializedVersion: 5
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -101,11 +110,37 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &4083281112093189826
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 28151954337772868}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d987166f1567a14c872e5c23483cdbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyTimelineAuthoring
+  previewClipAudio: 1
+--- !u!114 &8057642321693986219
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 28151954337772868}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8891cf8231703214d9b57412371cdbbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Enemy_AnimationTriggers
 --- !u!1 &133879199325724943
 GameObject:
   m_ObjectHideFlags: 0
@@ -371,6 +406,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &364279842683697443
 SpriteRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -386,6 +422,11 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -407,9 +448,11 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -763691063
   m_SortingLayer: 7
   m_SortingOrder: -10
+  m_MaskInteraction: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
   m_Color: {r: 0.82210237, g: 0.078664735, b: 0.078664735, a: 0.6862745}
   m_FlipX: 0
@@ -419,7 +462,6 @@ SpriteRenderer:
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
-  m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &3526195952717395901
 GameObject:
@@ -721,7 +763,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!50 &3913332357611068558
 Rigidbody2D:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -732,8 +774,8 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0.05
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
   m_GravityScale: 12
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -754,6 +796,7 @@ CapsuleCollider2D:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6757125509790043401}
   m_Enabled: 1
+  serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -777,7 +820,8 @@ CapsuleCollider2D:
     m_Bits: 4294967295
   m_IsTrigger: 0
   m_UsedByEffector: 0
-  m_UsedByComposite: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
   m_Offset: {x: 0.033771515, y: -0.12305486}
   m_Size: {x: 1.7183838, y: 1.7236798}
   m_Direction: 0
@@ -914,21 +958,27 @@ MonoBehaviour:
   attackCheck: {fileID: 6757754134151695215}
   attackCheckRadius: 0.88
   groundCheck: {fileID: 1610627324880578854}
-  groundCheackDistance: 1
+  groundCheckDistance: 1
   wallCheck: {fileID: 1510771603885215525}
   wallCheckDistance: 1.28
   whatIsGround:
     serializedVersion: 2
     m_Bits: 8
+  boundaryTouchedOnMove: 0
   whatIsPlayer:
     serializedVersion: 2
     m_Bits: 64
   playerDistance: 15
+  idleTime: 1
   canPatrol: 0
   moveSpeed: 5
-  idleTime: 1
   moveTime: 9
   battleTime: 7
+  evasionTimer: 1.5
+  evasionSpeed: 10
+  evasionDistance: 0.5
+  minEvasionCooldown: 3
+  maxEvasionCooldown: 5
   agroDistance: 2
   rangeAttackDistance: 2
   rangeAttackCooldown: 0
@@ -940,16 +990,81 @@ MonoBehaviour:
   minMeleeAttackCooldown: 1
   maxMeleeAttackCooldown: 2
   lastTimeMeleeAttacked: 0
-  evasionTimer: 1.5
-  evasionSpeed: 10
-  evasionDistance: 0.5
-  minEvasionCooldown: 3
-  maxEvasionCooldown: 5
+  stateDetails:
+  - name: Idle
+    animBoolName: Idle
+    stateType: 4
+    enterSounds: []
+    exitSounds: []
+  - name: Move
+    animBoolName: Move
+    stateType: 6
+    enterSounds: []
+    exitSounds: []
+  - name: Dead
+    animBoolName: Die
+    stateType: 2
+    enterSounds:
+    - name: CrabDie
+      soundPoints: 
+      delay: 0
+      useTransform: 1
+    exitSounds: []
+  - name: Run Into
+    animBoolName: Move
+    stateType: 9
+    enterSounds: []
+    exitSounds: []
+  attackDetails:
+  - defaultsInitialized: 1
+    name: Hit and Run
+    animBoolName: Move
+    action: 6
+    preference: 2
+    unlocked: 1
+    cannotUseWithTeleport: 0
+    canAttackAfterTeleport: 0
+    chance: 1
+    minCooldown: 1.5
+    maxCooldown: 2.5
+    startCooldown: 0
+    rangeMin: 0
+    rangeMax: 0
+    lingerTime: 0
+    attackAmount: 0
+    attackTimeMin: 0
+    attackTimeMax: 0
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 2.5
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 6.5
+    evadePassPastMin: 5
+    evadePassPastMax: 6.5
+    evadeReducedFactor: 0.6
+    evadeTinyRetreat: 0.35
+    stunDuration: 1
+    stunDirection: {x: 10, y: 12}
+    canBeStunned: 0
+    counterImage: {fileID: 0}
+    jumpAbilityVelocity: {x: 20, y: 12}
+    jumpBack: 1
+    attackChecks: []
+    spawnSpec: []
+    sounds: []
+  battlePreference: 2
+  battleSpeedMultiplier: 1
+  battleMinCooldown: 1
+  battleMaxCooldown: 2
   isSummon: 0
   enemyData: {fileID: 0}
-  stunDuration: 1
-  stunDirection: {x: 10, y: 12}
-  counterImage: {fileID: 3240035308732653146}
+  moveMode: 0
+  moveSpeedMultiplier: 1
+  randomizeFacingOnMoveEnter: 1
+  patrolAreaAnchor: {fileID: 0}
+  patrolAreaSize: {x: 10, y: 4}
+  patrolSnapshotDone: 0
+  traverseStopMinSeconds: 1
+  traverseStopMaxSeconds: 2.5
   hitTimer: 1
 --- !u!1001 &3561147633914051210
 PrefabInstance:

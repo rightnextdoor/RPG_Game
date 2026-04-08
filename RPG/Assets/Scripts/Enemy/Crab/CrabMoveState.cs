@@ -1,66 +1,98 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CrabMoveState : EnemyState
+public class CrabMoveState : MoveStateBase<Enemy_Crab>
 {
-    private Enemy_Crab enemy;
-    private Transform player;
-    private float hitTimer = 0f;
-    private float flip = 0f;
-    private float flipTimer = 0f;
-    public CrabMoveState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Crab enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+    protected AbilityHub hub;
+    protected CooldownSystem cooldownSystem;
+
+    public CrabMoveState(
+        Enemy_Crab enemyBase,
+        EnemyStateMachine stateMachine,
+        string animBoolName,
+        Func<EnemyState> idleState,
+        Func<EnemyState> battleState,
+        List<StateSound> enterSounds = null,
+        List<StateSound> exitSounds = null
+    ) : base(
+        enemyBase,
+        stateMachine,
+        animBoolName,
+        idleState,
+        battleState,
+        enterSounds,
+        exitSounds)
     {
-        this.enemy = enemy;
     }
 
+    #region Configure
+    public virtual void Configure(AbilityHub abilityHub, CooldownSystem enemyCooldownSystem)
+    {
+        hub = abilityHub;
+        cooldownSystem = enemyCooldownSystem;
+    }
+    #endregion
+
+    #region State
     public override void Enter()
     {
         base.Enter();
-        player = PlayerUtils.GetPlayerSafe().transform;
-        stateTimer = enemy.moveTime;
-        hitTimer = enemy.hitTimer;
-        SetFlipTimer();
-    }
 
-    public override void Exit()
+        if (!enemy.BattleStarted)
+            enemy.StartBattle();
+    }
+    #endregion
+
+    #region Slug battle hook
+    protected override bool TryChangeToBattleState()
     {
-        base.Exit();
+        if (hub == null || cooldownSystem == null)
+            return false;
+
+        AbilityEntry entry = TryGetRunIntoAbility();
+        if (entry == null)
+            return false;
+
+        enemy.CurrentAbilityEntry = entry;
+
+        if (enemy.runIntoState != null)
+            enemy.runIntoState.Configure(RunIntoPlayerMode.Hit, () => enemy.moveState);
+
+        cooldownSystem.SetAbilityCooldown(entry.action, entry.name);
+        stateMachine.ChangeState(enemy.runIntoState);
+
+        return true;
     }
 
-    public override void Update()
+    protected virtual AbilityEntry TryGetRunIntoAbility()
     {
-        base.Update();
+        AbilityEntry entry = hub.GetAbility(BattleAction.RunIntoPlayer, AbilityPreference.Short);
+        if (entry == null)
+            return null;
 
-        hitTimer -= Time.deltaTime;
-        flipTimer -= Time.deltaTime;
+        if (!IsPlayerInRunIntoRange(entry))
+            return null;
 
-        enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, rb.linearVelocity.y);
-        
-        if(hitTimer < 0f)
-            enemy.RunIntoPlayerAttack(enemy.moveState);
-
-        if (enemy.IsWallDetected() || !enemy.IsGroundDetected())
-        {
-            stateMachine.ChangeState(enemy.idleState);
-        }
-
-        if (flipTimer < 0f)
-        {
-            int flip = Random.Range(1, 3);
-            if (flip == 2)
-                enemy.Flip();
-            SetFlipTimer();
-        }
-
-        if (stateTimer < 0)
-            stateMachine.ChangeState(enemy.idleState);
+        return entry;
     }
 
-    public void SetFlipTimer()
+    protected virtual bool IsPlayerInRunIntoRange(AbilityEntry entry)
     {
-        flip = Random.Range(enemy.moveTime / 2, enemy.moveTime - 1);
-        flipTimer = flip;
-    }
+        if (entry == null)
+            return false;
 
+        var player = PlayerUtils.GetPlayerSafe();
+        if (player == null)
+            return false;
+
+        float playerDistance = Vector2.Distance(enemy.transform.position, player.transform.position);
+
+        float maxRange = entry.rangeMax ?? 0f;
+        if (maxRange <= 0f)
+            maxRange = 1.5f;
+
+        return playerDistance <= maxRange;
+    }
+    #endregion
 }
