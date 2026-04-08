@@ -31,101 +31,158 @@ public class EnemyTimelineAuthoringEditor : Editor
         }
 
         var attacksList = enemy.attackDetails;
-        if (attacksList == null || attacksList.Count == 0)
+        bool hasAttackDetails = attacksList != null && attacksList.Count > 0;
+
+        if (!hasAttackDetails)
         {
             EditorGUILayout.HelpBox("This enemy has no AttackDetails.", MessageType.Warning);
-            so.ApplyModifiedProperties();
-            return;
         }
-
-        var attacks = attacksList.Where(a => a != null && !string.IsNullOrEmpty(a.name)).ToList();
-        var attackNames = attacks.Select(a => a.name).ToArray();
-        idxAttack = Mathf.Clamp(idxAttack, 0, Mathf.Max(0, attackNames.Length - 1));
-        idxAttack = EditorGUILayout.Popup("Attack", idxAttack, attackNames);
-        var attack = attacks[idxAttack];
-
-        var checks = attack.attackChecks ?? new List<AttackCheck>();
-        var checkLabels = checks.Where(c => c != null && !string.IsNullOrEmpty(c.label)).Select(c => c.label).ToArray();
-        if (checkLabels.Length == 0)
+        else
         {
-            EditorGUILayout.HelpBox("Selected attack has no checks.", MessageType.Warning);
-            so.ApplyModifiedProperties();
-            return;
-        }
+            var attacks = attacksList.Where(a => a != null && !string.IsNullOrEmpty(a.name)).ToList();
 
-        idxCheck = Mathf.Clamp(idxCheck, 0, Mathf.Max(0, checkLabels.Length - 1));
-        idxCheck = EditorGUILayout.Popup("Check", idxCheck, checkLabels);
-        var check = checks.First(c => c.label == checkLabels[idxCheck]);
+            if (attacks.Count == 0)
+            {
+                EditorGUILayout.HelpBox("This enemy has no valid AttackDetails.", MessageType.Warning);
+            }
+            else
+            {
+                var attackNames = attacks.Select(a => a.name).ToArray();
+                idxAttack = Mathf.Clamp(idxAttack, 0, Mathf.Max(0, attackNames.Length - 1));
+                idxAttack = EditorGUILayout.Popup("Attack", idxAttack, attackNames);
+                var attack = attacks[idxAttack];
 
-        string[] spawnNames = System.Array.Empty<string>();
-        bool needsSpawn = check.shape == AttackCheckShape.Point;
-        if (needsSpawn)
-        {
-            var spawns = attack.spawnSpec ?? new List<AttackSpawnSpec>();
-            spawnNames = spawns.Where(s => s != null && !string.IsNullOrEmpty(s.name)).Select(s => s.name).ToArray();
-            if (spawnNames.Length == 0)
-                spawnNames = new[] { "(no spawn entries)" };
+                var checks = attack.attackChecks ?? new List<AttackCheck>();
+                var checkLabels = checks.Where(c => c != null && !string.IsNullOrEmpty(c.label)).Select(c => c.label).ToArray();
 
-            idxSpawn = Mathf.Clamp(idxSpawn, 0, spawnNames.Length - 1);
-            idxSpawn = EditorGUILayout.Popup("Spawn (Point)", idxSpawn, spawnNames);
-        }
+                if (checkLabels.Length == 0)
+                {
+                    EditorGUILayout.HelpBox("Selected attack has no checks.", MessageType.Warning);
+                }
+                else
+                {
+                    idxCheck = Mathf.Clamp(idxCheck, 0, Mathf.Max(0, checkLabels.Length - 1));
+                    idxCheck = EditorGUILayout.Popup("Check", idxCheck, checkLabels);
+                    var check = checks.First(c => c.label == checkLabels[idxCheck]);
 
-        int soundCount = attack.sounds != null ? attack.sounds.Length : 0;
-        var soundLabels = Enumerable.Range(0, soundCount).Select(i => $"[{i}]").ToArray();
-        using (new EditorGUI.DisabledScope(soundCount == 0))
-        {
-            idxSound = Mathf.Clamp(idxSound, 0, Mathf.Max(0, soundCount - 1));
-            idxSound = EditorGUILayout.Popup("Sound", idxSound, soundLabels);
+                    string[] spawnNames = System.Array.Empty<string>();
+                    bool needsSpawn = check.shape == AttackCheckShape.Point;
+                    if (needsSpawn)
+                    {
+                        var spawns = attack.spawnSpec ?? new List<AttackSpawnSpec>();
+                        spawnNames = spawns.Where(s => s != null && !string.IsNullOrEmpty(s.name)).Select(s => s.name).ToArray();
+                        if (spawnNames.Length == 0)
+                            spawnNames = new[] { "(no spawn entries)" };
+
+                        idxSpawn = Mathf.Clamp(idxSpawn, 0, spawnNames.Length - 1);
+                        idxSpawn = EditorGUILayout.Popup("Spawn (Point)", idxSpawn, spawnNames);
+                    }
+
+                    int soundCount = attack.sounds != null ? attack.sounds.Length : 0;
+                    var soundLabels = Enumerable.Range(0, soundCount).Select(i => $"[{i}]").ToArray();
+                    using (new EditorGUI.DisabledScope(soundCount == 0))
+                    {
+                        idxSound = Mathf.Clamp(idxSound, 0, Mathf.Max(0, soundCount - 1));
+                        idxSound = EditorGUILayout.Popup("Sound", idxSound, soundLabels);
+                    }
+
+                    EditorGUILayout.Space(10);
+
+                    EditorGUILayout.LabelField("Selected Check Settings", EditorStyles.boldLabel);
+                    DrawSelectedCheckInspector(enemy, attack.name, idxCheck);
+
+                    if (check.checkTransform == null)
+                    {
+                        EditorGUILayout.HelpBox(
+                            "This check has no Transform. Create a child GameObject and assign it to 'Check Transform'.",
+                            MessageType.Warning);
+                    }
+
+                    EditorGUILayout.Space(10);
+
+                    EditorGUILayout.LabelField("Selected Sound Settings", EditorStyles.boldLabel);
+                    DrawSelectedSoundInspector(enemy, attack.name, idxSound);
+                }
+
+                EditorGUILayout.Space(10);
+                EditorGUILayout.LabelField("Attack Events", EditorStyles.boldLabel);
+                EditorGUILayout.Space(4);
+
+                if (GUILayout.Button("Insert Attack"))
+                {
+                    var clip = AnimationWindowUtil.GetActiveClip();
+                    if (clip == null)
+                    {
+                        Debug.LogWarning("No active Animation Clip selected in Animation Window.");
+                    }
+                    else
+                    {
+                        string pointName = GetNextPointName(clip, "attackPoint");
+                        AddEventAtPlayhead(nameof(Enemy_AnimationTriggers.AttackTrigger), pointName);
+                    }
+                }
+
+                if (GUILayout.Button("Insert Sound"))
+                {
+                    var clip = AnimationWindowUtil.GetActiveClip();
+                    if (clip == null)
+                    {
+                        Debug.LogWarning("No active Animation Clip selected in Animation Window.");
+                    }
+                    else
+                    {
+                        string pointName = GetNextPointName(clip, "soundPoint");
+                        AddEventAtPlayhead(nameof(Enemy_AnimationTriggers.SoundTrigger), pointName);
+                    }
+                }
+
+                if (GUILayout.Button("Insert Open Counter Window"))
+                    AddSimpleEventAtPlayhead("OpenCounterWindow");
+
+                if (GUILayout.Button("Insert Close Counter Window"))
+                    AddSimpleEventAtPlayhead("CloseCounterWindow");
+
+                EditorGUILayout.Space(10);
+                EditorGUILayout.LabelField("Remove Attack Events", EditorStyles.boldLabel);
+                EditorGUILayout.Space(4);
+
+                if (GUILayout.Button("Remove Attack"))
+                {
+                    var clip = AnimationWindowUtil.GetActiveClip();
+                    if (clip == null)
+                    {
+                        Debug.LogWarning("No active Animation Clip selected in Animation Window.");
+                    }
+                    else
+                    {
+                        RemoveLastAttackPointAndReassign(clip, enemy);
+                    }
+                }
+
+                if (GUILayout.Button("Remove Sound"))
+                {
+                    var clip = AnimationWindowUtil.GetActiveClip();
+                    if (clip == null)
+                    {
+                        Debug.LogWarning("No active Animation Clip selected in Animation Window.");
+                    }
+                    else
+                    {
+                        RemoveLastSoundPointAndReassign(clip, enemy);
+                    }
+                }
+
+                if (GUILayout.Button("Remove Open Counter Window"))
+                    RemoveLastSimpleEvent("OpenCounterWindow");
+
+                if (GUILayout.Button("Remove Close Counter Window"))
+                    RemoveLastSimpleEvent("CloseCounterWindow");
+            }
         }
 
         EditorGUILayout.Space(10);
-
-        EditorGUILayout.LabelField("Selected Check Settings", EditorStyles.boldLabel);
-        DrawSelectedCheckInspector(enemy, attack.name, idxCheck);
-
-        if (check == null || check.checkTransform == null)
-        {
-            EditorGUILayout.HelpBox(
-                "This check has no Transform. Create a child GameObject and assign it to 'Check Transform'.",
-                MessageType.Warning);
-        }
-
-        EditorGUILayout.Space(10);
-
-        EditorGUILayout.LabelField("Selected Sound Settings", EditorStyles.boldLabel);
-        DrawSelectedSoundInspector(enemy, attack.name, idxSound);
-
-        EditorGUILayout.Space(10);
-        EditorGUILayout.LabelField("Insert Events", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("General Animation Events", EditorStyles.boldLabel);
         EditorGUILayout.Space(4);
-
-        if (GUILayout.Button("Insert Attack"))
-        {
-            var clip = AnimationWindowUtil.GetActiveClip();
-            if (clip == null)
-            {
-                Debug.LogWarning("No active Animation Clip selected in Animation Window.");
-            }
-            else
-            {
-                string pointName = GetNextPointName(clip, "attackPoint");
-                AddEventAtPlayhead(nameof(Enemy_AnimationTriggers.AttackTrigger), pointName);
-            }
-        }
-
-        if (GUILayout.Button("Insert Sound"))
-        {
-            var clip = AnimationWindowUtil.GetActiveClip();
-            if (clip == null)
-            {
-                Debug.LogWarning("No active Animation Clip selected in Animation Window.");
-            }
-            else
-            {
-                string pointName = GetNextPointName(clip, "soundPoint");
-                AddEventAtPlayhead(nameof(Enemy_AnimationTriggers.SoundTrigger), pointName);
-            }
-        }
 
         if (GUILayout.Button("Insert Animation Finish"))
             AddSimpleEventAtPlayhead("AnimationTrigger");
@@ -133,53 +190,15 @@ public class EnemyTimelineAuthoringEditor : Editor
         if (GUILayout.Button("Insert Self Destroy"))
             AddSimpleEventAtPlayhead("SelfDestroy");
 
-        if (GUILayout.Button("Insert Open Counter Window"))
-            AddSimpleEventAtPlayhead("OpenCounterWindow");
-
-        if (GUILayout.Button("Insert Close Counter Window"))
-            AddSimpleEventAtPlayhead("CloseCounterWindow");
-
         EditorGUILayout.Space(10);
-        EditorGUILayout.LabelField("Remove Events", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("Remove General Animation Events", EditorStyles.boldLabel);
         EditorGUILayout.Space(4);
-
-        if (GUILayout.Button("Remove Attack"))
-        {
-            var clip = AnimationWindowUtil.GetActiveClip();
-            if (clip == null)
-            {
-                Debug.LogWarning("No active Animation Clip selected in Animation Window.");
-            }
-            else
-            {
-                RemoveLastAttackPointAndReassign(clip, enemy);
-            }
-        }
-
-        if (GUILayout.Button("Remove Sound"))
-        {
-            var clip = AnimationWindowUtil.GetActiveClip();
-            if (clip == null)
-            {
-                Debug.LogWarning("No active Animation Clip selected in Animation Window.");
-            }
-            else
-            {
-                RemoveLastSoundPointAndReassign(clip, enemy);
-            }
-        }
 
         if (GUILayout.Button("Remove Animation Finish"))
             RemoveLastSimpleEvent("AnimationTrigger");
 
         if (GUILayout.Button("Remove Self Destroy"))
             RemoveLastSimpleEvent("SelfDestroy");
-
-        if (GUILayout.Button("Remove Open Counter Window"))
-            RemoveLastSimpleEvent("OpenCounterWindow");
-
-        if (GUILayout.Button("Remove Close Counter Window"))
-            RemoveLastSimpleEvent("CloseCounterWindow");
 
         so.ApplyModifiedProperties();
     }

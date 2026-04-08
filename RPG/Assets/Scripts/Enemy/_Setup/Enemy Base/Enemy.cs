@@ -965,7 +965,7 @@ public class Enemy : Entity
         //        {
         //            stats.DoDamage(target);
         //            hitPlayer = true;
-        //            if(moveState != null)
+        //            if (moveState != null)
         //                stateMachine.ChangeState(moveState);
         //        }
         //    }

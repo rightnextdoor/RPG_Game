@@ -11,7 +11,8 @@ public enum EnemyStateType
     Jump,
     Move,
     Stunned,
-    Teleport
+    Teleport,
+    RunIntoPlayer
 }
 
 [Serializable]

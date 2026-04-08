@@ -1,69 +1,98 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.RuleTile.TilingRuleOutput;
 
-public class SlugMoveState : EnemyState
+public class SlugMoveState : MoveStateBase<Enemy_Slug>
 {
-    private Enemy_Slug enemy;
-    private int wavePointIndex = 0;
-    
-    public SlugMoveState(Enemy_Regular _enemyBase, EnemyStateMachine _stateMachine, string _animBoolName, Enemy_Slug enemy) : base(_enemyBase, _stateMachine, _animBoolName)
+    protected AbilityHub hub;
+    protected CooldownSystem cooldownSystem;
+
+    public SlugMoveState(
+        Enemy_Slug enemyBase,
+        EnemyStateMachine stateMachine,
+        string animBoolName,
+        Func<EnemyState> idleState,
+        Func<EnemyState> battleState,
+        List<StateSound> enterSounds = null,
+        List<StateSound> exitSounds = null
+    ) : base(
+        enemyBase,
+        stateMachine,
+        animBoolName,
+        idleState,
+        battleState,
+        enterSounds,
+        exitSounds)
     {
-        this.enemy = enemy;
     }
 
+    #region Configure
+    public virtual void Configure(AbilityHub abilityHub, CooldownSystem enemyCooldownSystem)
+    {
+        hub = abilityHub;
+        cooldownSystem = enemyCooldownSystem;
+    }
+    #endregion
+
+    #region State
     public override void Enter()
     {
         base.Enter();
-        stateTimer = enemy.moveTime;
-    }
 
-    public override void Exit()
+        if (!enemy.BattleStarted)
+            enemy.StartBattle();
+    }
+    #endregion
+
+    #region Slug battle hook
+    protected override bool TryChangeToBattleState()
     {
-        base.Exit();
+        if (hub == null || cooldownSystem == null)
+            return false;
+
+        AbilityEntry entry = TryGetRunIntoAbility();
+        if (entry == null)
+            return false;
+
+        enemy.CurrentAbilityEntry = entry;
+
+        if (enemy.runIntoState != null)
+            enemy.runIntoState.Configure(RunIntoPlayerMode.Hit, () => enemy.moveState);
+
+        cooldownSystem.SetAbilityCooldown(entry.action, entry.name);
+        stateMachine.ChangeState(enemy.runIntoState);
+
+        return true;
     }
 
-    public override void Update()
+    protected virtual AbilityEntry TryGetRunIntoAbility()
     {
-        base.Update();
+        AbilityEntry entry = hub.GetAbility(BattleAction.RunIntoPlayer, AbilityPreference.Short);
+        if (entry == null)
+            return null;
 
-        if (stateTimer < 0f)
-            enemy.RunIntoPlayerAttack(enemy.moveState);
+        if (!IsPlayerInRunIntoRange(entry))
+            return null;
 
-        Vector3 dir = enemy.target.position - enemy.transform.position;
-        enemy.transform.Translate(dir.normalized * enemy.moveSpeed * Time.deltaTime, Space.World);
-
-        if (Vector3.Distance(enemy.transform.position, enemy.target.position) <= 0.48f)
-            {      
-            GetNextWaypoint();
-            if(enemy.canFlip)
-                enemy.Flip();
-        }
-
+        return entry;
     }
 
-    private void GetNextWaypoint()
+    protected virtual bool IsPlayerInRunIntoRange(AbilityEntry entry)
     {
-        if(!enemy.canFlip)
-            EnemyRotation();
+        if (entry == null)
+            return false;
 
-        if (wavePointIndex >= enemy.waypoints.Length - 1)
-        {
-            wavePointIndex = 0;
-        }
-        else
-        {
-            wavePointIndex++;
-        }
+        var player = PlayerUtils.GetPlayerSafe();
+        if (player == null)
+            return false;
 
-        enemy.target = enemy.waypoints[wavePointIndex];
+        float playerDistance = Vector2.Distance(enemy.transform.position, player.transform.position);
+
+        float maxRange = entry.rangeMax ?? 0f;
+        if (maxRange <= 0f)
+            maxRange = 1.5f;
+
+        return playerDistance <= maxRange;
     }
-
-    private void EnemyRotation()
-    {
-        Vector3 currRot = enemy.transform.eulerAngles;
-        currRot.z += enemy.waypoints[wavePointIndex].transform.eulerAngles.z;
-        enemy.transform.eulerAngles = currRot;
-    }
+    #endregion
 }

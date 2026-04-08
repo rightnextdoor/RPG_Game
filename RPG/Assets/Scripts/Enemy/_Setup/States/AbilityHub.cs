@@ -8,6 +8,7 @@ public class AbilityHub
     private readonly List<AbilityEntry> evadeAbilities = new();
     private readonly List<AbilityEntry> jumpAbilities = new();
     private readonly List<AbilityEntry> teleportAbilities = new();
+    private readonly List<AbilityEntry> runIntoPlayerAbilities = new();
 
     private CooldownSystem cooldownSystem;
     
@@ -27,6 +28,7 @@ public class AbilityHub
         evadeAbilities.Clear();
         jumpAbilities.Clear();
         teleportAbilities.Clear();
+        runIntoPlayerAbilities.Clear();
 
         if (abilityMap == null || abilityMap.Count == 0)
             return;
@@ -54,6 +56,10 @@ public class AbilityHub
                 case BattleAction.Teleport:
                     teleportAbilities.Add(entry);
                     break;
+
+                case BattleAction.RunIntoPlayer:
+                    runIntoPlayerAbilities.Add(entry);
+                    break;
             }
         }
     }
@@ -75,6 +81,9 @@ public class AbilityHub
 
             case BattleAction.Teleport:
                 return GetAbilityFromList(teleportAbilities, preference);
+
+            case BattleAction.RunIntoPlayer:
+                return GetAbilityFromList(runIntoPlayerAbilities, preference);
 
             default:
                 return null;

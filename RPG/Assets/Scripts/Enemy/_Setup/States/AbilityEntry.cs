@@ -9,7 +9,7 @@ public enum BattleAction
     Jump,
     Stunned,
     Teleport,
-    Custom
+    RunIntoPlayer
 }
 
 [Serializable]

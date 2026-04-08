@@ -7,6 +7,7 @@ public class CooldownSystem
     private readonly List<AbilityEntry> evadeAbilities = new();
     private readonly List<AbilityEntry> jumpAbilities = new();
     private readonly List<AbilityEntry> teleportAbilities = new();
+    private readonly List<AbilityEntry> runIntoPlayerAbilities = new();
     #endregion
 
     #region Battle settings
@@ -36,6 +37,7 @@ public class CooldownSystem
         evadeAbilities.Clear();
         jumpAbilities.Clear();
         teleportAbilities.Clear();
+        runIntoPlayerAbilities.Clear();
 
         if (abilityMap == null || abilityMap.Count == 0)
             return;
@@ -63,6 +65,10 @@ public class CooldownSystem
                 case BattleAction.Teleport:
                     teleportAbilities.Add(entry);
                     break;
+
+                case BattleAction.RunIntoPlayer:
+                    runIntoPlayerAbilities.Add(entry);
+                    break;
             }
         }
     }
@@ -83,6 +89,9 @@ public class CooldownSystem
 
             case BattleAction.Teleport:
                 return IsAbilityReadyInList(teleportAbilities, abilityName);
+
+            case BattleAction.RunIntoPlayer:
+                return IsAbilityReadyInList(runIntoPlayerAbilities, abilityName);
 
             default:
                 return false;
@@ -127,6 +136,10 @@ public class CooldownSystem
             case BattleAction.Teleport:
                 SetAbilityCooldownInList(teleportAbilities, abilityName);
                 break;
+
+            case BattleAction.RunIntoPlayer:
+                SetAbilityCooldownInList(runIntoPlayerAbilities, abilityName);
+                break;
         }
     }
 
@@ -157,6 +170,7 @@ public class CooldownSystem
         ApplyStartCooldownsInList(evadeAbilities);
         ApplyStartCooldownsInList(jumpAbilities);
         ApplyStartCooldownsInList(teleportAbilities);
+        ApplyStartCooldownsInList(runIntoPlayerAbilities);
     }
 
     private void ApplyStartCooldownsInList(List<AbilityEntry> abilities)

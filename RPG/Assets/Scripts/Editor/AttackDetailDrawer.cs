@@ -89,7 +89,7 @@ public class AttackDetailDrawer : PropertyDrawer
                 break;
 
             case BattleAction.Teleport:
-            case BattleAction.Custom:
+            case BattleAction.RunIntoPlayer:
                 DrawHeader(ref y, position.x, width, action.ToString());
                 EditorGUI.HelpBox(
                     new Rect(position.x, y, width, EditorGUIUtility.singleLineHeight * 1.5f),
@@ -174,7 +174,7 @@ public class AttackDetailDrawer : PropertyDrawer
                 break;
 
             case BattleAction.Teleport:
-            case BattleAction.Custom:
+            case BattleAction.RunIntoPlayer:
                 h += HeaderHeight();
                 h += EditorGUIUtility.singleLineHeight * 1.5f + Space;
                 break;

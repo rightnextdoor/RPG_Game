@@ -159,11 +159,8 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
             return;
         }
 
-        if (battleState != null && PlayerDetectedValid())
-        {
-            stateMachine.ChangeState(battleState());
+        if (TryChangeToBattleState())
             return;
-        }
 
         if (needsPatrolReturn)
         {
@@ -935,7 +932,17 @@ public class MoveStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : Enem
     #endregion
 
     #region General helpers
+    protected virtual bool TryChangeToBattleState()
+    {
+        if (battleState == null)
+            return false;
 
+        if (!PlayerDetectedValid())
+            return false;
+
+        stateMachine.ChangeState(battleState());
+        return true;
+    }
     private void AlignToNormal(Vector2 normal)
     {
         currentNormal = (normal.sqrMagnitude > 0.0001f) ? normal.normalized : Vector2.up;
