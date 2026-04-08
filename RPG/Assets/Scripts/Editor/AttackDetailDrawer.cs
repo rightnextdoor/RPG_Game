@@ -78,7 +78,6 @@ public class AttackDetailDrawer : PropertyDrawer
                 DrawHeader(ref y, position.x, width, "Stunned Info");
                 DrawField(ref y, position, property, "stunDuration");
                 DrawField(ref y, position, property, "stunDirection");
-                DrawField(ref y, position, property, "canBeStunned");
                 DrawField(ref y, position, property, "counterImage");
                 break;
 
@@ -163,7 +162,6 @@ public class AttackDetailDrawer : PropertyDrawer
                 h += HeaderHeight();
                 h += FieldHeight(property, "stunDuration");
                 h += FieldHeight(property, "stunDirection");
-                h += FieldHeight(property, "canBeStunned");
                 h += FieldHeight(property, "counterImage");
                 break;
 
