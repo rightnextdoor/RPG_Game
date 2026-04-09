@@ -12,7 +12,10 @@ public enum EnemyStateType
     Move,
     Stunned,
     Teleport,
-    RunIntoPlayer
+    RunIntoPlayer,
+    BounceIdle,
+    BounceMove,
+    BounceBattle
 }
 
 [Serializable]

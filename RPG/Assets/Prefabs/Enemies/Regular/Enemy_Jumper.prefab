@@ -169,6 +169,8 @@ GameObject:
   - component: {fileID: 8435548733171270283}
   - component: {fileID: 6763588080443776408}
   - component: {fileID: 5778506286619201421}
+  - component: {fileID: 7067578421384730447}
+  - component: {fileID: 9088405461831994926}
   m_Layer: 0
   m_Name: Animator
   m_TagString: Untagged
@@ -272,6 +274,31 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &7067578421384730447
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1182894104686009891}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d987166f1567a14c872e5c23483cdbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyTimelineAuthoring
+  previewClipAudio: 1
+--- !u!114 &9088405461831994926
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1182894104686009891}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8891cf8231703214d9b57412371cdbbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Enemy_AnimationTriggers
 --- !u!1 &1219808928193985171
 GameObject:
   m_ObjectHideFlags: 0
@@ -648,7 +675,6 @@ MonoBehaviour:
     m_Bits: 64
   playerDistance: 20
   idleTime: 1
-  canPatrol: 1
   moveSpeed: 1.5
   moveTime: 5
   battleTime: 7
@@ -668,9 +694,73 @@ MonoBehaviour:
   minMeleeAttackCooldown: 1
   maxMeleeAttackCooldown: 2
   lastTimeMeleeAttacked: 0
-  stateDetails: []
-  attackDetails: []
-  battlePreference: 0
+  stateDetails:
+  - name: Idle
+    animBoolName: Idle
+    stateType: 10
+    enterSounds: []
+    exitSounds:
+    - name: JumperJump
+      soundPoints: 
+      delay: 0
+      useTransform: 1
+  - name: Move
+    animBoolName: Jump
+    stateType: 11
+    enterSounds: []
+    exitSounds: []
+  - name: Battle
+    animBoolName: Jump
+    stateType: 1
+    enterSounds: []
+    exitSounds: []
+  - name: Dead
+    animBoolName: Die
+    stateType: 2
+    enterSounds:
+    - name: JumperDie
+      soundPoints: 
+      delay: 0
+      useTransform: 1
+    exitSounds: []
+  attackDetails:
+  - defaultsInitialized: 1
+    name: HIt and Run
+    animBoolName: Jump
+    action: 6
+    preference: 2
+    unlocked: 1
+    cannotUseWithTeleport: 0
+    canAttackAfterTeleport: 0
+    chance: 1
+    minCooldown: 1.5
+    maxCooldown: 2.5
+    startCooldown: 0
+    rangeMin: 0
+    rangeMax: 0
+    lingerTime: 0
+    attackAmount: 0
+    attackTimeMin: 0
+    attackTimeMax: 0
+    evasionSpeedMultiplier: 1.8
+    evasionDuration: 2.5
+    evadeBackAwayMin: 5
+    evadeBackAwayMax: 6.5
+    evadePassPastMin: 5
+    evadePassPastMax: 6.5
+    evadeReducedFactor: 0.6
+    evadeTinyRetreat: 0.35
+    stunDuration: 1
+    stunDirection: {x: 10, y: 12}
+    canBeStunned: 0
+    counterImage: {fileID: 0}
+    jumpAbilityVelocity: {x: 20, y: 12}
+    jumpBack: 1
+    attackChecks: []
+    spawnSpec: []
+    sounds: []
+  battlePreference: 2
+  battleSpeedMultiplier: 1
   battleMinCooldown: 1
   battleMaxCooldown: 2
   isSummon: 0
@@ -683,15 +773,6 @@ MonoBehaviour:
   patrolSnapshotDone: 0
   traverseStopMinSeconds: 1
   traverseStopMaxSeconds: 2.5
-  hitTimer: 1
-  hitCountdown: 0
-  jumpVelocity: {x: 10, y: 35}
-  jumpCooldown: 1
-  safeDistance: 3
-  fallTimer: 0.5
-  lastTimeJumped: 0
-  jumpCheck: {fileID: 2608237289200609001}
-  jumpCheckSize: {x: 1.21, y: 5}
 --- !u!1 &2853254002297390099
 GameObject:
   m_ObjectHideFlags: 0

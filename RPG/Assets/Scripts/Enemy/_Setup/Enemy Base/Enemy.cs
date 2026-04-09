@@ -14,6 +14,10 @@ public class Enemy : Entity
     public float playerDistance = 10;
     public float idleTime = 2;
 
+    [Header("Bounce Wait")]
+    public float bounceWaitMin = 0.25f;
+    public float bounceWaitMax = 0.75f;
+
     [Header("Move info")]
     public float moveSpeed = 1.5f;
 
