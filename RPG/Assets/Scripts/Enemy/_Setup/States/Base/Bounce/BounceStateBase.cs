@@ -25,6 +25,18 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         Airborne
     }
 
+    protected enum BounceJumpType
+    {
+        Normal,
+        FloorToCeiling
+    }
+
+    protected enum BounceJumpSide
+    {
+        Left,
+        Right
+    }
+
     protected BouncePhase currentPhase = BouncePhase.Attach;
 
     protected bool isAttached;
@@ -52,6 +64,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected const float LANDING_NORMAL_MIN_DOT = 0.1f;
 
     protected Vector2 launchVelocity;
+    protected bool needsPatrolReturn;
 
     #endregion
 
@@ -157,6 +170,150 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
         currentPhase = BouncePhase.Attach;
     }
+
+    #endregion
+
+    #region Jump planning
+
+    protected virtual void PlanJump()
+    {
+        BounceJumpType jumpType = GetWeightedJumpType();
+        BounceJumpSide jumpSide = GetJumpSide();
+        float jumpDistance = GetJumpDistance(jumpSide);
+        float jumpHeight = GetJumpHeight(jumpType);
+
+        BuildLaunchVelocity(jumpSide, jumpDistance, jumpHeight);
+    }
+
+    #region Jump helpers
+    protected virtual BounceJumpSide GetJumpSide()
+    {
+        if (IsAtLeftEdge())
+            return BounceJumpSide.Right;
+
+        if (IsAtRightEdge())
+            return BounceJumpSide.Left;
+
+        return UnityEngine.Random.value < 0.5f
+            ? BounceJumpSide.Left
+            : BounceJumpSide.Right;
+    }
+
+    protected virtual Vector2 GetLocalJumpDirection(BounceJumpSide jumpSide)
+    {
+        return jumpSide == BounceJumpSide.Left
+            ? -(Vector2)enemy.transform.right
+            : (Vector2)enemy.transform.right;
+    }
+    protected virtual BounceJumpType GetWeightedJumpType()
+    {
+        if (currentSurface != BounceSurface.Floor)
+            return BounceJumpType.Normal;
+
+        int normalWeight = 75;
+        int floorToCeilingWeight = 25;
+
+        int totalWeight = normalWeight + floorToCeilingWeight;
+        int roll = UnityEngine.Random.Range(0, totalWeight);
+
+        if (roll < normalWeight)
+            return BounceJumpType.Normal;
+
+        return BounceJumpType.FloorToCeiling;
+    }
+
+    protected virtual float GetJumpDistance(BounceJumpSide jumpSide)
+    {
+        GetJumpDistanceRange(jumpSide, out float minDistance, out float maxDistance);
+        return UnityEngine.Random.Range(minDistance, maxDistance);
+    }
+
+    protected virtual void GetJumpDistanceRange(BounceJumpSide jumpSide, out float minDistance, out float maxDistance)
+    {
+        float enemyWidth = GetEnemyWidth();
+
+        minDistance = enemyWidth * 0.5f;
+        maxDistance = GetJumpMaxDistance(jumpSide);
+
+        if (maxDistance < minDistance)
+            minDistance = maxDistance;
+    }
+
+    protected virtual float GetJumpMaxDistance(BounceJumpSide jumpSide)
+    {
+        float enemyWidth = GetEnemyWidth();
+        return enemyWidth * Mathf.Max(1, enemy.bounceJumpDistanceMultiplier);
+    }
+
+    protected virtual float GetEnemyWidth()
+    {
+        Collider2D col = enemy.GetComponent<Collider2D>();
+        if (col != null)
+            return Mathf.Max(0.1f, col.bounds.size.x);
+
+        return 1f;
+    }
+
+    protected virtual float GetJumpHeight(BounceJumpType jumpType)
+    {
+        GetJumpHeightRange(jumpType, out float minHeight, out float maxHeight);
+        return UnityEngine.Random.Range(minHeight, maxHeight);
+    }
+
+    protected virtual void GetJumpHeightRange(BounceJumpType jumpType, out float minHeight, out float maxHeight)
+    {
+        minHeight = GetPlayerHeight();
+        maxHeight = Mathf.Max(minHeight, enemy.patrolAreaSize.y);
+
+        bool useFloorPadding =
+            currentSurface == BounceSurface.Floor &&
+            jumpType == BounceJumpType.Normal;
+
+        if (useFloorPadding)
+            maxHeight -= Mathf.Max(0f, enemy.bounceJumpHeightPadding);
+
+        if (maxHeight < minHeight)
+            maxHeight = minHeight;
+    }
+
+    protected virtual float GetPlayerHeight()
+    {
+        var player = PlayerUtils.GetPlayerSafe();
+        if (player == null)
+            return 1f;
+
+        Collider2D col = player.GetComponent<Collider2D>();
+        if (col != null)
+            return Mathf.Max(0.1f, col.bounds.size.y);
+
+        return 1f;
+    }
+
+    protected virtual void BuildLaunchVelocity(BounceJumpSide jumpSide, float distance, float height)
+    {
+        Vector2 dir = GetLocalJumpDirection(jumpSide);
+
+        float timeToPeak = Mathf.Max(0.05f, height / Mathf.Max(0.1f, Mathf.Abs(Physics2D.gravity.y)));
+
+        float vx = (distance / Mathf.Max(0.05f, timeToPeak)) * dir.normalized.x;
+        float vy = Mathf.Sqrt(2f * Mathf.Abs(Physics2D.gravity.y) * height);
+
+        launchVelocity = new Vector2(vx, vy);
+    }
+
+    protected virtual bool IsAtLeftEdge()
+    {
+        float edgePadding = GetEnemyWidth() * 0.5f;
+        return enemy.transform.position.x <= enemy.patrolLeftX + edgePadding;
+    }
+
+    protected virtual bool IsAtRightEdge()
+    {
+        float edgePadding = GetEnemyWidth() * 0.5f;
+        return enemy.transform.position.x >= enemy.patrolRightX - edgePadding;
+    }
+
+    #endregion
 
     #endregion
 

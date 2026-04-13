@@ -14,9 +14,22 @@ public class Enemy : Entity
     public float playerDistance = 10;
     public float idleTime = 2;
 
+    [Space(6)]
+    [Header("Patrol area")]
+    [SerializeField] public Transform patrolAreaAnchor;
+    [System.NonSerialized] protected Vector3 patrolAnchorFrozenWorld;
+    [SerializeField] public Vector2 patrolAreaSize = new Vector2(10f, 4f);
+    [System.NonSerialized] public Vector2 patrolCenter;
+    [System.NonSerialized] public float patrolLeftX, patrolRightX;
+    [HideInInspector] public bool patrolSnapshotDone;
+
+    [Space(6)]
     [Header("Bounce Wait")]
     public float bounceWaitMin = 0.25f;
     public float bounceWaitMax = 0.75f;
+    public float bounceJumpHeightPadding = 0.5f;
+    [Range(3, 10)]
+    public int bounceJumpDistanceMultiplier = 3;
 
     [Header("Move info")]
     public float moveSpeed = 1.5f;
@@ -92,12 +105,14 @@ public class Enemy : Entity
         base.Start();
 
         fX = GetComponent<EntityFX>();
+        SnapshotPatrolArea();
     }
 
     protected override void Update()
     {
         base.Update();
         stateMachine.currentState.Update();
+        UpdatePatrolAnchor();
     }
     public virtual void AssignLastAnimName(string _animBoolName) => lastAnimBoolName = _animBoolName;
     #endregion
@@ -596,6 +611,7 @@ public class Enemy : Entity
 
         moveSpeed = defaultMoveSpeed;
     }
+
     public virtual RaycastHit2D IsPlayerDetected()
     {
         Transform player = PlayerManager.instance.player.transform;
@@ -620,12 +636,18 @@ public class Enemy : Entity
         Debug.DrawRay(wallCheck.position, direction, Color.green);
         return playerDetected;
     }
+
     protected override void OnDrawGizmos()
     {
         base.OnDrawGizmos();
+        DrawAttackGizmos();
+        DrawPatrolGizmos();
+    }
 
+    protected virtual void DrawAttackGizmos()
+    {
 #if UNITY_EDITOR
-        // Draw per-attack check gizmos (unchanged: they already use local transform of each check)
+        // Draw per-attack check gizmos
         if (attackDetails != null)
         {
             foreach (var ad in attackDetails)
@@ -636,7 +658,6 @@ public class Enemy : Entity
             }
         }
 
-        // Helper: local right scaled by facingDir
         Vector3 fwd = transform.right;
 
         // Ability ranges (per attack)
@@ -665,7 +686,7 @@ public class Enemy : Entity
                 Vector3 segEnd = laneOrigin + fwd.normalized * maxR;
                 Gizmos.DrawLine(segStart, segEnd);
 
-                Vector3 up = Vector3.up * endTick; // purely visual tick
+                Vector3 up = Vector3.up * endTick;
                 Gizmos.DrawLine(segStart - up, segStart + up);
                 Gizmos.DrawLine(segEnd - up, segEnd + up);
             }
@@ -697,7 +718,7 @@ public class Enemy : Entity
             const float endTick = 0.03f;
 
             float dist = Mathf.Max(0f, evasionDistance);
-            float yLaneBelow = (baseYOffset - (laneStepY * 5f));
+            float yLaneBelow = baseYOffset - (laneStepY * 5f);
             Vector3 origin = transform.position + new Vector3(0f, yLaneBelow, 0f);
             Vector3 end = origin + fwd.normalized * dist;
 
@@ -736,24 +757,24 @@ public class Enemy : Entity
                 }
             }
 
-            if (minR < 0f || maxR < 0f)
-                return;
+            if (minR >= 0f && maxR >= 0f)
+            {
+                if (maxR <= minR)
+                    maxR = minR + stubLength;
 
-            if (maxR <= minR)
-                maxR = minR + stubLength;
+                float yLaneBelow = baseYOffset - (laneStepY * 7f);
+                Vector3 laneOrigin = transform.position + new Vector3(0f, yLaneBelow, 0f);
 
-            float yLaneBelow = baseYOffset - (laneStepY * 7f);
-            Vector3 laneOrigin = transform.position + new Vector3(0f, yLaneBelow, 0f);
+                Vector3 segStart = laneOrigin + fwd.normalized * minR;
+                Vector3 segEnd = laneOrigin + fwd.normalized * maxR;
 
-            Vector3 segStart = laneOrigin + fwd.normalized * minR;
-            Vector3 segEnd = laneOrigin + fwd.normalized * maxR;
+                Gizmos.color = Color.red;
+                Gizmos.DrawLine(segStart, segEnd);
 
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(segStart, segEnd);
-
-            Vector3 up = Vector3.up * endTick;
-            Gizmos.DrawLine(segStart - up, segStart + up);
-            Gizmos.DrawLine(segEnd - up, segEnd + up);
+                Vector3 up = Vector3.up * endTick;
+                Gizmos.DrawLine(segStart - up, segStart + up);
+                Gizmos.DrawLine(segEnd - up, segEnd + up);
+            }
         }
 #endif
     }
@@ -771,6 +792,7 @@ public class Enemy : Entity
         battleStarted = false;
     }
     public bool BattleStarted => battleStarted;
+
     #endregion
 
     #region Combat Helper
@@ -789,6 +811,60 @@ public class Enemy : Entity
     }
     #endregion
 
+    #region Patrol
+    protected virtual void SnapshotPatrolArea()
+    {
+        Vector2 center = patrolAreaAnchor ? (Vector2)patrolAreaAnchor.position
+                                          : (Vector2)transform.position;
+
+        patrolCenter = center;
+        float half = Mathf.Max(0.25f, patrolAreaSize.x * 0.5f);
+        patrolLeftX = center.x - half;
+        patrolRightX = center.x + half;
+
+        patrolAnchorFrozenWorld = patrolAreaAnchor
+            ? patrolAreaAnchor.position
+            : new Vector3(center.x, center.y, 0f);
+
+        patrolSnapshotDone = true;
+    }
+
+    public bool IsOutsidePatrol(float x) => x < patrolLeftX || x > patrolRightX;
+
+    protected virtual void UpdatePatrolAnchor()
+    {
+        if (patrolSnapshotDone && patrolAreaAnchor != null)
+            patrolAreaAnchor.position = patrolAnchorFrozenWorld;
+    }
+
+    protected virtual void DrawPatrolGizmos()
+    {
+#if UNITY_EDITOR
+        Vector3 center = patrolSnapshotDone
+            ? new Vector3(patrolCenter.x, patrolCenter.y, 0f)
+            : (patrolAreaAnchor ? patrolAreaAnchor.position : transform.position);
+
+        float width = Mathf.Max(0.01f, patrolAreaSize.x);
+        float height = Mathf.Max(0.10f, patrolAreaSize.y);
+        Vector3 box = new Vector3(width, height, 0.1f);
+
+        Gizmos.color = new Color(0f, 1f, 0f, 0.15f);
+        Gizmos.DrawCube(center, box);
+
+        Gizmos.color = new Color(0f, 0.8f, 0f, 1f);
+        Gizmos.DrawWireCube(center, box);
+
+        float leftX = patrolSnapshotDone ? patrolLeftX : center.x - width * 0.5f;
+        float rightX = patrolSnapshotDone ? patrolRightX : center.x + width * 0.5f;
+        float tickH = height * 0.5f;
+        Vector3 up = Vector3.up * tickH;
+
+        Gizmos.DrawLine(new Vector3(leftX, center.y, 0f) - up, new Vector3(leftX, center.y, 0f) + up);
+        Gizmos.DrawLine(new Vector3(rightX, center.y, 0f) - up, new Vector3(rightX, center.y, 0f) + up);
+#endif
+    }
+
+    #endregion
 
     #region Battle States old system need be remove when all enemy is updated
 

@@ -675,6 +675,12 @@ MonoBehaviour:
     m_Bits: 64
   playerDistance: 20
   idleTime: 1
+  patrolAreaAnchor: {fileID: 0}
+  patrolAreaSize: {x: 10, y: 4}
+  patrolSnapshotDone: 0
+  bounceWaitMin: 0.25
+  bounceWaitMax: 0.75
+  bounceJumpDistanceMultiplier: 3
   moveSpeed: 1.5
   moveTime: 5
   battleTime: 7
@@ -768,9 +774,6 @@ MonoBehaviour:
   moveMode: 0
   moveSpeedMultiplier: 1
   randomizeFacingOnMoveEnter: 1
-  patrolAreaAnchor: {fileID: 0}
-  patrolAreaSize: {x: 10, y: 4}
-  patrolSnapshotDone: 0
   traverseStopMinSeconds: 1
   traverseStopMaxSeconds: 2.5
 --- !u!1 &2853254002297390099
