@@ -45,6 +45,7 @@ public class BounceIdleStateBase<TEnemy> : BounceStateBase<TEnemy> where TEnemy 
             {
                 bounceTimer = 0f;
                 launchReady = true;
+                timerSet = false;
             }
         }
 

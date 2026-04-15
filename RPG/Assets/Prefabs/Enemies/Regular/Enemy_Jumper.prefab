@@ -680,6 +680,7 @@ MonoBehaviour:
   patrolSnapshotDone: 0
   bounceWaitMin: 0.25
   bounceWaitMax: 0.75
+  bounceJumpHeightPadding: 0.5
   bounceJumpDistanceMultiplier: 3
   moveSpeed: 1.5
   moveTime: 5
@@ -717,12 +718,21 @@ MonoBehaviour:
     exitSounds: []
   - name: Battle
     animBoolName: Jump
-    stateType: 1
+    stateType: 12
     enterSounds: []
     exitSounds: []
   - name: Dead
     animBoolName: Die
     stateType: 2
+    enterSounds:
+    - name: JumperDie
+      soundPoints: 
+      delay: 0
+      useTransform: 1
+    exitSounds: []
+  - name: Run Into Player
+    animBoolName: Jump
+    stateType: 9
     enterSounds:
     - name: JumperDie
       soundPoints: 

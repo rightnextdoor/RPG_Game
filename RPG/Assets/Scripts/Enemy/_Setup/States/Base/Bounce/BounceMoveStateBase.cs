@@ -27,13 +27,8 @@ public class BounceMoveStateBase<TEnemy> : BounceStateBase<TEnemy> where TEnemy 
 
         if (!needsPatrolReturn)
             needsPatrolReturn = enemy.IsOutsidePatrol(enemy.transform.position.x);
-    }
 
-    public override void Update()
-    {
-        base.Update();
-
-        if (currentPhase != BouncePhase.Attach)
+        if (currentPhase != BouncePhase.Complete)
             return;
 
         if (!launchReady)
@@ -49,6 +44,11 @@ public class BounceMoveStateBase<TEnemy> : BounceStateBase<TEnemy> where TEnemy 
 
         PlanJump();
         currentPhase = BouncePhase.Launch;
+    }
+
+    public override void Update()
+    {
+        base.Update();  
     }
 
     public override void Exit()
@@ -93,6 +93,12 @@ public class BounceMoveStateBase<TEnemy> : BounceStateBase<TEnemy> where TEnemy 
     #endregion
 
     #region Override
+
+    protected override void OnAttachComplete()
+    {
+        if (idleState != null)
+            stateMachine.ChangeState(idleState());
+    }
     protected override BounceJumpSide GetJumpSide()
     {
         if (needsPatrolReturn)

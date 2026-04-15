@@ -75,8 +75,8 @@ public class Enemy_Jumper : Enemy_Regular
                 this,
                 stateMachine,
                 moveDetail.animBoolName,
-                idleState: () => moveState,
-                battleState: () => runIntoState,
+                idleState: () => idleState,
+                battleState: () => battleState,
                 enterSounds: ToSoundList(moveDetail.enterSounds),
                 exitSounds: ToSoundList(moveDetail.exitSounds)
             );
@@ -103,9 +103,9 @@ public class Enemy_Jumper : Enemy_Regular
                 stateMachine,
                 runIntoDetail.animBoolName,
                 nextState: () => moveState,
-                enterSounds: ToSoundList(moveDetail.enterSounds),
-                exitSounds: ToSoundList(moveDetail.exitSounds)
-                );
+                enterSounds: ToSoundList(runIntoDetail.enterSounds),
+                exitSounds: ToSoundList(runIntoDetail.exitSounds)
+            );
         }
 
         if (deadDetail != null)

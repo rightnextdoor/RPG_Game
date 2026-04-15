@@ -22,7 +22,8 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     {
         Attach,
         Launch,
-        Airborne
+        Airborne,
+        Complete
     }
 
     protected enum BounceJumpType
@@ -37,7 +38,11 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         Right
     }
 
-    protected BouncePhase currentPhase = BouncePhase.Attach;
+    protected BouncePhase currentPhase
+    {
+        get => (BouncePhase)enemy.bouncePhase;
+        set => enemy.bouncePhase = (int)value;
+    }
 
     protected bool isAttached;
     protected bool isAirborne;
@@ -46,8 +51,16 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected Vector2 currentSurfaceNormal = Vector2.up;
 
     protected float bounceTimer;
-    protected bool timerSet;
-    protected bool launchReady;
+    protected bool timerSet
+    {
+        get => enemy.bounceTimerSet;
+        set => enemy.bounceTimerSet = value;
+    }
+    protected bool launchReady
+    {
+        get => enemy.bounceLaunchReady;
+        set => enemy.bounceLaunchReady = value;
+    }
 
     protected float savedDefaultGravity;
     protected bool gravityCached;
@@ -57,13 +70,17 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected const float SURFACE_ALIGN_TIME = 0.06f;
     protected const float SURFACE_ALIGN_EPS_DEG = 0.75f;
 
-    protected RaycastHit2D landingHit;
+    protected Vector2 landingPoint;
     protected bool hasLandingHit;
 
     protected const float AIRBORNE_ROTATE_SPEED = 720f;
     protected const float LANDING_NORMAL_MIN_DOT = 0.1f;
 
-    protected Vector2 launchVelocity;
+    protected Vector2 launchVelocity
+    {
+        get => enemy.bounceLaunchVelocity;
+        set => enemy.bounceLaunchVelocity = value;
+    }
     protected bool needsPatrolReturn;
 
     #endregion
@@ -85,6 +102,10 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     public override void Enter()
     {
         base.Enter();
+
+        if (!System.Enum.IsDefined(typeof(BouncePhase), enemy.bouncePhase))
+            currentPhase = BouncePhase.Attach;
+
         CacheDefaultGravity();
         PlayAll(enterSounds);
     }
@@ -116,6 +137,10 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
             case BouncePhase.Airborne:
                 AirbornePhase();
                 break;
+
+            case BouncePhase.Complete:
+                CompletePhase();
+                break;
         }
     }
 
@@ -127,18 +152,19 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     {
         SurfacePhase();
 
-        if (!IsFeetAlignedToSurface())
+        bool isAligned = IsFeetAlignedToSurface();
+        if (!isAligned)
             return;
 
         hasLandingHit = false;
-
-        if (stateMachine.currentState == this && enemy.stateMachine.currentState == this)
-            return;
+        currentPhase = BouncePhase.Complete;
+        OnAttachComplete();
     }
 
     protected virtual void SurfacePhase()
     {
         SetAttachedGravity();
+        enemy.SetZeroVelocity();
         RotateFeetToSurface();
     }
 
@@ -146,29 +172,35 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     {
         SetAirborneGravity();
         MoveEnemy(launchVelocity);
+
+        if (!HasLeftCurrentSurface())
+            return;
+
         currentPhase = BouncePhase.Airborne;
     }
 
     protected virtual void AirbornePhase()
     {
-        RotateInMovementDirection();
+        if (TryFindLandingSurface(out Vector2 hitPoint, out Vector2 hitNormal))
+        {
+            landingPoint = hitPoint;
+            hasLandingHit = true;
 
-        if (!TryFindLandingSurface(out RaycastHit2D bestHit))
+            currentSurface = ClassifySurface(hitNormal);
+            AlignToSurfaceNormal(hitNormal);
+
+            currentPhase = BouncePhase.Attach;
             return;
+        }
 
-        landingHit = bestHit;
-        hasLandingHit = true;
+        RotateInMovementDirection();
+    }
 
-        Vector2 hitNormal = bestHit.normal;
-        currentSurface = ClassifySurface(hitNormal);
-        AlignToSurfaceNormal(hitNormal);
-
-        Debug.Log(
-            $"{enemy.GetType().Name} airborne hit surface. " +
-            $"velocity={rb.linearVelocity} normal={hitNormal} surface={currentSurface}"
-        );
-
-        currentPhase = BouncePhase.Attach;
+    protected virtual void OnAttachComplete()
+    {
+    }
+    protected virtual void CompletePhase()
+    {
     }
 
     #endregion
@@ -291,26 +323,81 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     protected virtual void BuildLaunchVelocity(BounceJumpSide jumpSide, float distance, float height)
     {
-        Vector2 dir = GetLocalJumpDirection(jumpSide);
+        Vector2 alongSurface = GetLocalJumpDirection(jumpSide).normalized;
+        Vector2 awayFromSurface = currentSurfaceNormal.normalized;
 
-        float timeToPeak = Mathf.Max(0.05f, height / Mathf.Max(0.1f, Mathf.Abs(Physics2D.gravity.y)));
+        float gravity = Mathf.Max(0.1f, Mathf.Abs(Physics2D.gravity.y));
+        float upwardSpeed = Mathf.Sqrt(2f * gravity * height);
+        float timeToPeak = upwardSpeed / gravity;
+        float alongSurfaceSpeed = distance / Mathf.Max(0.05f, timeToPeak);
 
-        float vx = (distance / Mathf.Max(0.05f, timeToPeak)) * dir.normalized.x;
-        float vy = Mathf.Sqrt(2f * Mathf.Abs(Physics2D.gravity.y) * height);
-
-        launchVelocity = new Vector2(vx, vy);
+        launchVelocity = (alongSurface * alongSurfaceSpeed) + (awayFromSurface * upwardSpeed);
     }
 
     protected virtual bool IsAtLeftEdge()
     {
-        float edgePadding = GetEnemyWidth() * 0.5f;
-        return enemy.transform.position.x <= enemy.patrolLeftX + edgePadding;
+        return IsJumpSideAtPatrolEdge(BounceJumpSide.Left) || IsJumpSideBlockedByWall(BounceJumpSide.Left);
     }
 
     protected virtual bool IsAtRightEdge()
     {
+        return IsJumpSideAtPatrolEdge(BounceJumpSide.Right) || IsJumpSideBlockedByWall(BounceJumpSide.Right);
+    }
+
+    protected virtual bool IsJumpSideAtPatrolEdge(BounceJumpSide jumpSide)
+    {
         float edgePadding = GetEnemyWidth() * 0.5f;
-        return enemy.transform.position.x >= enemy.patrolRightX - edgePadding;
+        Enemy.PatrolPositionInfo patrolInfo = enemy.GetPatrolPositionInfo(enemy.transform.position, edgePadding);
+
+        Vector2 jumpDirection = GetLocalJumpDirection(jumpSide).normalized;
+        if (jumpDirection.sqrMagnitude <= 0.0001f)
+            return false;
+
+        bool pushingIntoLeft = patrolInfo.nearLeft && jumpDirection.x < -0.01f;
+        bool pushingIntoRight = patrolInfo.nearRight && jumpDirection.x > 0.01f;
+        bool pushingIntoBottom = patrolInfo.nearBottom && jumpDirection.y < -0.01f;
+        bool pushingIntoTop = patrolInfo.nearTop && jumpDirection.y > 0.01f;
+
+        return pushingIntoLeft || pushingIntoRight || pushingIntoBottom || pushingIntoTop;
+    }
+
+    protected virtual bool IsJumpSideBlockedByWall(BounceJumpSide jumpSide)
+    {
+        Collider2D col = enemy.GetComponent<Collider2D>();
+        if (col == null)
+            return false;
+
+        Vector2 direction = GetLocalJumpDirection(jumpSide).normalized;
+        if (direction.sqrMagnitude <= 0.0001f)
+            return false;
+
+        Vector2 origin = GetJumpSideProbeOrigin(col, direction);
+        float distance = GetJumpSideProbeDistance(col);
+
+        RaycastHit2D hit = Physics2D.Raycast(origin, direction, distance, enemy.GetWhatIsGround());
+        return hit.collider != null;
+    }
+
+    protected virtual Vector2 GetJumpSideProbeOrigin(Collider2D col, Vector2 direction)
+    {
+        direction.Normalize();
+
+        Bounds bounds = col.bounds;
+        Vector2 center = bounds.center;
+        Vector2 extents = bounds.extents;
+
+        float reach = Vector2.Dot(extents, new Vector2(Mathf.Abs(direction.x), Mathf.Abs(direction.y)));
+        reach = Mathf.Max(0.01f, reach);
+
+        float skin = Mathf.Max(0.005f, Physics2D.defaultContactOffset);
+        return center + direction * (reach + skin);
+    }
+
+    protected virtual float GetJumpSideProbeDistance(Collider2D col)
+    {
+        Bounds bounds = col.bounds;
+        float sizeAlongDirection = Mathf.Max(bounds.size.x, bounds.size.y);
+        return Mathf.Max(0.05f, sizeAlongDirection * 0.5f);
     }
 
     #endregion
@@ -327,6 +414,42 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     #endregion
 
     #region Surface
+    protected virtual bool HasLeftCurrentSurface()
+    {
+        ContactFilter2D filter = new ContactFilter2D();
+        filter.useLayerMask = true;
+        filter.layerMask = enemy.GetWhatIsGround();
+        filter.useTriggers = false;
+
+        ContactPoint2D[] contacts = new ContactPoint2D[16];
+        int count = rb.GetContacts(filter, contacts);
+
+        if (count <= 0)
+            return true;
+
+        Vector2 currentNormal = SurfaceNormal(currentSurface);
+
+        for (int i = 0; i < count; i++)
+        {
+            ContactPoint2D contact = contacts[i];
+
+            if (contact.collider == null)
+                continue;
+
+            Vector2 normal = contact.normal;
+            if (normal.sqrMagnitude <= 0.0001f)
+                continue;
+
+            normal.Normalize();
+
+            float sameSurfaceDot = Vector2.Dot(normal, currentNormal);
+
+            if (sameSurfaceDot > 0.9f)
+                return false;
+        }
+
+        return true;
+    }
     protected virtual BounceSurface ClassifySurface(Vector2 normal)
     {
         Vector2 normalizedNormal = (normal.sqrMagnitude > 0.0001f) ? normal.normalized : Vector2.up;
@@ -374,14 +497,24 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         float targetZ = GetSurfaceTargetZ(currentSurface);
 
         var eulerAngles = enemy.transform.eulerAngles;
+
+        float smoothTime = Mathf.Max(0.0001f, SURFACE_ALIGN_TIME);
         eulerAngles.z = Mathf.SmoothDampAngle(
             eulerAngles.z,
             targetZ,
             ref surfaceRotateVelocity,
-            SURFACE_ALIGN_TIME
+            smoothTime
         );
 
         enemy.transform.eulerAngles = eulerAngles;
+
+        float remaining = Mathf.Abs(Mathf.DeltaAngle(eulerAngles.z, targetZ));
+        if (remaining <= SURFACE_ALIGN_EPS_DEG)
+        {
+            eulerAngles.z = targetZ;
+            enemy.transform.eulerAngles = eulerAngles;
+            surfaceRotateVelocity = 0f;
+        }
     }
     protected virtual bool IsFeetAlignedToSurface()
     {
@@ -393,12 +526,13 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     #endregion
 
     #region Airborne
-    protected virtual bool TryFindLandingSurface(out RaycastHit2D bestHit)
+    protected virtual bool TryFindLandingSurface(out Vector2 hitPoint, out Vector2 hitNormal)
     {
-        bestHit = default;
+        hitPoint = default;
+        hitNormal = default;
 
-        Collider2D myCollider = enemy.GetComponent<Collider2D>();
-        if (myCollider == null)
+        Collider2D enemyCollider = enemy.GetComponent<Collider2D>();
+        if (enemyCollider == null)
             return false;
 
         ContactFilter2D filter = new ContactFilter2D();
@@ -406,41 +540,33 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         filter.layerMask = enemy.GetWhatIsGround();
         filter.useTriggers = false;
 
-        RaycastHit2D[] hits = new RaycastHit2D[8];
-        int count = myCollider.Cast(rb.linearVelocity.normalized, filter, hits, 0.05f);
+        Collider2D[] hitColliders = new Collider2D[16];
+        int count = enemyCollider.GetContacts(filter, hitColliders);
 
         if (count <= 0)
             return false;
 
-        Vector2 velocity = rb.linearVelocity;
-        if (velocity.sqrMagnitude <= 0.0001f)
-            velocity = Vector2.down;
-
-        Vector2 incoming = -velocity.normalized;
-
-        float bestScore = float.NegativeInfinity;
-        bool found = false;
-
         for (int i = 0; i < count; i++)
         {
-            RaycastHit2D hit = hits[i];
-            if (hit.collider == null)
+            Collider2D hitCollider = hitColliders[i];
+
+            if (hitCollider == null)
                 continue;
 
-            float score = Vector2.Dot(hit.normal.normalized, incoming);
-            if (score < LANDING_NORMAL_MIN_DOT)
+            ColliderDistance2D distance = enemyCollider.Distance(hitCollider);
+
+            Vector2 normal = -distance.normal;
+            if (normal.sqrMagnitude <= 0.0001f)
                 continue;
 
-            if (!found || score > bestScore)
-            {
-                bestScore = score;
-                bestHit = hit;
-                found = true;
-            }
+            hitPoint = distance.pointA;
+            hitNormal = normal.normalized;
+            return true;
         }
 
-        return found;
+        return false;
     }
+
     protected virtual void RotateInMovementDirection()
     {
         Vector2 velocity = rb.linearVelocity;

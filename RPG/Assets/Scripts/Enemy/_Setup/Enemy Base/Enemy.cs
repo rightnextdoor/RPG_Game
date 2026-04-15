@@ -30,6 +30,10 @@ public class Enemy : Entity
     public float bounceJumpHeightPadding = 0.5f;
     [Range(3, 10)]
     public int bounceJumpDistanceMultiplier = 3;
+    [HideInInspector] public bool bounceLaunchReady;
+    [HideInInspector] public Vector2 bounceLaunchVelocity;
+    [HideInInspector] public bool bounceTimerSet;
+    [HideInInspector] public int bouncePhase;
 
     [Header("Move info")]
     public float moveSpeed = 1.5f;
@@ -812,6 +816,78 @@ public class Enemy : Entity
     #endregion
 
     #region Patrol
+    public struct PatrolPositionInfo
+    {
+        public bool nearLeft;
+        public bool nearRight;
+        public bool nearTop;
+        public bool nearBottom;
+
+        public bool nearTopLeft;
+        public bool nearTopRight;
+        public bool nearBottomLeft;
+        public bool nearBottomRight;
+
+        public float leftX;
+        public float rightX;
+        public float bottomY;
+        public float topY;
+
+        public Vector2 position;
+    }
+
+    public virtual PatrolPositionInfo GetPatrolPositionInfo(Vector2 worldPosition, float edgePadding = 0.1f)
+    {
+        PatrolPositionInfo info = new PatrolPositionInfo();
+
+        float halfWidth = Mathf.Max(0.25f, patrolAreaSize.x * 0.5f);
+        float halfHeight = Mathf.Max(0.25f, patrolAreaSize.y * 0.5f);
+
+        info.leftX = patrolCenter.x - halfWidth;
+        info.rightX = patrolCenter.x + halfWidth;
+        info.bottomY = patrolCenter.y - halfHeight;
+        info.topY = patrolCenter.y + halfHeight;
+
+        info.position = worldPosition;
+
+        info.nearLeft = worldPosition.x <= info.leftX + edgePadding;
+        info.nearRight = worldPosition.x >= info.rightX - edgePadding;
+        info.nearBottom = worldPosition.y <= info.bottomY + edgePadding;
+        info.nearTop = worldPosition.y >= info.topY - edgePadding;
+
+        info.nearTopLeft = info.nearTop && info.nearLeft;
+        info.nearTopRight = info.nearTop && info.nearRight;
+        info.nearBottomLeft = info.nearBottom && info.nearLeft;
+        info.nearBottomRight = info.nearBottom && info.nearRight;
+
+        return info;
+    }
+
+    public virtual PatrolPositionInfo GetPatrolPositionInfo(float edgePadding = 0.1f)
+    {
+        return GetPatrolPositionInfo(transform.position, edgePadding);
+    }
+
+    public virtual bool IsNearPatrolLeft(Vector2 worldPosition, float edgePadding = 0.1f)
+    {
+        return GetPatrolPositionInfo(worldPosition, edgePadding).nearLeft;
+    }
+
+    public virtual bool IsNearPatrolRight(Vector2 worldPosition, float edgePadding = 0.1f)
+    {
+        return GetPatrolPositionInfo(worldPosition, edgePadding).nearRight;
+    }
+
+    public virtual bool IsNearPatrolTop(Vector2 worldPosition, float edgePadding = 0.1f)
+    {
+        return GetPatrolPositionInfo(worldPosition, edgePadding).nearTop;
+    }
+
+    public virtual bool IsNearPatrolBottom(Vector2 worldPosition, float edgePadding = 0.1f)
+    {
+        return GetPatrolPositionInfo(worldPosition, edgePadding).nearBottom;
+    }
+
     protected virtual void SnapshotPatrolArea()
     {
         Vector2 center = patrolAreaAnchor ? (Vector2)patrolAreaAnchor.position
