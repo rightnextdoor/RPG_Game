@@ -10,6 +10,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     #region Bounce runtime
 
+    #region Enum
     protected enum BounceSurface
     {
         Floor,
@@ -38,19 +39,21 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         Right
     }
 
+    protected enum BounceAirMoveType
+    {
+        None,
+        Arc,
+        Curve
+    }
+
+    #endregion
+
+    #region Enemy's get/set fields
     protected BouncePhase currentPhase
     {
         get => (BouncePhase)enemy.bouncePhase;
         set => enemy.bouncePhase = (int)value;
     }
-
-    protected bool isAttached;
-    protected bool isAirborne;
-
-    protected BounceSurface currentSurface = BounceSurface.Floor;
-    protected Vector2 currentSurfaceNormal = Vector2.up;
-
-    protected float bounceTimer;
     protected bool timerSet
     {
         get => enemy.bounceTimerSet;
@@ -62,29 +65,56 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         set => enemy.bounceLaunchReady = value;
     }
 
-    protected float savedDefaultGravity;
-    protected bool gravityCached;
+    #endregion
 
+    #region State Settings
+    protected float bounceTimer;
+    protected bool needsPatrolReturn;
+    #endregion
+
+    #region Surface Settings
+    protected BounceSurface currentSurface = BounceSurface.Floor;
+    protected Vector2 currentSurfaceNormal = Vector2.up;
     protected float surfaceTargetZ;
     protected float surfaceRotateVelocity;
     protected const float SURFACE_ALIGN_TIME = 0.06f;
     protected const float SURFACE_ALIGN_EPS_DEG = 0.75f;
+
+    #endregion
+
+
+    #region Phase Settings
+    protected bool isAttached;
+    protected bool isAirborne;
+    protected float savedDefaultGravity;
+    protected bool gravityCached;
 
     protected Vector2 landingPoint;
     protected bool hasLandingHit;
 
     protected const float AIRBORNE_ROTATE_SPEED = 720f;
     protected const float LANDING_NORMAL_MIN_DOT = 0.1f;
+    #endregion
 
-    protected Vector2 launchVelocity
-    {
-        get => enemy.bounceLaunchVelocity;
-        set => enemy.bounceLaunchVelocity = value;
-    }
-    protected bool needsPatrolReturn;
+    #region Plan Settings
+    protected BounceJumpType plannedJumpType = BounceJumpType.Normal;
+    protected BounceJumpSide plannedJumpSide = BounceJumpSide.Right;
+    protected BounceAirMoveType plannedAirMoveType = BounceAirMoveType.None;
+
+    protected Vector2 plannedJumpDirection = Vector2.right;
+    protected float plannedJumpDistance;
+    protected float plannedJumpHeight;
+    protected BounceSurface launchSurface = BounceSurface.Floor;
+
+    protected Vector2 airStartPosition;
+    protected float airTravelDistance;
+    protected bool airMoveInitialized;
+    protected bool arcReachedEnd;
+    #endregion
 
     #endregion
 
+    #region State
     public BounceStateBase(
         TEnemy enemyBase,
         EnemyStateMachine stateMachine,
@@ -96,8 +126,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         this.enterSounds = enterSounds ?? Empty;
         this.exitSounds = exitSounds ?? Empty;
     }
-
-    #region State
 
     public override void Enter()
     {
@@ -171,7 +199,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected virtual void LaunchPhase()
     {
         SetAirborneGravity();
-        MoveEnemy(launchVelocity);
+        MoveEnemy();
 
         if (!HasLeftCurrentSurface())
             return;
@@ -181,6 +209,8 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     protected virtual void AirbornePhase()
     {
+        MoveAirborne();
+
         if (TryFindLandingSurface(out Vector2 hitPoint, out Vector2 hitNormal))
         {
             landingPoint = hitPoint;
@@ -192,8 +222,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
             currentPhase = BouncePhase.Attach;
             return;
         }
-
-        RotateInMovementDirection();
     }
 
     protected virtual void OnAttachComplete()
@@ -209,15 +237,24 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     protected virtual void PlanJump()
     {
-        BounceJumpType jumpType = GetWeightedJumpType();
-        BounceJumpSide jumpSide = GetJumpSide();
-        float jumpDistance = GetJumpDistance(jumpSide);
-        float jumpHeight = GetJumpHeight(jumpType);
+        plannedJumpType = GetWeightedJumpType();
+        plannedJumpSide = GetJumpSide();
+        plannedJumpDistance = GetJumpDistance(plannedJumpSide);
+        plannedJumpHeight = GetJumpHeight(plannedJumpType);
 
-        BuildLaunchVelocity(jumpSide, jumpDistance, jumpHeight);
+        launchSurface = currentSurface;
+        plannedJumpDirection = GetLocalJumpDirection(plannedJumpSide).normalized;
+        plannedAirMoveType = GetAirMoveType(launchSurface, plannedJumpType);
+
+        airStartPosition = enemy.transform.position;
+        airTravelDistance = 0f;
+        airMoveInitialized = false;
+        arcReachedEnd = false;
     }
 
     #region Jump helpers
+
+    #region Direction
     protected virtual BounceJumpSide GetJumpSide()
     {
         if (IsAtLeftEdge())
@@ -237,6 +274,67 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
             ? -(Vector2)enemy.transform.right
             : (Vector2)enemy.transform.right;
     }
+    protected virtual bool IsAtLeftEdge()
+    {
+        return IsJumpSideAtPatrolEdge(BounceJumpSide.Left) || IsJumpSideBlockedByWall(BounceJumpSide.Left);
+    }
+    protected virtual bool IsAtRightEdge()
+    {
+        return IsJumpSideAtPatrolEdge(BounceJumpSide.Right) || IsJumpSideBlockedByWall(BounceJumpSide.Right);
+    }
+    protected virtual bool IsJumpSideAtPatrolEdge(BounceJumpSide jumpSide)
+    {
+        float edgePadding = GetEnemyWidth() * 0.5f;
+        Enemy.PatrolPositionInfo patrolInfo = enemy.GetPatrolPositionInfo(enemy.transform.position, edgePadding);
+
+        Vector2 jumpDirection = GetLocalJumpDirection(jumpSide).normalized;
+        if (jumpDirection.sqrMagnitude <= 0.0001f)
+            return false;
+
+        bool pushingIntoLeft = patrolInfo.nearLeft && jumpDirection.x < -0.01f;
+        bool pushingIntoRight = patrolInfo.nearRight && jumpDirection.x > 0.01f;
+        bool pushingIntoBottom = patrolInfo.nearBottom && jumpDirection.y < -0.01f;
+        bool pushingIntoTop = patrolInfo.nearTop && jumpDirection.y > 0.01f;
+
+        return pushingIntoLeft || pushingIntoRight || pushingIntoBottom || pushingIntoTop;
+    }
+    protected virtual bool IsJumpSideBlockedByWall(BounceJumpSide jumpSide)
+    {
+        Collider2D col = enemy.GetComponent<Collider2D>();
+        if (col == null)
+            return false;
+
+        Vector2 direction = GetLocalJumpDirection(jumpSide).normalized;
+        if (direction.sqrMagnitude <= 0.0001f)
+            return false;
+
+        Vector2 origin = GetJumpSideProbeOrigin(col, direction);
+        float distance = GetJumpSideProbeDistance(col);
+
+        RaycastHit2D hit = Physics2D.Raycast(origin, direction, distance, enemy.GetWhatIsGround());
+        return hit.collider != null;
+    }
+    protected virtual Vector2 GetJumpSideProbeOrigin(Collider2D col, Vector2 direction)
+    {
+        direction.Normalize();
+
+        Bounds bounds = col.bounds;
+        Vector2 center = bounds.center;
+        Vector2 extents = bounds.extents;
+
+        float reach = Vector2.Dot(extents, new Vector2(Mathf.Abs(direction.x), Mathf.Abs(direction.y)));
+        reach = Mathf.Max(0.01f, reach);
+
+        float skin = Mathf.Max(0.005f, Physics2D.defaultContactOffset);
+        return center + direction * (reach + skin);
+    }
+    protected virtual float GetJumpSideProbeDistance(Collider2D col)
+    {
+        Bounds bounds = col.bounds;
+        float sizeAlongDirection = Mathf.Max(bounds.size.x, bounds.size.y);
+        return Mathf.Max(0.05f, sizeAlongDirection * 0.5f);
+    }
+    #endregion
     protected virtual BounceJumpType GetWeightedJumpType()
     {
         if (currentSurface != BounceSurface.Floor)
@@ -254,6 +352,25 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         return BounceJumpType.FloorToCeiling;
     }
 
+    protected virtual BounceAirMoveType GetAirMoveType(BounceSurface surface, BounceJumpType jumpType)
+    {
+        if (jumpType == BounceJumpType.FloorToCeiling)
+            return BounceAirMoveType.Curve;
+
+        switch (surface)
+        {
+            case BounceSurface.Ceiling:
+                return BounceAirMoveType.Curve;
+
+            case BounceSurface.Floor:
+            case BounceSurface.RightWall:
+            case BounceSurface.LeftWall:
+            default:
+                return BounceAirMoveType.Arc;
+        }
+    }
+
+    #region Distance
     protected virtual float GetJumpDistance(BounceJumpSide jumpSide)
     {
         GetJumpDistanceRange(jumpSide, out float minDistance, out float maxDistance);
@@ -286,6 +403,9 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         return 1f;
     }
 
+    #endregion
+
+    #region Height
     protected virtual float GetJumpHeight(BounceJumpType jumpType)
     {
         GetJumpHeightRange(jumpType, out float minHeight, out float maxHeight);
@@ -295,14 +415,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected virtual void GetJumpHeightRange(BounceJumpType jumpType, out float minHeight, out float maxHeight)
     {
         minHeight = GetPlayerHeight();
-        maxHeight = Mathf.Max(minHeight, enemy.patrolAreaSize.y);
-
-        bool useFloorPadding =
-            currentSurface == BounceSurface.Floor &&
-            jumpType == BounceJumpType.Normal;
-
-        if (useFloorPadding)
-            maxHeight -= Mathf.Max(0f, enemy.bounceJumpHeightPadding);
+        maxHeight = GetJumpMaxHeight(jumpType, minHeight);
 
         if (maxHeight < minHeight)
             maxHeight = minHeight;
@@ -321,98 +434,306 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         return 1f;
     }
 
-    protected virtual void BuildLaunchVelocity(BounceJumpSide jumpSide, float distance, float height)
+    protected virtual float GetJumpMaxHeight(BounceJumpType jumpType, float playerHeight)
     {
-        Vector2 alongSurface = GetLocalJumpDirection(jumpSide).normalized;
-        Vector2 awayFromSurface = currentSurfaceNormal.normalized;
+        switch (currentSurface)
+        {
+            case BounceSurface.Floor:
+                return GetFloorJumpMaxHeight(jumpType, playerHeight);
 
-        float gravity = Mathf.Max(0.1f, Mathf.Abs(Physics2D.gravity.y));
-        float upwardSpeed = Mathf.Sqrt(2f * gravity * height);
-        float timeToPeak = upwardSpeed / gravity;
-        float alongSurfaceSpeed = distance / Mathf.Max(0.05f, timeToPeak);
+            case BounceSurface.RightWall:
+            case BounceSurface.LeftWall:
+                return GetWallJumpMaxHeight(playerHeight);
 
-        launchVelocity = (alongSurface * alongSurfaceSpeed) + (awayFromSurface * upwardSpeed);
+            case BounceSurface.Ceiling:
+                return GetCeilingJumpMaxHeight(playerHeight);
+        }
+
+        return playerHeight;
     }
 
-    protected virtual bool IsAtLeftEdge()
+    protected virtual float GetFloorJumpMaxHeight(BounceJumpType jumpType, float playerHeight)
     {
-        return IsJumpSideAtPatrolEdge(BounceJumpSide.Left) || IsJumpSideBlockedByWall(BounceJumpSide.Left);
+        float patrolSpan = GetFloorToCeilingSpan();
+
+        if (jumpType == BounceJumpType.FloorToCeiling)
+            return Mathf.Max(playerHeight, patrolSpan);
+
+        if (ShouldUseSurfaceHeightPadding(patrolSpan, playerHeight))
+            patrolSpan -= Mathf.Max(0f, enemy.bounceJumpHeightPadding);
+
+        return Mathf.Max(playerHeight, patrolSpan);
     }
 
-    protected virtual bool IsAtRightEdge()
+    protected virtual float GetWallJumpMaxHeight(float playerHeight)
     {
-        return IsJumpSideAtPatrolEdge(BounceJumpSide.Right) || IsJumpSideBlockedByWall(BounceJumpSide.Right);
+        float patrolSpan = GetWallToWallSpan();
+
+        if (ShouldUseSurfaceHeightPadding(patrolSpan, playerHeight))
+            patrolSpan -= Mathf.Max(0f, enemy.bounceJumpHeightPadding);
+
+        return Mathf.Max(playerHeight, patrolSpan);
     }
 
-    protected virtual bool IsJumpSideAtPatrolEdge(BounceJumpSide jumpSide)
+    protected virtual float GetCeilingJumpMaxHeight(float playerHeight)
     {
-        float edgePadding = GetEnemyWidth() * 0.5f;
-        Enemy.PatrolPositionInfo patrolInfo = enemy.GetPatrolPositionInfo(enemy.transform.position, edgePadding);
+        float patrolSpan = GetFloorToCeilingSpan();
+        float curveAmount = patrolSpan * 0.5f;
 
-        Vector2 jumpDirection = GetLocalJumpDirection(jumpSide).normalized;
-        if (jumpDirection.sqrMagnitude <= 0.0001f)
-            return false;
-
-        bool pushingIntoLeft = patrolInfo.nearLeft && jumpDirection.x < -0.01f;
-        bool pushingIntoRight = patrolInfo.nearRight && jumpDirection.x > 0.01f;
-        bool pushingIntoBottom = patrolInfo.nearBottom && jumpDirection.y < -0.01f;
-        bool pushingIntoTop = patrolInfo.nearTop && jumpDirection.y > 0.01f;
-
-        return pushingIntoLeft || pushingIntoRight || pushingIntoBottom || pushingIntoTop;
+        return Mathf.Max(playerHeight, curveAmount);
     }
 
-    protected virtual bool IsJumpSideBlockedByWall(BounceJumpSide jumpSide)
+    protected virtual bool ShouldUseSurfaceHeightPadding(float patrolSpan, float playerHeight)
     {
-        Collider2D col = enemy.GetComponent<Collider2D>();
-        if (col == null)
-            return false;
-
-        Vector2 direction = GetLocalJumpDirection(jumpSide).normalized;
-        if (direction.sqrMagnitude <= 0.0001f)
-            return false;
-
-        Vector2 origin = GetJumpSideProbeOrigin(col, direction);
-        float distance = GetJumpSideProbeDistance(col);
-
-        RaycastHit2D hit = Physics2D.Raycast(origin, direction, distance, enemy.GetWhatIsGround());
-        return hit.collider != null;
+        return patrolSpan > playerHeight * 3f;
     }
 
-    protected virtual Vector2 GetJumpSideProbeOrigin(Collider2D col, Vector2 direction)
+    protected virtual float GetFloorToCeilingSpan()
     {
-        direction.Normalize();
-
-        Bounds bounds = col.bounds;
-        Vector2 center = bounds.center;
-        Vector2 extents = bounds.extents;
-
-        float reach = Vector2.Dot(extents, new Vector2(Mathf.Abs(direction.x), Mathf.Abs(direction.y)));
-        reach = Mathf.Max(0.01f, reach);
-
-        float skin = Mathf.Max(0.005f, Physics2D.defaultContactOffset);
-        return center + direction * (reach + skin);
+        return Mathf.Max(0.1f, enemy.patrolAreaSize.y);
     }
 
-    protected virtual float GetJumpSideProbeDistance(Collider2D col)
+    protected virtual float GetWallToWallSpan()
     {
-        Bounds bounds = col.bounds;
-        float sizeAlongDirection = Mathf.Max(bounds.size.x, bounds.size.y);
-        return Mathf.Max(0.05f, sizeAlongDirection * 0.5f);
+        return Mathf.Max(0.1f, enemy.patrolAreaSize.x);
     }
 
     #endregion
 
+
+    #endregion
+
+    #endregion
+
+    #region Move
+    protected virtual void MoveEnemy()
+    {
+        Vector2 launchDirection = currentSurfaceNormal.normalized;
+        float moveSpeed = enemy.moveSpeed * enemy.moveSpeedMultiplier;
+
+        rb.linearVelocity = launchDirection * moveSpeed;
+    }
+
+    protected virtual void MoveAirborne()
+    {
+        switch (plannedAirMoveType)
+        {
+            case BounceAirMoveType.Arc:
+                MoveAirborneArc();
+                break;
+
+            case BounceAirMoveType.Curve:
+                MoveAirborneCurve();
+                break;
+
+            default:
+                RotateInMovementDirection(rb.linearVelocity);
+                break;
+        }
+    }
+
+    protected virtual void MoveAirborneArc()
+    {
+        float moveSpeed = enemy.moveSpeed * enemy.moveSpeedMultiplier;
+        float deltaTime = Time.deltaTime;
+
+        if (deltaTime <= 0f)
+            return;
+
+        if (!airMoveInitialized)
+        {
+            airStartPosition = rb.position;
+            airTravelDistance = 0f;
+            airMoveInitialized = true;
+            arcReachedEnd = false;
+        }
+
+        Vector2 alongAxis = plannedJumpDirection.normalized;
+        Vector2 awayAxis = SurfaceNormal(launchSurface).normalized;
+
+        if (!arcReachedEnd)
+        {
+            MoveAirborneArcTravel(moveSpeed, deltaTime, alongAxis, awayAxis);
+            return;
+        }
+
+        MoveAirborneArcLand(moveSpeed, deltaTime, awayAxis);
+    }
+    protected virtual void MoveAirborneCurve()
+    {
+        float moveSpeed = enemy.moveSpeed * enemy.moveSpeedMultiplier;
+        float deltaTime = Time.deltaTime;
+
+        if (deltaTime <= 0f)
+            return;
+
+        if (!airMoveInitialized)
+        {
+            airStartPosition = rb.position;
+            airTravelDistance = 0f;
+            airMoveInitialized = true;
+            arcReachedEnd = false;
+        }
+
+        Vector2 startPoint = airStartPosition;
+        Vector2 endPoint = GetCurveEndPoint(startPoint);
+        BounceSurface targetSurface = GetCurveTargetSurface();
+
+        Vector2 startControl = startPoint + SurfaceNormal(launchSurface).normalized * plannedJumpHeight;
+        Vector2 endControl = endPoint - SurfaceNormal(targetSurface).normalized * plannedJumpHeight;
+
+        float curveLength = Mathf.Max(0.001f, GetCurveApproxLength(startPoint, startControl, endControl, endPoint));
+
+        float progress = Mathf.Clamp01(airTravelDistance / curveLength);
+        Vector2 tangent = GetCurveTangent(startPoint, startControl, endControl, endPoint, progress);
+        float tangentLength = Mathf.Max(0.001f, tangent.magnitude);
+
+        float progressStep = (moveSpeed * deltaTime) / tangentLength;
+        float nextProgress = Mathf.Clamp01(progress + progressStep);
+
+        Vector2 targetPosition = GetCurvePoint(startPoint, startControl, endControl, endPoint, nextProgress);
+        Vector2 pathDirection = GetCurveTangent(startPoint, startControl, endControl, endPoint, nextProgress).normalized;
+
+        airTravelDistance = nextProgress * curveLength;
+
+        rb.MovePosition(targetPosition);
+        rb.linearVelocity = pathDirection * moveSpeed;
+        RotateInMovementDirection(pathDirection);
+    }
+
+    #region Helpers
+    #region Arc
+    protected virtual void MoveAirborneArcTravel(float moveSpeed, float deltaTime, Vector2 alongAxis, Vector2 awayAxis)
+    {
+        float totalDistance = Mathf.Max(0.001f, plannedJumpDistance);
+
+        float slope = GetArcHeightSlope(airTravelDistance, totalDistance, plannedJumpHeight);
+        float alongStep = moveSpeed * deltaTime / Mathf.Sqrt(1f + (slope * slope));
+
+        airTravelDistance = Mathf.Min(totalDistance, airTravelDistance + alongStep);
+
+        float progress = Mathf.Clamp01(airTravelDistance / totalDistance);
+        float heightAmount = Mathf.Sin(progress * Mathf.PI) * plannedJumpHeight;
+
+        Vector2 targetPosition = airStartPosition
+                               + alongAxis * airTravelDistance
+                               + awayAxis * heightAmount;
+
+        float tangentSlope = GetArcHeightSlope(airTravelDistance, totalDistance, plannedJumpHeight);
+        Vector2 pathDirection = (alongAxis + awayAxis * tangentSlope).normalized;
+
+        rb.MovePosition(targetPosition);
+        rb.linearVelocity = pathDirection * moveSpeed;
+        RotateInMovementDirection(pathDirection, progress);
+
+        if (progress >= 1f)
+            arcReachedEnd = true;
+    }
+
+    protected virtual void MoveAirborneArcLand(float moveSpeed, float deltaTime, Vector2 awayAxis)
+    {
+        Vector2 returnDirection = (-awayAxis).normalized;
+        Vector2 targetPosition = rb.position + returnDirection * (moveSpeed * deltaTime);
+
+        rb.MovePosition(targetPosition);
+        rb.linearVelocity = returnDirection * moveSpeed;
+    }
+
+    protected virtual float GetArcHeightSlope(float travelDistance, float totalDistance, float maxHeight)
+    {
+        float progress = Mathf.Clamp01(travelDistance / Mathf.Max(0.001f, totalDistance));
+        return (Mathf.PI * maxHeight / Mathf.Max(0.001f, totalDistance)) * Mathf.Cos(progress * Mathf.PI);
+    }
+
+    protected virtual float GetArcRotationSign()
+    {
+        return plannedJumpSide == BounceJumpSide.Left ? -1f : 1f;
+    }
+    #endregion
+
+    #region Curve
+    protected virtual Vector2 GetCurveEndPoint(Vector2 startPoint)
+    {
+        return startPoint + plannedJumpDirection.normalized * plannedJumpDistance;
+    }
+
+    protected virtual BounceSurface GetCurveTargetSurface()
+    {
+        if (plannedJumpType == BounceJumpType.FloorToCeiling)
+            return BounceSurface.Ceiling;
+
+        if (launchSurface == BounceSurface.Ceiling)
+            return BounceSurface.Floor;
+
+        return launchSurface;
+    }
+
+    protected virtual Vector2 GetCurvePoint(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, float t)
+    {
+        float u = 1f - t;
+
+        return (u * u * u) * p0
+             + (3f * u * u * t) * p1
+             + (3f * u * t * t) * p2
+             + (t * t * t) * p3;
+    }
+
+    protected virtual Vector2 GetCurveTangent(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, float t)
+    {
+        float u = 1f - t;
+
+        return (3f * u * u) * (p1 - p0)
+             + (6f * u * t) * (p2 - p1)
+             + (3f * t * t) * (p3 - p2);
+    }
+
+    protected virtual float GetCurveApproxLength(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, int steps = 12)
+    {
+        float length = 0f;
+        Vector2 previous = p0;
+
+        for (int i = 1; i <= steps; i++)
+        {
+            float t = i / (float)steps;
+            Vector2 point = GetCurvePoint(p0, p1, p2, p3, t);
+            length += Vector2.Distance(previous, point);
+            previous = point;
+        }
+
+        return length;
+    }
+    #endregion
+    protected virtual void RotateInMovementDirection(Vector2 moveDirection, float arcProgress = -1f)
+    {
+        float targetZ;
+
+        if (plannedAirMoveType == BounceAirMoveType.Arc && arcProgress >= 0f && !arcReachedEnd)
+        {
+            float startZ = GetSurfaceTargetZ(launchSurface);
+            float arcRotation = arcProgress * 360f * GetArcRotationSign();
+            targetZ = Normalize360(startZ + arcRotation);
+        }
+        else
+        {
+            if (moveDirection.sqrMagnitude <= 0.0001f)
+                return;
+
+            targetZ = Normalize360(Vector2.SignedAngle(Vector2.down, -moveDirection.normalized));
+        }
+
+        var eulerAngles = enemy.transform.eulerAngles;
+        eulerAngles.z = Mathf.MoveTowardsAngle(
+            eulerAngles.z,
+            targetZ,
+            AIRBORNE_ROTATE_SPEED * Time.deltaTime
+        );
+
+        enemy.transform.eulerAngles = eulerAngles;
+    }
+    #endregion
     #endregion
 
     #region Helpers
-
-    #region Move
-    protected virtual void MoveEnemy(Vector2 velocity)
-    {
-        rb.linearVelocity = velocity;
-    }
-    #endregion
-
     #region Surface
     protected virtual bool HasLeftCurrentSurface()
     {
@@ -567,23 +888,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         return false;
     }
 
-    protected virtual void RotateInMovementDirection()
-    {
-        Vector2 velocity = rb.linearVelocity;
-        if (velocity.sqrMagnitude <= 0.0001f)
-            return;
-
-        float targetZ = Normalize360(Vector2.SignedAngle(Vector2.down, -velocity.normalized));
-
-        var eulerAngles = enemy.transform.eulerAngles;
-        eulerAngles.z = Mathf.MoveTowardsAngle(
-            eulerAngles.z,
-            targetZ,
-            AIRBORNE_ROTATE_SPEED * Time.deltaTime
-        );
-
-        enemy.transform.eulerAngles = eulerAngles;
-    }
     #endregion
 
     #region Gravity

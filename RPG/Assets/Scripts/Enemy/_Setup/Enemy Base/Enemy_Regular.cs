@@ -14,7 +14,7 @@ public class Enemy_Regular : Enemy
     [SerializeField] public RegularMoveMode moveMode = RegularMoveMode.PatrolArea;
 
     [Header("General")]
-    [SerializeField] public float moveSpeedMultiplier = 1f;
+    
     [SerializeField] public bool randomizeFacingOnMoveEnter = true;
 
     [Header("Traverse Stops")]

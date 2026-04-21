@@ -31,12 +31,12 @@ public class Enemy : Entity
     [Range(3, 10)]
     public int bounceJumpDistanceMultiplier = 3;
     [HideInInspector] public bool bounceLaunchReady;
-    [HideInInspector] public Vector2 bounceLaunchVelocity;
     [HideInInspector] public bool bounceTimerSet;
     [HideInInspector] public int bouncePhase;
 
     [Header("Move info")]
     public float moveSpeed = 1.5f;
+    [SerializeField] public float moveSpeedMultiplier = 1f;
 
     public float moveTime = 5;
     public float battleTime = 7;
