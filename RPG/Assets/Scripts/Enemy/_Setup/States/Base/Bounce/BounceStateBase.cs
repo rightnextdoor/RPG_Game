@@ -91,6 +91,9 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected Vector2 landingPoint;
     protected bool hasLandingHit;
 
+    protected float curveTravelDistance;
+    protected bool curveReachedEnd;
+
     protected const float AIRBORNE_ROTATE_SPEED = 720f;
     protected const float LANDING_NORMAL_MIN_DOT = 0.1f;
     #endregion
@@ -345,8 +348,10 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         if (currentSurface != BounceSurface.Floor)
             return BounceJumpType.Normal;
 
-        int normalWeight = 75;
-        int floorToCeilingWeight = 25;
+        //int normalWeight = 75;
+        int normalWeight = 0;
+        //int floorToCeilingWeight = 25;
+        int floorToCeilingWeight = 100;
 
         int totalWeight = normalWeight + floorToCeilingWeight;
         int roll = UnityEngine.Random.Range(0, totalWeight);
@@ -386,7 +391,11 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     {
         float enemyWidth = GetEnemyWidth();
 
-        minDistance = enemyWidth * 0.5f;
+        if (plannedJumpType == BounceJumpType.FloorToCeiling)
+            minDistance = enemyWidth * 1.5f;
+        else
+            minDistance = enemyWidth * 0.5f;
+
         maxDistance = GetJumpMaxDistance(jumpSide);
 
         if (maxDistance < minDistance)
@@ -497,6 +506,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         rb.MovePosition(targetPosition);
         rb.linearVelocity = pathDirection.normalized * MoveSpeed();
     }
+
     protected virtual void MoveAirborne()
     {
         switch (plannedAirMoveType)
@@ -535,6 +545,21 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     protected virtual void MoveAirborneCurve()
     {
+        switch (launchSurface)
+        {
+            case BounceSurface.Floor:
+                MoveAirborneCurveFromFloor();
+                break;
+
+            case BounceSurface.RightWall:
+            case BounceSurface.LeftWall:
+                MoveAirborneCurveFromWall();
+                break;
+
+            case BounceSurface.Ceiling:
+                MoveAirborneCurveFromCeiling();
+                break;
+        }
     }
 
     #region Helpers
@@ -585,6 +610,105 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     #endregion
 
     #region Curve
+    protected virtual void MoveAirborneCurveFromFloor()
+    {
+        Debug.Log($"{enemy.name} MoveAirborneCurveFromFloor");
+
+        if (!airMoveInitialized)
+        {
+            airStartPosition = rb.position;
+            airTravelDistance = 0f;
+            curveTravelDistance = 0f;
+            airMoveInitialized = true;
+            curveReachedEnd = false;
+        }
+
+        float deltaTime = Time.deltaTime;
+        if (deltaTime <= 0f)
+            return;
+
+        if (!curveReachedEnd)
+        {
+            Vector2 endPoint = GetFloorCurveEndPoint();
+
+            float totalDistance = Mathf.Max(0.001f, Mathf.Abs(endPoint.x - airStartPosition.x));
+            float xDirection = Mathf.Sign(endPoint.x - airStartPosition.x);
+
+            if (Mathf.Abs(xDirection) <= 0.0001f)
+                xDirection = plannedJumpDirection.x >= 0f ? 1f : -1f;
+
+            float targetRise = endPoint.y - airStartPosition.y;
+            float slope = GetFloorCurveSlope(curveTravelDistance, totalDistance, targetRise);
+
+            float xStep = MoveSpeed() * deltaTime / Mathf.Sqrt(1f + (slope * slope));
+            curveTravelDistance = Mathf.Min(totalDistance, curveTravelDistance + xStep);
+
+            float progress = Mathf.Clamp01(curveTravelDistance / totalDistance);
+            float riseAmount = GetFloorCurveRise(progress, targetRise);
+
+            Vector2 alongAxis = new Vector2(xDirection, 0f);
+            Vector2 riseAxis = Vector2.up;
+
+            Vector2 targetPosition = airStartPosition
+                                   + alongAxis * curveTravelDistance
+                                   + riseAxis * riseAmount;
+
+            float tangentSlope = GetFloorCurveSlope(curveTravelDistance, totalDistance, targetRise);
+            Vector2 pathDirection = (alongAxis + riseAxis * tangentSlope).normalized;
+
+            MoveAirborneCurveTravel(progress, targetPosition, pathDirection);
+
+            if (progress >= 1f)
+                curveReachedEnd = true;
+
+            return;
+        }
+
+        Vector2 upDirection = Vector2.up;
+        Vector2 continuePosition = rb.position + upDirection * (MoveSpeed() * deltaTime);
+
+        MoveAirborneCurveTravel(1f, continuePosition, upDirection);
+    }
+
+    protected virtual void MoveAirborneCurveFromWall()
+    {
+        Debug.Log($"{enemy.name} MoveAirborneCurveFromWall");
+    }
+
+    protected virtual void MoveAirborneCurveFromCeiling()
+    {
+        Debug.Log($"{enemy.name} MoveAirborneCurveFromCeiling");
+    }
+
+    #region Helpers
+    protected virtual void MoveAirborneCurveTravel(float curveProgress, Vector2 targetPosition, Vector2 pathDirection)
+    {
+        ApplyBounceMovement(targetPosition, pathDirection);
+        RotateAirborneArc(curveProgress);
+    }
+
+    protected virtual float GetFloorCurveSlope(float travelDistance, float totalDistance, float targetRise)
+    {
+        float safeDistance = Mathf.Max(0.001f, totalDistance);
+        float progress = Mathf.Clamp01(travelDistance / safeDistance);
+
+        return (targetRise * (Mathf.PI * 0.5f) / safeDistance) * Mathf.Cos(progress * Mathf.PI * 0.5f);
+    }
+
+    protected virtual Vector2 GetFloorCurveEndPoint()
+    {
+        float targetX = airStartPosition.x + (plannedJumpDirection.x * plannedJumpDistance);
+        float targetY = airStartPosition.y + GetFloorToCeilingSpan();
+
+        return new Vector2(targetX, targetY);
+    }
+
+    protected virtual float GetFloorCurveRise(float progress, float targetRise)
+    {
+        targetRise = Mathf.Max(0.001f, targetRise);
+        return Mathf.Sin(progress * Mathf.PI * 0.5f) * targetRise;
+    }
+    #endregion
 
     #endregion
 
