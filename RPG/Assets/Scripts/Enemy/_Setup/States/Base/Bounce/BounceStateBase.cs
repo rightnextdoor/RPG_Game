@@ -278,10 +278,34 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     protected virtual Vector2 GetLocalJumpDirection(BounceJumpSide jumpSide)
     {
+        switch (currentSurface)
+        {
+            case BounceSurface.Floor:
+                return jumpSide == BounceJumpSide.Left
+                    ? Vector2.left
+                    : Vector2.right;
+
+            case BounceSurface.RightWall:
+                return jumpSide == BounceJumpSide.Left
+                    ? Vector2.down
+                    : Vector2.up;
+
+            case BounceSurface.Ceiling:
+                return jumpSide == BounceJumpSide.Left
+                    ? Vector2.right
+                    : Vector2.left;
+
+            case BounceSurface.LeftWall:
+                return jumpSide == BounceJumpSide.Left
+                    ? Vector2.up
+                    : Vector2.down;
+        }
+
         return jumpSide == BounceJumpSide.Left
-            ? -(Vector2)enemy.transform.right
-            : (Vector2)enemy.transform.right;
+            ? Vector2.left
+            : Vector2.right;
     }
+
     protected virtual bool IsAtLeftEdge()
     {
         return IsJumpSideAtPatrolEdge(BounceJumpSide.Left) || IsJumpSideBlockedByWall(BounceJumpSide.Left);
@@ -586,7 +610,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
             Vector2 pathDirection = (alongAxis + awayAxis * tangentSlope).normalized;
 
             ApplyBounceMovement(targetPosition, pathDirection);
-            RotateAirborneArc(progress);
+            RotateAirborne(progress);
 
             if (progress >= 1f)
                 arcReachedEnd = true;
@@ -629,7 +653,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
         if (!curveReachedEnd)
         {
-            Vector2 endPoint = GetFloorCurveEndPoint();
+            Vector2 endPoint = GetCurveEndPoint();
 
             float totalDistance = Mathf.Max(0.001f, Mathf.Abs(endPoint.x - airStartPosition.x));
             float xDirection = Mathf.Sign(endPoint.x - airStartPosition.x);
@@ -638,13 +662,13 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
                 xDirection = plannedJumpDirection.x >= 0f ? 1f : -1f;
 
             float targetRise = endPoint.y - airStartPosition.y;
-            float slope = GetFloorCurveSlope(curveTravelDistance, totalDistance, targetRise);
+            float slope = GetCurveSlope(curveTravelDistance, totalDistance, targetRise);
 
             float xStep = MoveSpeed() * deltaTime / Mathf.Sqrt(1f + (slope * slope));
             curveTravelDistance = Mathf.Min(totalDistance, curveTravelDistance + xStep);
 
             float progress = Mathf.Clamp01(curveTravelDistance / totalDistance);
-            float riseAmount = GetFloorCurveRise(progress, targetRise);
+            float riseAmount = GetCurveRise(progress, targetRise);
 
             Vector2 alongAxis = new Vector2(xDirection, 0f);
             Vector2 riseAxis = Vector2.up;
@@ -653,7 +677,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
                                    + alongAxis * curveTravelDistance
                                    + riseAxis * riseAmount;
 
-            float tangentSlope = GetFloorCurveSlope(curveTravelDistance, totalDistance, targetRise);
+            float tangentSlope = GetCurveSlope(curveTravelDistance, totalDistance, targetRise);
             Vector2 pathDirection = (alongAxis + riseAxis * tangentSlope).normalized;
 
             MoveAirborneCurveTravel(progress, targetPosition, pathDirection);
@@ -678,16 +702,74 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected virtual void MoveAirborneCurveFromCeiling()
     {
         Debug.Log($"{enemy.name} MoveAirborneCurveFromCeiling");
+
+        if (!airMoveInitialized)
+        {
+            airStartPosition = rb.position;
+            airTravelDistance = 0f;
+            curveTravelDistance = 0f;
+            airMoveInitialized = true;
+            curveReachedEnd = false;
+        }
+
+        float deltaTime = Time.deltaTime;
+        if (deltaTime <= 0f)
+            return;
+
+        if (!curveReachedEnd)
+        {
+            Vector2 floorEndPoint = GetCurveEndPoint();
+
+            float totalDistance = Mathf.Max(0.001f, Mathf.Abs(floorEndPoint.x - airStartPosition.x));
+            float xDirection = Mathf.Sign(floorEndPoint.x - airStartPosition.x);
+
+            if (Mathf.Abs(xDirection) <= 0.0001f)
+                xDirection = plannedJumpDirection.x >= 0f ? 1f : -1f;
+
+            float targetDrop = Mathf.Abs(floorEndPoint.y - airStartPosition.y);
+            float slope = GetCurveSlope(curveTravelDistance, totalDistance, targetDrop);
+
+            float xStep = MoveSpeed() * deltaTime / Mathf.Sqrt(1f + (slope * slope));
+            curveTravelDistance = Mathf.Min(totalDistance, curveTravelDistance + xStep);
+
+            float progress = Mathf.Clamp01(curveTravelDistance / totalDistance);
+            float dropAmount = GetCurveRise(progress, targetDrop);
+
+            Vector2 alongAxis = new Vector2(xDirection, 0f);
+            Vector2 dropAxis = Vector2.down;
+
+            Vector2 targetPosition = airStartPosition
+                                   + alongAxis * curveTravelDistance
+                                   + dropAxis * dropAmount;
+
+            float tangentSlope = GetCurveSlope(curveTravelDistance, totalDistance, targetDrop);
+            Vector2 pathDirection = (alongAxis + dropAxis * tangentSlope).normalized;
+
+            MoveAirborneCurveTravel(progress, targetPosition, pathDirection);
+
+            if (progress >= 1f)
+                curveReachedEnd = true;
+
+            return;
+        }
+
+        float fallX = plannedJumpDirection.x;
+        if (Mathf.Abs(fallX) <= 0.0001f)
+            fallX = plannedJumpSide == BounceJumpSide.Right ? 1f : -1f;
+
+        Vector2 fallDirection = new Vector2(fallX * 0.35f, -1f).normalized;
+        Vector2 continuePosition = rb.position + (fallDirection * (MoveSpeed() * deltaTime));
+
+        MoveAirborneCurveTravel(1f, continuePosition, fallDirection);
     }
 
     #region Helpers
     protected virtual void MoveAirborneCurveTravel(float curveProgress, Vector2 targetPosition, Vector2 pathDirection)
     {
         ApplyBounceMovement(targetPosition, pathDirection);
-        RotateAirborneArc(curveProgress);
+        RotateAirborne(curveProgress);
     }
-
-    protected virtual float GetFloorCurveSlope(float travelDistance, float totalDistance, float targetRise)
+    protected virtual float GetCurveSlope(float travelDistance, float totalDistance, float targetRise)
     {
         float safeDistance = Mathf.Max(0.001f, totalDistance);
         float progress = Mathf.Clamp01(travelDistance / safeDistance);
@@ -695,7 +777,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         return (targetRise * (Mathf.PI * 0.5f) / safeDistance) * Mathf.Cos(progress * Mathf.PI * 0.5f);
     }
 
-    protected virtual Vector2 GetFloorCurveEndPoint()
+    protected virtual Vector2 GetCurveEndPoint()
     {
         float targetX = airStartPosition.x + (plannedJumpDirection.x * plannedJumpDistance);
         float targetY = airStartPosition.y + GetFloorToCeilingSpan();
@@ -703,16 +785,18 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         return new Vector2(targetX, targetY);
     }
 
-    protected virtual float GetFloorCurveRise(float progress, float targetRise)
+    protected virtual float GetCurveRise(float progress, float targetRise)
     {
         targetRise = Mathf.Max(0.001f, targetRise);
         return Mathf.Sin(progress * Mathf.PI * 0.5f) * targetRise;
     }
-    #endregion
+
 
     #endregion
 
-    protected virtual void RotateAirborneArc(float arcProgress)
+    #endregion
+
+    protected virtual void RotateAirborne(float arcProgress)
     {
         float startZ = GetSurfaceTargetZ(launchSurface);
         float arcRotation = arcProgress * 180f * -GetArcRotationSign();
