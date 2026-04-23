@@ -382,10 +382,8 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         if (currentSurface != BounceSurface.Floor)
             return BounceJumpType.Normal;
 
-        //int normalWeight = 75;
-        int normalWeight = 0;
-        //int floorToCeilingWeight = 25;
-        int floorToCeilingWeight = 100;
+        int normalWeight = 75;
+        int floorToCeilingWeight = 25;
 
         int totalWeight = normalWeight + floorToCeilingWeight;
         int roll = UnityEngine.Random.Range(0, totalWeight);
@@ -425,7 +423,12 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     {
         float enemyWidth = GetEnemyWidth();
 
-        if (plannedJumpType == BounceJumpType.FloorToCeiling)
+        bool useLongMin =
+            currentSurface == BounceSurface.LeftWall ||
+            currentSurface == BounceSurface.RightWall ||
+            plannedJumpType == BounceJumpType.FloorToCeiling;
+
+        if (useLongMin)
             minDistance = enemyWidth * 1.5f;
         else
             minDistance = enemyWidth * 0.5f;
@@ -521,9 +524,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         return Mathf.Max(0.1f, enemy.patrolAreaSize.y);
     }
 
-
     #endregion
-
 
     #endregion
 
@@ -704,7 +705,47 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     protected virtual void MoveAirborneCurveFromWall()
     {
-        Debug.Log($"{enemy.name} MoveAirborneCurveFromWall");
+        if (!airMoveInitialized)
+        {
+            airStartPosition = rb.position;
+            airTravelDistance = 0f;
+            curveTravelDistance = 0f;
+            airMoveInitialized = true;
+            curveReachedEnd = false;
+        }
+
+        float deltaTime = Time.deltaTime;
+        if (deltaTime <= 0f)
+            return;
+
+        float verticalDistance = Mathf.Max(0.001f, GetFloorToCeilingSpan());
+
+        float verticalDirection = Mathf.Sign(plannedJumpDirection.y);
+        if (Mathf.Abs(verticalDirection) <= 0.0001f)
+            verticalDirection = plannedJumpSide == BounceJumpSide.Right ? 1f : -1f;
+
+        float outwardDirection = currentSurface == BounceSurface.RightWall ? -1f : 1f;
+        float outwardDistance = Mathf.Max(0.001f, plannedJumpDistance);
+
+        float slope = GetCurveSlope(curveTravelDistance, verticalDistance, outwardDistance);
+
+        float yStep = MoveSpeed() * deltaTime / Mathf.Sqrt(1f + (slope * slope));
+        curveTravelDistance += yStep;
+
+        float progress = Mathf.Clamp01(curveTravelDistance / verticalDistance);
+        float outwardAmount = GetCurveRise(progress, outwardDistance);
+
+        Vector2 alongAxis = new Vector2(0f, verticalDirection);
+        Vector2 riseAxis = new Vector2(outwardDirection, 0f);
+
+        Vector2 targetPosition = airStartPosition
+                               + alongAxis * curveTravelDistance
+                               + riseAxis * outwardAmount;
+
+        float tangentSlope = GetCurveSlope(curveTravelDistance, verticalDistance, outwardDistance);
+        Vector2 pathDirection = (alongAxis + riseAxis * tangentSlope).normalized;
+
+        MoveAirborneCurveTravel(progress, targetPosition, pathDirection);
     }
 
     protected virtual void MoveAirborneCurveFromCeiling()
