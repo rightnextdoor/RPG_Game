@@ -77,6 +77,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected Vector2 currentSurfaceNormal = Vector2.up;
 
     protected readonly List<BounceSurface> ignoredLaunchSurfaces = new();
+    protected List<BounceSurface> ignoredLaunchEdgeSurfaces = new List<BounceSurface>();
     protected bool blockAllLandingSurfaces;
 
     protected float surfaceTargetZ;
@@ -267,7 +268,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         airMoveInitialized = false;
         arcReachedEnd = false;
 
-        //Debug.Log($"{enemy.name} PlanJump | Surface={launchSurface} | JumpType={plannedJumpType} | Side={plannedJumpSide} | AirMoveType={plannedAirMoveType} | Distance={plannedJumpDistance} | Height={plannedJumpHeight} | Direction={plannedJumpDirection}");
+        Debug.Log($"{enemy.name} PlanJump | Surface={launchSurface} | JumpType={plannedJumpType} | Side={plannedJumpSide} | AirMoveType={plannedAirMoveType} | Distance={plannedJumpDistance} | Height={plannedJumpHeight} | Direction={plannedJumpDirection}");
     }
 
     #region Jump helpers
@@ -530,7 +531,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     #endregion
 
-    #region Move
+    #region Movement
     protected virtual float MoveSpeed()
     {
         return enemy.moveSpeed * enemy.moveSpeedMultiplier;
@@ -1014,9 +1015,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
             BounceSurface hitSurface = ClassifySurface(normal);
 
-            if (ignoredLaunchSurfaces.Contains(hitSurface))
-                continue;
-
             hitPoint = distance.pointA;
             hitNormal = normal.normalized;
             return true;
@@ -1067,31 +1065,19 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected virtual void CacheIgnoredSecondarySurface()
     {
         ignoredLaunchSurfaces.Clear();
+        ignoredLaunchEdgeSurfaces.Clear();
         blockAllLandingSurfaces = false;
 
         ProbeIgnoredLaunchSurface(BounceJumpSide.Left);
         ProbeIgnoredLaunchSurface(BounceJumpSide.Right);
+        ProbeIgnoredLaunchEdgeSurface(BounceJumpSide.Left);
+        ProbeIgnoredLaunchEdgeSurface(BounceJumpSide.Right);
 
-        bool leftEdge = IsLaunchEdgeProbeHit(BounceJumpSide.Left);
-        bool rightEdge = IsLaunchEdgeProbeHit(BounceJumpSide.Right);
-
-        blockAllLandingSurfaces = leftEdge || rightEdge;
+        blockAllLandingSurfaces = ignoredLaunchSurfaces.Count > 0 || ignoredLaunchEdgeSurfaces.Count > 0;
     }
 
     protected virtual void UpdateIgnoredSecondarySurface()
     {
-        bool leftEdge = IsLaunchEdgeProbeHit(BounceJumpSide.Left);
-        bool rightEdge = IsLaunchEdgeProbeHit(BounceJumpSide.Right);
-
-        if (blockAllLandingSurfaces)
-        {
-            bool hasLeftSideSurface = IsTouchingSurface(BounceJumpSide.Left);
-            bool hasRightSideSurface = IsTouchingSurface(BounceJumpSide.Right);
-
-            if (!leftEdge && !rightEdge && !hasLeftSideSurface && !hasRightSideSurface)
-                blockAllLandingSurfaces = false;
-        }
-
         for (int i = ignoredLaunchSurfaces.Count - 1; i >= 0; i--)
         {
             BounceSurface surface = ignoredLaunchSurfaces[i];
@@ -1102,15 +1088,19 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
             if (!stillOnLeft && !stillOnRight)
                 ignoredLaunchSurfaces.RemoveAt(i);
         }
-    }
 
-    protected virtual bool IsTouchingSurface(BounceJumpSide jumpSide)
-    {
-        Vector2 direction = GetLocalJumpDirection(jumpSide).normalized;
-        if (direction.sqrMagnitude <= 0.0001f)
-            return false;
+        for (int i = ignoredLaunchEdgeSurfaces.Count - 1; i >= 0; i--)
+        {
+            BounceSurface surface = ignoredLaunchEdgeSurfaces[i];
 
-        return ProbeSurface(direction, out _);
+            bool stillOnLeftEdge = IsLaunchEdgeProbeHit(BounceJumpSide.Left, surface);
+            bool stillOnRightEdge = IsLaunchEdgeProbeHit(BounceJumpSide.Right, surface);
+
+            if (!stillOnLeftEdge && !stillOnRightEdge)
+                ignoredLaunchEdgeSurfaces.RemoveAt(i);
+        }
+
+        blockAllLandingSurfaces = ignoredLaunchSurfaces.Count > 0 || ignoredLaunchEdgeSurfaces.Count > 0;
     }
 
     protected virtual bool IsTouchingSurface(BounceJumpSide jumpSide, BounceSurface surface)
@@ -1144,8 +1134,32 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         ignoredLaunchSurfaces.Add(hitSurface);
     }
 
-    protected virtual bool IsLaunchEdgeProbeHit(BounceJumpSide jumpSide)
+    protected virtual void ProbeIgnoredLaunchEdgeSurface(BounceJumpSide jumpSide)
     {
+        if (!ProbeLaunchEdgeSurface(jumpSide, out BounceSurface hitSurface))
+            return;
+
+        if (hitSurface == currentSurface)
+            return;
+
+        if (ignoredLaunchEdgeSurfaces.Contains(hitSurface))
+            return;
+
+        ignoredLaunchEdgeSurfaces.Add(hitSurface);
+    }
+
+    protected virtual bool IsLaunchEdgeProbeHit(BounceJumpSide jumpSide, BounceSurface surface)
+    {
+        if (!ProbeLaunchEdgeSurface(jumpSide, out BounceSurface hitSurface))
+            return false;
+
+        return hitSurface == surface;
+    }
+
+    protected virtual bool ProbeLaunchEdgeSurface(BounceJumpSide jumpSide, out BounceSurface hitSurface)
+    {
+        hitSurface = BounceSurface.Floor;
+
         Vector2 sideDirection = GetLocalJumpDirection(jumpSide).normalized;
         if (sideDirection.sqrMagnitude <= 0.0001f)
             return false;
@@ -1156,7 +1170,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         if (edgeDirection.sqrMagnitude <= 0.0001f)
             return false;
 
-        return !ProbeSurface(edgeDirection, out _);
+        return ProbeSurface(edgeDirection, out hitSurface);
     }
 
     protected virtual bool ProbeSurface(Vector2 direction, out BounceSurface hitSurface)
