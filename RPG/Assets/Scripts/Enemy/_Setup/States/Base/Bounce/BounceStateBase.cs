@@ -1055,19 +1055,365 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
             ColliderDistance2D distance = enemyCollider.Distance(hitCollider);
 
-            Vector2 normal = -distance.normal;
-            if (normal.sqrMagnitude <= 0.0001f)
+            Vector2 rawNormal = -distance.normal;
+            if (rawNormal.sqrMagnitude <= 0.0001f)
                 continue;
 
-            BounceSurface hitSurface = ClassifySurface(normal);
+            BounceSurface rawSurface = ClassifySurface(rawNormal);
 
-            hitPoint = distance.pointA;
-            hitNormal = normal.normalized;
+            return ResolveLandingSurfaceWithProbes(
+                rawSurface,
+                distance.pointA,
+                out hitPoint,
+                out hitNormal
+            );
+        }
+
+        return false;
+    }
+
+    #region Probe
+    protected struct LandingProbeScan
+    {
+        public bool up;
+        public bool down;
+        public bool left;
+        public bool right;
+
+        public bool upLeft;
+        public bool upRight;
+        public bool downLeft;
+        public bool downRight;
+
+        public RaycastHit2D upHit;
+        public RaycastHit2D downHit;
+        public RaycastHit2D leftHit;
+        public RaycastHit2D rightHit;
+
+        public RaycastHit2D upLeftHit;
+        public RaycastHit2D upRightHit;
+        public RaycastHit2D downLeftHit;
+        public RaycastHit2D downRightHit;
+    }
+
+    protected virtual bool ResolveLandingSurfaceWithProbes(
+        BounceSurface rawSurface,
+        Vector2 rawPoint,
+        out Vector2 resolvedPoint,
+        out Vector2 resolvedNormal
+    )
+    {
+        resolvedPoint = rawPoint;
+
+        if (!ScanLandingProbes(out LandingProbeScan scan))
+        {
+            resolvedNormal = SurfaceNormal(rawSurface);
+            return true;
+        }
+
+        BounceSurface resolvedSurface = ResolveSurfaceFromProbeScan(rawSurface, scan);
+
+        if (TryGetProbePointForSurface(scan, resolvedSurface, out Vector2 probePoint))
+            resolvedPoint = probePoint;
+
+        resolvedNormal = SurfaceNormal(resolvedSurface);
+        return true;
+    }
+
+    protected virtual bool ScanLandingProbes(out LandingProbeScan scan)
+    {
+        scan = default;
+
+        Collider2D col = enemy.GetComponent<Collider2D>();
+        if (col == null)
+            return false;
+
+        Bounds bounds = col.bounds;
+        Vector2 origin = bounds.center;
+
+        scan.up = CastLandingProbe(origin, bounds, Vector2.up, out scan.upHit);
+        scan.down = CastLandingProbe(origin, bounds, Vector2.down, out scan.downHit);
+        scan.left = CastLandingProbe(origin, bounds, Vector2.left, out scan.leftHit);
+        scan.right = CastLandingProbe(origin, bounds, Vector2.right, out scan.rightHit);
+
+        scan.upLeft = CastLandingProbe(origin, bounds, (Vector2.up + Vector2.left).normalized, out scan.upLeftHit);
+        scan.upRight = CastLandingProbe(origin, bounds, (Vector2.up + Vector2.right).normalized, out scan.upRightHit);
+        scan.downLeft = CastLandingProbe(origin, bounds, (Vector2.down + Vector2.left).normalized, out scan.downLeftHit);
+        scan.downRight = CastLandingProbe(origin, bounds, (Vector2.down + Vector2.right).normalized, out scan.downRightHit);
+
+        return scan.up || scan.down || scan.left || scan.right ||
+               scan.upLeft || scan.upRight || scan.downLeft || scan.downRight;
+    }
+
+    protected virtual bool CastLandingProbe(
+        Vector2 origin,
+        Bounds bounds,
+        Vector2 direction,
+        out RaycastHit2D hit
+    )
+    {
+        hit = default;
+
+        if (direction.sqrMagnitude <= 0.0001f)
+            return false;
+
+        direction.Normalize();
+
+        float distance = GetLandingProbeDistance(bounds, direction);
+
+        hit = Physics2D.Raycast(
+            origin,
+            direction,
+            distance,
+            enemy.GetWhatIsGround()
+        );
+
+        return hit.collider != null;
+    }
+
+    protected virtual float GetLandingProbeDistance(Bounds bounds, Vector2 direction)
+    {
+        Vector2 absDirection = new Vector2(Mathf.Abs(direction.x), Mathf.Abs(direction.y));
+        float bodyReach = Vector2.Dot(bounds.extents, absDirection);
+        float extraReach = Mathf.Max(0.05f, Physics2D.defaultContactOffset * 4f);
+
+        return Mathf.Max(0.05f, bodyReach + extraReach);
+    }
+
+    protected virtual BounceSurface ResolveSurfaceFromProbeScan(BounceSurface rawSurface, LandingProbeScan scan)
+    {
+        if (TryResolveFlatProbeSurface(scan, out BounceSurface flatSurface))
+            return flatSurface;
+
+        if (TryResolveSingleDiagonalProbeSurface(rawSurface, scan, out BounceSurface diagonalSurface))
+            return diagonalSurface;
+
+        return ResolveSurfaceByProbeScore(rawSurface, scan);
+    }
+
+    protected virtual bool TryResolveFlatProbeSurface(LandingProbeScan scan, out BounceSurface surface)
+    {
+        surface = BounceSurface.Floor;
+
+        bool floorFlat = scan.down && scan.downLeft && scan.downRight;
+        bool ceilingFlat = scan.up && scan.upLeft && scan.upRight;
+        bool leftWallFlat = scan.left && scan.upLeft && scan.downLeft;
+        bool rightWallFlat = scan.right && scan.upRight && scan.downRight;
+
+        int flatCount = 0;
+
+        if (floorFlat)
+        {
+            surface = BounceSurface.Floor;
+            flatCount++;
+        }
+
+        if (ceilingFlat)
+        {
+            surface = BounceSurface.Ceiling;
+            flatCount++;
+        }
+
+        if (leftWallFlat)
+        {
+            surface = BounceSurface.LeftWall;
+            flatCount++;
+        }
+
+        if (rightWallFlat)
+        {
+            surface = BounceSurface.RightWall;
+            flatCount++;
+        }
+
+        return flatCount == 1;
+    }
+
+    protected virtual bool TryResolveSingleDiagonalProbeSurface(
+        BounceSurface rawSurface,
+        LandingProbeScan scan,
+        out BounceSurface surface
+    )
+    {
+        surface = rawSurface;
+
+        int diagonalCount = 0;
+
+        if (scan.upLeft) diagonalCount++;
+        if (scan.upRight) diagonalCount++;
+        if (scan.downLeft) diagonalCount++;
+        if (scan.downRight) diagonalCount++;
+
+        if (diagonalCount != 1)
+            return false;
+
+        if (scan.upLeft)
+        {
+            surface = ResolveFromDiagonalPair(rawSurface, BounceSurface.Ceiling, BounceSurface.LeftWall);
+            return true;
+        }
+
+        if (scan.upRight)
+        {
+            surface = ResolveFromDiagonalPair(rawSurface, BounceSurface.Ceiling, BounceSurface.RightWall);
+            return true;
+        }
+
+        if (scan.downLeft)
+        {
+            surface = ResolveFromDiagonalPair(rawSurface, BounceSurface.Floor, BounceSurface.LeftWall);
+            return true;
+        }
+
+        if (scan.downRight)
+        {
+            surface = ResolveFromDiagonalPair(rawSurface, BounceSurface.Floor, BounceSurface.RightWall);
             return true;
         }
 
         return false;
     }
+
+    protected virtual BounceSurface ResolveFromDiagonalPair(
+        BounceSurface rawSurface,
+        BounceSurface verticalSurface,
+        BounceSurface wallSurface
+    )
+    {
+        if (rawSurface == verticalSurface || rawSurface == wallSurface)
+            return rawSurface;
+
+        if (IsOppositeSurface(rawSurface, verticalSurface))
+            return verticalSurface;
+
+        if (IsOppositeSurface(rawSurface, wallSurface))
+            return wallSurface;
+
+        return verticalSurface;
+    }
+
+    protected virtual bool IsOppositeSurface(BounceSurface a, BounceSurface b)
+    {
+        return
+            (a == BounceSurface.Floor && b == BounceSurface.Ceiling) ||
+            (a == BounceSurface.Ceiling && b == BounceSurface.Floor) ||
+            (a == BounceSurface.LeftWall && b == BounceSurface.RightWall) ||
+            (a == BounceSurface.RightWall && b == BounceSurface.LeftWall);
+    }
+
+    protected virtual BounceSurface ResolveSurfaceByProbeScore(BounceSurface rawSurface, LandingProbeScan scan)
+    {
+        int floorScore = GetProbeScore(BounceSurface.Floor, scan);
+        int ceilingScore = GetProbeScore(BounceSurface.Ceiling, scan);
+        int leftWallScore = GetProbeScore(BounceSurface.LeftWall, scan);
+        int rightWallScore = GetProbeScore(BounceSurface.RightWall, scan);
+
+        int bestScore = Mathf.Max(
+            Mathf.Max(floorScore, ceilingScore),
+            Mathf.Max(leftWallScore, rightWallScore)
+        );
+
+        if (bestScore <= 0)
+            return rawSurface;
+
+        if (GetProbeScore(rawSurface, scan) == bestScore)
+            return rawSurface;
+
+        BounceSurface movementSurface = GetSurfaceFromAirVelocity();
+        if (GetProbeScore(movementSurface, scan) == bestScore)
+            return movementSurface;
+
+        if (floorScore == bestScore)
+            return BounceSurface.Floor;
+
+        if (ceilingScore == bestScore)
+            return BounceSurface.Ceiling;
+
+        if (leftWallScore == bestScore)
+            return BounceSurface.LeftWall;
+
+        return BounceSurface.RightWall;
+    }
+
+    protected virtual int GetProbeScore(BounceSurface surface, LandingProbeScan scan)
+    {
+        switch (surface)
+        {
+            case BounceSurface.Floor:
+                return (scan.down ? 4 : 0) +
+                       (scan.downLeft ? 1 : 0) +
+                       (scan.downRight ? 1 : 0);
+
+            case BounceSurface.Ceiling:
+                return (scan.up ? 4 : 0) +
+                       (scan.upLeft ? 1 : 0) +
+                       (scan.upRight ? 1 : 0);
+
+            case BounceSurface.LeftWall:
+                return (scan.left ? 4 : 0) +
+                       (scan.upLeft ? 1 : 0) +
+                       (scan.downLeft ? 1 : 0);
+
+            case BounceSurface.RightWall:
+                return (scan.right ? 4 : 0) +
+                       (scan.upRight ? 1 : 0) +
+                       (scan.downRight ? 1 : 0);
+        }
+
+        return 0;
+    }
+
+    protected virtual BounceSurface GetSurfaceFromAirVelocity()
+    {
+        Vector2 velocity = rb.linearVelocity;
+
+        if (velocity.sqrMagnitude <= 0.0001f)
+            return currentSurface;
+
+        if (Mathf.Abs(velocity.x) > Mathf.Abs(velocity.y))
+            return velocity.x < 0f ? BounceSurface.LeftWall : BounceSurface.RightWall;
+
+        return velocity.y > 0f ? BounceSurface.Ceiling : BounceSurface.Floor;
+    }
+
+    protected virtual bool TryGetProbePointForSurface(
+        LandingProbeScan scan,
+        BounceSurface surface,
+        out Vector2 point
+    )
+    {
+        point = default;
+
+        switch (surface)
+        {
+            case BounceSurface.Floor:
+                if (scan.down) { point = scan.downHit.point; return true; }
+                if (scan.downLeft) { point = scan.downLeftHit.point; return true; }
+                if (scan.downRight) { point = scan.downRightHit.point; return true; }
+                break;
+
+            case BounceSurface.Ceiling:
+                if (scan.up) { point = scan.upHit.point; return true; }
+                if (scan.upLeft) { point = scan.upLeftHit.point; return true; }
+                if (scan.upRight) { point = scan.upRightHit.point; return true; }
+                break;
+
+            case BounceSurface.LeftWall:
+                if (scan.left) { point = scan.leftHit.point; return true; }
+                if (scan.upLeft) { point = scan.upLeftHit.point; return true; }
+                if (scan.downLeft) { point = scan.downLeftHit.point; return true; }
+                break;
+
+            case BounceSurface.RightWall:
+                if (scan.right) { point = scan.rightHit.point; return true; }
+                if (scan.upRight) { point = scan.upRightHit.point; return true; }
+                if (scan.downRight) { point = scan.downRightHit.point; return true; }
+                break;
+        }
+
+        return false;
+    }
+    #endregion
 
     #endregion
 
