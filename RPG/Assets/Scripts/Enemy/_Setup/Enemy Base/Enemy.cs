@@ -27,7 +27,7 @@ public class Enemy : Entity
     [Header("Bounce Wait")]
     public float bounceWaitMin = 0.25f;
     public float bounceWaitMax = 0.75f;
-    public float bounceJumpHeightPadding = 0.5f;
+
     [Range(3, 10)]
     public int bounceJumpDistanceMultiplier = 3;
     [HideInInspector] public bool bounceLaunchReady;

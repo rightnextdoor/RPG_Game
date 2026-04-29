@@ -254,13 +254,13 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     protected virtual void PlanJump()
     {
-        plannedJumpType = GetWeightedJumpType();
         plannedJumpSide = GetJumpSide();
+        plannedJumpDirection = GetLocalJumpDirection(plannedJumpSide).normalized;
         plannedJumpDistance = GetJumpDistance(plannedJumpSide);
+        plannedJumpType = GetWeightedJumpType();
         plannedJumpHeight = GetJumpHeight(plannedJumpType);
 
         launchSurface = currentSurface;
-        plannedJumpDirection = GetLocalJumpDirection(plannedJumpSide).normalized;
         plannedAirMoveType = GetAirMoveType(launchSurface, plannedJumpType);
 
         airStartPosition = enemy.transform.position;
@@ -383,6 +383,9 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         if (currentSurface != BounceSurface.Floor)
             return BounceJumpType.Normal;
 
+        if (!TryGetGroundAbovePlannedJump(GetFloorToCeilingSpan(), out _))
+            return BounceJumpType.Normal;
+
         int normalWeight = 75;
         int floorToCeilingWeight = 25;
 
@@ -470,7 +473,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         maxHeight = GetJumpMaxHeight(jumpType, minHeight);
 
         if (maxHeight < minHeight)
-            maxHeight = minHeight;
+             minHeight = maxHeight;
     }
 
     protected virtual float GetPlayerHeight()
@@ -509,15 +512,58 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         if (jumpType == BounceJumpType.FloorToCeiling)
             return Mathf.Max(playerHeight, patrolSpan);
 
-        if (ShouldUseSurfaceHeightPadding(patrolSpan, playerHeight))
-            patrolSpan -= Mathf.Max(0f, enemy.bounceJumpHeightPadding);
+        if (TryGetGroundAbovePlannedJump(patrolSpan, out RaycastHit2D hit))
+            patrolSpan = hit.distance;
+
+        patrolSpan -= GetEnemyHeight() + GetSurfaceClearance();
 
         return Mathf.Max(playerHeight, patrolSpan);
     }
 
-    protected virtual bool ShouldUseSurfaceHeightPadding(float patrolSpan, float playerHeight)
+    protected virtual bool TryGetGroundAbovePlannedJump(float checkHeight, out RaycastHit2D hit)
     {
-        return patrolSpan > playerHeight * 3f;
+        hit = default;
+
+        if (checkHeight <= 0f)
+            return false;
+
+        Collider2D col = enemy.GetComponent<Collider2D>();
+        if (col == null)
+            return false;
+
+        Bounds bounds = col.bounds;
+
+        float skin = Mathf.Max(0.005f, Physics2D.defaultContactOffset);
+        float checkDistance = checkHeight - GetEnemyHeight() - skin;
+
+        if (checkDistance <= 0f)
+            return false;
+
+        Vector2 origin = new Vector2(bounds.center.x, bounds.max.y + skin);
+
+        hit = Physics2D.Raycast(
+            origin,
+            Vector2.up,
+            checkDistance,
+            enemy.GetWhatIsGround()
+        );
+
+        return hit.collider != null;
+    }
+
+    protected virtual float GetEnemyHeight()
+    {
+        Collider2D col = enemy.GetComponent<Collider2D>();
+
+        if (col != null)
+            return Mathf.Max(0.1f, col.bounds.size.y);
+
+        return 1f;
+    }
+
+    protected virtual float GetSurfaceClearance()
+    {
+        return 0.03f;
     }
 
     protected virtual float GetFloorToCeilingSpan()
