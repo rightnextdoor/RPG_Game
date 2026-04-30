@@ -1112,19 +1112,20 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     }
 
     protected virtual bool ResolveLandingSurfaceWithProbes(
-        BounceSurface rawSurface,
-        Vector2 rawPoint,
-        out Vector2 resolvedPoint,
-        out Vector2 resolvedNormal
-    )
+     BounceSurface rawSurface,
+     Vector2 rawPoint,
+     out Vector2 resolvedPoint,
+     out Vector2 resolvedNormal
+ )
     {
         resolvedPoint = rawPoint;
+        resolvedNormal = SurfaceNormal(rawSurface);
 
         if (!ScanLandingProbes(out LandingProbeScan scan))
-        {
-            resolvedNormal = SurfaceNormal(rawSurface);
-            return true;
-        }
+            return false;
+
+        if (!HasMainLandingProbeHit(scan))
+            return false;
 
         BounceSurface resolvedSurface = ResolveSurfaceFromProbeScan(rawSurface, scan);
 
@@ -1133,6 +1134,11 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
         resolvedNormal = SurfaceNormal(resolvedSurface);
         return true;
+    }
+
+    protected virtual bool HasMainLandingProbeHit(LandingProbeScan scan)
+    {
+        return scan.up || scan.down || scan.left || scan.right;
     }
 
     protected virtual bool ScanLandingProbes(out LandingProbeScan scan)
