@@ -84,7 +84,10 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected Vector2 landingIgnoreFailSafePathDirection = Vector2.right;
     protected float landingIgnoreFailSafeAirTime;
     protected float landingIgnoreBlockedTimer;
+    protected float landingIgnoreGroundContactTimer;
 
+    protected const float LANDING_IGNORE_EDGE_BLOCKED_TIME = 0.28f;
+    protected const float LANDING_IGNORE_GROUND_CONTACT_TIME = 0.06f;
     protected const float LANDING_IGNORE_FAIL_SAFE_GRACE = 0.08f;
     protected const float LANDING_IGNORE_BLOCKED_TIME = 0.12f;
     protected const float LANDING_IGNORE_FORWARD_PROGRESS_FACTOR = 0.15f;
@@ -1528,6 +1531,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         landingIgnoreFailSafeLastPosition = rb.position;
         landingIgnoreFailSafeAirTime = 0f;
         landingIgnoreBlockedTimer = 0f;
+        landingIgnoreGroundContactTimer = 0f;
 
         if (landingIgnoreFailSafePathDirection.sqrMagnitude <= 0.0001f)
             landingIgnoreFailSafePathDirection = currentSurfaceNormal.normalized;
@@ -1556,6 +1560,18 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         if (landingIgnoreFailSafeAirTime < LANDING_IGNORE_FAIL_SAFE_GRACE)
             return;
 
+        if (!HasGroundContactWhileLandingBlocked())
+        {
+            landingIgnoreGroundContactTimer = 0f;
+            landingIgnoreBlockedTimer = 0f;
+            return;
+        }
+
+        landingIgnoreGroundContactTimer += deltaTime;
+
+        if (landingIgnoreGroundContactTimer < LANDING_IGNORE_GROUND_CONTACT_TIME)
+            return;
+
         Vector2 expectedDirection = landingIgnoreFailSafePathDirection;
 
         if (expectedDirection.sqrMagnitude <= 0.0001f)
@@ -1577,7 +1593,11 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         else
             landingIgnoreBlockedTimer = 0f;
 
-        if (landingIgnoreBlockedTimer < LANDING_IGNORE_BLOCKED_TIME)
+        float blockedTimeLimit = ignoredLaunchEdgeSurfaces.Count > 0
+            ? LANDING_IGNORE_EDGE_BLOCKED_TIME
+            : LANDING_IGNORE_BLOCKED_TIME;
+
+        if (landingIgnoreBlockedTimer < blockedTimeLimit)
             return;
 
         ClearLandingIgnoreBlocks();
@@ -1669,6 +1689,23 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
         hitSurface = ClassifySurface(hit.normal);
         return true;
+    }
+
+    protected virtual bool HasGroundContactWhileLandingBlocked()
+    {
+        Collider2D enemyCollider = enemy.GetComponent<Collider2D>();
+        if (enemyCollider == null)
+            return false;
+
+        ContactFilter2D filter = new ContactFilter2D();
+        filter.useLayerMask = true;
+        filter.layerMask = enemy.GetWhatIsGround();
+        filter.useTriggers = false;
+
+        Collider2D[] hitColliders = new Collider2D[8];
+        int count = enemyCollider.GetContacts(filter, hitColliders);
+
+        return count > 0;
     }
     #endregion
 
