@@ -100,9 +100,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected const float FEET_PROBE_INSET = 0.03f;
     protected const float FEET_PROBE_DISTANCE = 0.12f;
 
-    protected const float WEAK_EDGE_BLOCKED_TIME = 0.08f;
-    protected const float WEAK_EDGE_SLIDE_MOVE_FACTOR = 0.25f;
-
     #endregion
 
     #region Phase Settings
@@ -237,7 +234,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         if (!HasLeftCurrentSurface())
             return;
 
-        ResetWeakEdgeContactTracking();
         currentPhase = BouncePhase.Airborne;
     }
 
