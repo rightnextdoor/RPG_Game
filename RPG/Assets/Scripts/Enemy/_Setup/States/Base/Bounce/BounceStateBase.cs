@@ -97,6 +97,12 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected const float SURFACE_ALIGN_TIME = 0.06f;
     protected const float SURFACE_ALIGN_EPS_DEG = 0.75f;
 
+    protected const float FEET_PROBE_INSET = 0.03f;
+    protected const float FEET_PROBE_DISTANCE = 0.12f;
+
+    protected const float WEAK_EDGE_BLOCKED_TIME = 0.08f;
+    protected const float WEAK_EDGE_SLIDE_MOVE_FACTOR = 0.25f;
+
     #endregion
 
     #region Phase Settings
@@ -231,6 +237,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         if (!HasLeftCurrentSurface())
             return;
 
+        ResetWeakEdgeContactTracking();
         currentPhase = BouncePhase.Airborne;
     }
 
@@ -247,6 +254,9 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
             currentSurface = ClassifySurface(hitNormal);
             AlignToSurfaceNormal(hitNormal);
+
+            surfaceTargetZ = GetSurfaceTargetZ(currentSurface);
+            surfaceRotateVelocity = 0f;
 
             currentPhase = BouncePhase.Attach;
             return;
@@ -280,7 +290,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         airMoveInitialized = false;
         arcReachedEnd = false;
 
-        Debug.Log($"{enemy.name} PlanJump | Surface={launchSurface} | JumpType={plannedJumpType} | Side={plannedJumpSide} | AirMoveType={plannedAirMoveType} | Distance={plannedJumpDistance} | Height={plannedJumpHeight} | Direction={plannedJumpDirection}");
+        //Debug.Log($"{enemy.name} PlanJump | Surface={launchSurface} | JumpType={plannedJumpType} | Side={plannedJumpSide} | AirMoveType={plannedAirMoveType} | Distance={plannedJumpDistance} | Height={plannedJumpHeight} | Direction={plannedJumpDirection}");
     }
 
     #region Jump helpers
@@ -1006,7 +1016,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     }
     protected virtual void RotateFeetToSurface()
     {
-        float targetZ = GetSurfaceTargetZ(currentSurface);
+        float targetZ = Normalize360(surfaceTargetZ);
 
         var eulerAngles = enemy.transform.eulerAngles;
 
@@ -1028,12 +1038,108 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
             surfaceRotateVelocity = 0f;
         }
     }
+
     protected virtual bool IsFeetAlignedToSurface()
     {
-        float targetZ = GetSurfaceTargetZ(currentSurface);
         float currentZ = enemy.transform.eulerAngles.z;
+        float targetZ = Normalize360(surfaceTargetZ);
 
-        return Mathf.Abs(Mathf.DeltaAngle(currentZ, targetZ)) <= SURFACE_ALIGN_EPS_DEG;
+        if (Mathf.Abs(Mathf.DeltaAngle(currentZ, targetZ)) > SURFACE_ALIGN_EPS_DEG)
+            return false;
+
+        if (!HasFeetSurfaceHit())
+        {
+            RotateToNextFeetCheckAngle();
+            return false;
+        }
+
+        currentSurface = GetSurfaceFromFeetTargetZ(targetZ);
+        AlignToSurfaceNormal(SurfaceNormal(currentSurface));
+
+        return true;
+    }
+
+    protected virtual void RotateToNextFeetCheckAngle()
+    {
+        surfaceTargetZ = Normalize360(surfaceTargetZ + 90f);
+        surfaceRotateVelocity = 0f;
+    }
+
+    protected virtual bool HasFeetSurfaceHit()
+    {
+        Collider2D col = enemy.GetComponent<Collider2D>();
+        if (col == null)
+            return false;
+
+        Bounds bounds = col.bounds;
+
+        Vector2 feetDirection = -enemy.transform.up;
+        if (feetDirection.sqrMagnitude <= 0.0001f)
+            return false;
+
+        feetDirection.Normalize();
+
+        Vector2 sideDirection = enemy.transform.right;
+        if (sideDirection.sqrMagnitude <= 0.0001f)
+            sideDirection = Vector2.right;
+
+        sideDirection.Normalize();
+
+        float feetReach = GetBoundsReach(bounds, feetDirection);
+        float sideReach = GetBoundsReach(bounds, sideDirection);
+
+        Vector2 footCenter = (Vector2)bounds.center + feetDirection * feetReach;
+
+        float sideOffset = sideReach * 0.65f;
+
+        Vector2 leftFootPoint = footCenter - sideDirection * sideOffset;
+        Vector2 middleFootPoint = footCenter;
+        Vector2 rightFootPoint = footCenter + sideDirection * sideOffset;
+
+        if (CastFeetProbe(leftFootPoint, feetDirection))
+            return true;
+
+        if (CastFeetProbe(middleFootPoint, feetDirection))
+            return true;
+
+        if (CastFeetProbe(rightFootPoint, feetDirection))
+            return true;
+
+        return false;
+    }
+
+    protected virtual bool CastFeetProbe(Vector2 origin, Vector2 direction)
+    {
+        RaycastHit2D hit = Physics2D.Raycast(
+            origin,
+            direction,
+            FEET_PROBE_DISTANCE,
+            enemy.GetWhatIsGround()
+        );
+
+        return hit.collider != null;
+    }
+
+    protected virtual float GetBoundsReach(Bounds bounds, Vector2 direction)
+    {
+        Vector2 absDirection = new Vector2(Mathf.Abs(direction.x), Mathf.Abs(direction.y));
+        return Vector2.Dot(bounds.extents, absDirection);
+    }
+
+    protected virtual BounceSurface GetSurfaceFromFeetTargetZ(float targetZ)
+    {
+        targetZ = Normalize360(targetZ);
+
+        if (Mathf.Abs(Mathf.DeltaAngle(targetZ, 0f)) <= 45f)
+            return BounceSurface.Floor;
+
+        if (Mathf.Abs(Mathf.DeltaAngle(targetZ, 90f)) <= 45f)
+            return BounceSurface.RightWall;
+
+        if (Mathf.Abs(Mathf.DeltaAngle(targetZ, 180f)) <= 45f)
+            return BounceSurface.Ceiling;
+
+        return BounceSurface.LeftWall;
     }
     #endregion
 
