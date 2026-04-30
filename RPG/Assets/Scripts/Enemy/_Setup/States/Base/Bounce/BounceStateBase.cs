@@ -80,6 +80,15 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected List<BounceSurface> ignoredLaunchEdgeSurfaces = new List<BounceSurface>();
     protected bool blockAllLandingSurfaces;
 
+    protected Vector2 landingIgnoreFailSafeLastPosition;
+    protected Vector2 landingIgnoreFailSafePathDirection = Vector2.right;
+    protected float landingIgnoreFailSafeAirTime;
+    protected float landingIgnoreBlockedTimer;
+
+    protected const float LANDING_IGNORE_FAIL_SAFE_GRACE = 0.08f;
+    protected const float LANDING_IGNORE_BLOCKED_TIME = 0.12f;
+    protected const float LANDING_IGNORE_FORWARD_PROGRESS_FACTOR = 0.15f;
+
     protected float surfaceTargetZ;
     protected float surfaceRotateVelocity;
     protected const float SURFACE_ALIGN_TIME = 0.06f;
@@ -585,6 +594,9 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     protected virtual void ApplyBounceMovement(Vector2 targetPosition, Vector2 pathDirection)
     {
+        if (pathDirection.sqrMagnitude > 0.0001f)
+            landingIgnoreFailSafePathDirection = pathDirection.normalized;
+
         rb.MovePosition(targetPosition);
         rb.linearVelocity = pathDirection.normalized * MoveSpeed();
     }
@@ -1466,6 +1478,8 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         ProbeIgnoredLaunchEdgeSurface(BounceJumpSide.Right);
 
         blockAllLandingSurfaces = ignoredLaunchSurfaces.Count > 0 || ignoredLaunchEdgeSurfaces.Count > 0;
+
+        ResetLandingIgnoreFailSafeTracking();
     }
 
     protected virtual void UpdateIgnoredSecondarySurface()
@@ -1492,6 +1506,8 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
                 ignoredLaunchEdgeSurfaces.RemoveAt(i);
         }
 
+        UpdateLandingIgnoreFailSafe();
+
         blockAllLandingSurfaces = ignoredLaunchSurfaces.Count > 0 || ignoredLaunchEdgeSurfaces.Count > 0;
     }
 
@@ -1505,6 +1521,77 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
             return false;
 
         return hitSurface == surface;
+    }
+
+    protected virtual void ResetLandingIgnoreFailSafeTracking()
+    {
+        landingIgnoreFailSafeLastPosition = rb.position;
+        landingIgnoreFailSafeAirTime = 0f;
+        landingIgnoreBlockedTimer = 0f;
+
+        if (landingIgnoreFailSafePathDirection.sqrMagnitude <= 0.0001f)
+            landingIgnoreFailSafePathDirection = currentSurfaceNormal.normalized;
+    }
+
+    protected virtual void UpdateLandingIgnoreFailSafe()
+    {
+        bool hasIgnoredSurface = ignoredLaunchSurfaces.Count > 0 || ignoredLaunchEdgeSurfaces.Count > 0;
+
+        if (!hasIgnoredSurface)
+        {
+            ResetLandingIgnoreFailSafeTracking();
+            return;
+        }
+
+        float deltaTime = Time.deltaTime;
+        if (deltaTime <= 0f)
+            return;
+
+        landingIgnoreFailSafeAirTime += deltaTime;
+
+        Vector2 currentPosition = rb.position;
+        Vector2 actualMove = currentPosition - landingIgnoreFailSafeLastPosition;
+        landingIgnoreFailSafeLastPosition = currentPosition;
+
+        if (landingIgnoreFailSafeAirTime < LANDING_IGNORE_FAIL_SAFE_GRACE)
+            return;
+
+        Vector2 expectedDirection = landingIgnoreFailSafePathDirection;
+
+        if (expectedDirection.sqrMagnitude <= 0.0001f)
+        {
+            ResetLandingIgnoreFailSafeTracking();
+            return;
+        }
+
+        expectedDirection.Normalize();
+
+        float forwardProgress = Vector2.Dot(actualMove, expectedDirection);
+        float expectedMove = MoveSpeed() * deltaTime;
+        float minForwardProgress = expectedMove * LANDING_IGNORE_FORWARD_PROGRESS_FACTOR;
+
+        bool forwardProgressStopped = forwardProgress <= minForwardProgress;
+
+        if (forwardProgressStopped)
+            landingIgnoreBlockedTimer += deltaTime;
+        else
+            landingIgnoreBlockedTimer = 0f;
+
+        if (landingIgnoreBlockedTimer < LANDING_IGNORE_BLOCKED_TIME)
+            return;
+
+        ClearLandingIgnoreBlocks();
+    }
+
+    protected virtual void ClearLandingIgnoreBlocks()
+    {
+        ignoredLaunchSurfaces.Clear();
+        ignoredLaunchEdgeSurfaces.Clear();
+
+        blockAllLandingSurfaces = false;
+
+        landingIgnoreBlockedTimer = 0f;
+        landingIgnoreFailSafeAirTime = 0f;
     }
 
     #region Helpers
