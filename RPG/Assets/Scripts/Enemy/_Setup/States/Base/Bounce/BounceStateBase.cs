@@ -146,6 +146,9 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected Vector2 edgeBounceHitDirection;
     protected Vector2 edgeBounceSurfaceNormal;
 
+    protected bool edgeSurfaceReleaseActive;
+    protected bool edgeSurfaceReleased;
+
     protected BounceEdgePoint edgeBouncePoint = BounceEdgePoint.None;
     #endregion
 
@@ -310,6 +313,9 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         edgeBounceSurfaceNormal = Vector2.zero;
         edgeBouncePoint = BounceEdgePoint.None;
         edgeBounceProbeHitPoint = Vector2.zero;
+
+        edgeSurfaceReleaseActive = false;
+        edgeSurfaceReleased = false;
 
         //Debug.Log($"{enemy.name} PlanJump | Surface={launchSurface} | JumpType={plannedJumpType} | Side={plannedJumpSide} | AirMoveType={plannedAirMoveType} | Distance={plannedJumpDistance} | Height={plannedJumpHeight} | Direction={plannedJumpDirection}");
     }
@@ -703,7 +709,10 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     {
         if (!edgeBouncePlanBuilt)
             BuildEdgeBouncePlan();
-        
+
+        if (!CheckEdgeSurfaceRelease())
+            return;
+
         MoveAirborneCurveFromEdge();
     }
 
@@ -731,7 +740,21 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     private void BuildEdgeBouncePlan()
     {
         Debug.Log($"{enemy.name} MoveAirborneEdge");
-     
+
+        PrepareEdgeSurfaceContact();
+
+        LaunchFromEdge();
+
+        edgeBouncePlanBuilt = true;
+    }
+
+    private void PrepareEdgeSurfaceContact()
+    {
+        SetAttachedGravity();
+
+        enemy.SetZeroVelocity();
+
+        RotateFeetToEdgePoint();
     }
 
     #endregion
@@ -739,12 +762,199 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     #region Move
     private void MoveAirborneCurveFromEdge()
     {
-        
+        if (!airMoveInitialized)
+        {
+            airStartPosition = rb.position;
+            airTravelDistance = 0f;
+            curveTravelDistance = 0f;
+            airMoveInitialized = true;
+            curveReachedEnd = false;
+        }
+
+        float deltaTime = Time.deltaTime;
+        if (deltaTime <= 0f)
+            return;
+
+        Vector2 edgeDirection = plannedJumpDirection.sqrMagnitude > 0.0001f
+            ? plannedJumpDirection.normalized
+            : plannedArcAwayAxis.normalized;
+
+        float xDirection = Mathf.Sign(edgeDirection.x);
+        if (Mathf.Abs(xDirection) <= 0.0001f)
+            xDirection = plannedJumpSide == BounceJumpSide.Right ? 1f : -1f;
+
+        float bendDirection = Mathf.Sign(edgeDirection.y);
+        if (Mathf.Abs(bendDirection) <= 0.0001f)
+            bendDirection = landingIgnoreFailSafePathDirection.y >= 0f ? 1f : -1f;
+
+        float totalDistance = Mathf.Max(0.001f, plannedJumpDistance);
+        float targetBend = Mathf.Max(0.001f, GetFloorToCeilingSpan());
+
+        float slope = GetCurveSlope(curveTravelDistance, totalDistance, targetBend);
+
+        float xStep = MoveSpeed() * deltaTime / Mathf.Sqrt(1f + (slope * slope));
+        curveTravelDistance += xStep;
+
+        float progress = Mathf.Clamp01(curveTravelDistance / totalDistance);
+        float bendAmount = GetCurveRise(progress, targetBend);
+
+        Vector2 alongAxis = new Vector2(xDirection, 0f);
+        Vector2 bendAxis = new Vector2(0f, bendDirection);
+
+        Vector2 targetPosition = airStartPosition
+                               + alongAxis * curveTravelDistance
+                               + bendAxis * bendAmount;
+
+        float tangentSlope = GetCurveSlope(curveTravelDistance, totalDistance, targetBend);
+        Vector2 pathDirection = (alongAxis + bendAxis * tangentSlope).normalized;
+
+        MoveAirborneCurveTravel(targetPosition, pathDirection);
     }
 
     #endregion
 
     #region Helpers
+
+    #region Feet Rotation
+    private void RotateFeetToEdgePoint()
+    {
+        Vector2 snapSurfaceNormal = edgeBounceSurfaceNormal.sqrMagnitude > 0.0001f
+            ? edgeBounceSurfaceNormal.normalized
+            : plannedArcAwayAxis.normalized;
+
+        if (snapSurfaceNormal.sqrMagnitude <= 0.0001f)
+            snapSurfaceNormal = SurfaceNormal(launchSurface).normalized;
+
+        Vector2 feetTarget = -snapSurfaceNormal;
+        float edgeSurfaceZ = Normalize360(Vector2.SignedAngle(Vector2.down, feetTarget));
+
+        var eulerAngles = enemy.transform.eulerAngles;
+        eulerAngles.z = edgeSurfaceZ;
+        enemy.transform.eulerAngles = eulerAngles;
+
+        surfaceRotateVelocity = 0f;
+        plannedArcStartZ = edgeSurfaceZ;
+
+        if (ValidateEdgeFeetRotation())
+            return;
+
+        feetTarget = snapSurfaceNormal;
+        edgeSurfaceZ = Normalize360(Vector2.SignedAngle(Vector2.down, feetTarget));
+
+        eulerAngles = enemy.transform.eulerAngles;
+        eulerAngles.z = edgeSurfaceZ;
+        enemy.transform.eulerAngles = eulerAngles;
+
+        surfaceRotateVelocity = 0f;
+        plannedArcStartZ = edgeSurfaceZ;
+
+        ValidateEdgeFeetRotation();
+    }
+
+    private bool ValidateEdgeFeetRotation()
+    {
+        if (edgeBounceProbeHitPoint.sqrMagnitude <= 0.0001f)
+            return true;
+
+        Vector3 localEdgePoint3 = enemy.transform.InverseTransformPoint(edgeBounceProbeHitPoint);
+        Vector2 localEdgePoint = new Vector2(localEdgePoint3.x, localEdgePoint3.y);
+
+        bool edgePointIsOnFeetSide = localEdgePoint.y <= 0f;
+
+        return edgePointIsOnFeetSide;
+    }
+    #endregion
+
+    #region Launch
+    private void LaunchFromEdge()
+    {
+        SetAirborneGravity();
+
+        Vector2 incomingDirection = GetEdgeIncomingDirection();
+        Vector2 awayAxis = GetEdgeBounceAwayAxis(incomingDirection);
+
+        plannedArcAwayAxis = awayAxis.sqrMagnitude > 0.0001f
+            ? awayAxis.normalized
+            : SurfaceNormal(launchSurface).normalized;
+
+        Vector2 beforeLaunchPosition = rb.position;
+        Vector2 afterLaunchPosition = MoveEnemySlightlyOffEdge(plannedArcAwayAxis);
+
+        StoreEdgeLaunchDirection(beforeLaunchPosition, afterLaunchPosition, plannedArcAwayAxis);
+
+        ResetEdgeCurveTravelFromLaunch(afterLaunchPosition);
+
+        StartEdgeSurfaceRelease();
+    }
+    private void ResetEdgeCurveTravelFromLaunch(Vector2 launchStartPosition)
+    {
+        airStartPosition = launchStartPosition;
+        airTravelDistance = 0f;
+        curveTravelDistance = 0f;
+        airMoveInitialized = true;
+        arcReachedEnd = false;
+        curveReachedEnd = false;
+    }
+    private void StoreEdgeLaunchDirection(Vector2 beforeLaunchPosition, Vector2 afterLaunchPosition, Vector2 fallbackDirection)
+    {
+        Vector2 launchDirection = afterLaunchPosition - beforeLaunchPosition;
+
+        if (launchDirection.sqrMagnitude <= 0.0001f)
+            launchDirection = fallbackDirection;
+
+        if (launchDirection.sqrMagnitude <= 0.0001f)
+            launchDirection = plannedArcAwayAxis;
+
+        if (launchDirection.sqrMagnitude <= 0.0001f)
+            launchDirection = SurfaceNormal(launchSurface);
+
+        plannedJumpDirection = launchDirection.normalized;
+
+        landingIgnoreFailSafePathDirection = plannedJumpDirection;
+
+        float originalDistance = Mathf.Max(0.001f, plannedJumpDistance);
+        float maxEdgeDistance = originalDistance * 0.5f;
+        float minEdgeDistance = maxEdgeDistance * 0.75f;
+
+        plannedJumpDistance = UnityEngine.Random.Range(minEdgeDistance, maxEdgeDistance);
+
+        Vector2 localRight = new Vector2(enemy.transform.right.x, enemy.transform.right.y).normalized;
+        float localSideValue = Vector2.Dot(plannedJumpDirection, localRight);
+
+        plannedJumpSide = localSideValue < 0f
+            ? BounceJumpSide.Left
+            : BounceJumpSide.Right;
+    }
+    private void StartEdgeSurfaceRelease()
+    {
+        CacheIgnoredSecondarySurface();
+
+        edgeSurfaceReleaseActive = blockAllLandingSurfaces;
+        edgeSurfaceReleased = !edgeSurfaceReleaseActive;
+    }
+
+    private bool CheckEdgeSurfaceRelease()
+    {
+        if (edgeSurfaceReleased)
+            return true;
+
+        if (!edgeSurfaceReleaseActive)
+        {
+            edgeSurfaceReleased = true;
+            return true;
+        }
+
+        UpdateIgnoredSecondarySurface();
+
+        if (blockAllLandingSurfaces)
+            return false;
+
+        edgeSurfaceReleaseActive = false;
+        edgeSurfaceReleased = true;
+
+        return true;
+    }
+    #endregion
 
     #region Move
     private Vector2 MoveEnemySlightlyOffEdge(Vector2 awayAxis)
