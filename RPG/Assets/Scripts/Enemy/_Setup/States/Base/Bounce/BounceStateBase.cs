@@ -739,8 +739,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     private void BuildEdgeBouncePlan()
     {
-        Debug.Log($"{enemy.name} MoveAirborneEdge");
-
         PrepareEdgeSurfaceContact();
 
         LaunchFromEdge();
