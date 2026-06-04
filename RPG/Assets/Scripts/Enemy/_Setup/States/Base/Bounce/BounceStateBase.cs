@@ -87,7 +87,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     protected readonly List<BounceSurface> ignoredLaunchSurfaces = new();
     protected List<BounceSurface> ignoredLaunchEdgeSurfaces = new List<BounceSurface>();
-    protected bool blockAllLandingSurfaces;
 
     protected Vector2 landingIgnoreFailSafeLastPosition;
     protected Vector2 landingIgnoreFailSafePathDirection = Vector2.right;
@@ -228,7 +227,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
         hasLandingHit = false;
         ignoredLaunchSurfaces.Clear();
-        blockAllLandingSurfaces = false;
         currentPhase = BouncePhase.Complete;
         OnAttachComplete();
     }
@@ -927,7 +925,9 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     {
         CacheIgnoredSecondarySurface();
 
-        edgeSurfaceReleaseActive = blockAllLandingSurfaces;
+        CacheIgnoredSurfacesFromEdgePoint();
+
+        edgeSurfaceReleaseActive = HasIgnoredLandingSurfaces();
         edgeSurfaceReleased = !edgeSurfaceReleaseActive;
     }
 
@@ -944,7 +944,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
         UpdateIgnoredSecondarySurface();
 
-        if (blockAllLandingSurfaces)
+        if (HasIgnoredLandingSurfaces())
             return false;
 
         edgeSurfaceReleaseActive = false;
@@ -1417,9 +1417,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         hitPoint = default;
         hitNormal = default;
 
-        if (blockAllLandingSurfaces)
-            return false;
-
         Collider2D enemyCollider = enemy.GetComponent<Collider2D>();
         if (enemyCollider == null)
             return false;
@@ -1450,13 +1447,16 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
             BounceSurface rawSurface = ClassifySurface(rawNormal);
 
-            return ResolveLandingSurfaceWithProbes(
+            if (ResolveLandingSurfaceWithProbes(
                 rawSurface,
                 rawNormal,
                 distance.pointA,
                 out hitPoint,
                 out hitNormal
-            );
+            ))
+            {
+                return true;
+            }
         }
 
         return false;
@@ -1513,6 +1513,21 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         }
 
         BounceSurface resolvedSurface = ResolveSurfaceFromProbeScan(rawSurface, scan);
+
+        if (IsLandingSurfaceIgnored(resolvedSurface))
+        {
+            Debug.Log(
+                $"{enemy.name} Landing Surface Ignored | " +
+                $"Resolved Surface: {resolvedSurface} | " +
+                $"Ignored Surfaces: {string.Join(", ", ignoredLaunchSurfaces)} | " +
+                $"Ignored Edge Surfaces: {string.Join(", ", ignoredLaunchEdgeSurfaces)} | " +
+                $"Blocked Timer: {landingIgnoreBlockedTimer:F3} | " +
+                $"Ground Contact Timer: {landingIgnoreGroundContactTimer:F3} | " +
+                $"Air Time: {landingIgnoreFailSafeAirTime:F3}"
+            );
+
+            return false;
+        }
 
         if (TryGetProbePointForSurface(scan, resolvedSurface, out Vector2 probePoint))
             resolvedPoint = probePoint;
@@ -1831,14 +1846,11 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     {
         ignoredLaunchSurfaces.Clear();
         ignoredLaunchEdgeSurfaces.Clear();
-        blockAllLandingSurfaces = false;
 
         ProbeIgnoredLaunchSurface(BounceJumpSide.Left);
         ProbeIgnoredLaunchSurface(BounceJumpSide.Right);
         ProbeIgnoredLaunchEdgeSurface(BounceJumpSide.Left);
         ProbeIgnoredLaunchEdgeSurface(BounceJumpSide.Right);
-
-        blockAllLandingSurfaces = ignoredLaunchSurfaces.Count > 0 || ignoredLaunchEdgeSurfaces.Count > 0;
 
         ResetLandingIgnoreFailSafeTracking();
     }
@@ -1860,16 +1872,18 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         {
             BounceSurface surface = ignoredLaunchEdgeSurfaces[i];
 
+            bool stillOnLeft = IsTouchingSurface(BounceJumpSide.Left, surface);
+            bool stillOnRight = IsTouchingSurface(BounceJumpSide.Right, surface);
+
             bool stillOnLeftEdge = IsLaunchEdgeProbeHit(BounceJumpSide.Left, surface);
             bool stillOnRightEdge = IsLaunchEdgeProbeHit(BounceJumpSide.Right, surface);
 
-            if (!stillOnLeftEdge && !stillOnRightEdge)
+            if (!stillOnLeft && !stillOnRight && !stillOnLeftEdge && !stillOnRightEdge)
                 ignoredLaunchEdgeSurfaces.RemoveAt(i);
         }
 
         UpdateLandingIgnoreFailSafe();
 
-        blockAllLandingSurfaces = ignoredLaunchSurfaces.Count > 0 || ignoredLaunchEdgeSurfaces.Count > 0;
     }
 
     private bool IsTouchingSurface(BounceJumpSide jumpSide, BounceSurface surface)
@@ -1965,8 +1979,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     {
         ignoredLaunchSurfaces.Clear();
         ignoredLaunchEdgeSurfaces.Clear();
-
-        blockAllLandingSurfaces = false;
 
         landingIgnoreBlockedTimer = 0f;
         landingIgnoreFailSafeAirTime = 0f;
@@ -2064,6 +2076,51 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         int count = enemyCollider.GetContacts(filter, hitColliders);
 
         return count > 0;
+    }
+    private bool IsLandingSurfaceIgnored(BounceSurface surface)
+    {
+        return ignoredLaunchSurfaces.Contains(surface) ||
+               ignoredLaunchEdgeSurfaces.Contains(surface);
+    }
+    private void CacheIgnoredSurfacesFromEdgePoint()
+    {
+        switch (edgeBouncePoint)
+        {
+            case BounceEdgePoint.UpLeft:
+                AddIgnoredLaunchEdgeSurface(BounceSurface.Floor);
+                AddIgnoredLaunchEdgeSurface(BounceSurface.RightWall);
+                break;
+
+            case BounceEdgePoint.UpRight:
+                AddIgnoredLaunchEdgeSurface(BounceSurface.Floor);
+                AddIgnoredLaunchEdgeSurface(BounceSurface.LeftWall);
+                break;
+
+            case BounceEdgePoint.DownLeft:
+                AddIgnoredLaunchEdgeSurface(BounceSurface.Ceiling);
+                AddIgnoredLaunchEdgeSurface(BounceSurface.RightWall);
+                break;
+
+            case BounceEdgePoint.DownRight:
+                AddIgnoredLaunchEdgeSurface(BounceSurface.Ceiling);
+                AddIgnoredLaunchEdgeSurface(BounceSurface.LeftWall);
+                break;
+        }
+    }
+    private void AddIgnoredLaunchEdgeSurface(BounceSurface surface)
+    {
+        if (surface == currentSurface)
+            return;
+
+        if (ignoredLaunchEdgeSurfaces.Contains(surface))
+            return;
+
+        ignoredLaunchEdgeSurfaces.Add(surface);
+    }
+    private bool HasIgnoredLandingSurfaces()
+    {
+        return ignoredLaunchSurfaces.Count > 0 ||
+               ignoredLaunchEdgeSurfaces.Count > 0;
     }
     #endregion
 
