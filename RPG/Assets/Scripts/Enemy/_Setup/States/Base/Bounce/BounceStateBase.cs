@@ -1516,16 +1516,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
         if (IsLandingSurfaceIgnored(resolvedSurface))
         {
-            Debug.Log(
-                $"{enemy.name} Landing Surface Ignored | " +
-                $"Resolved Surface: {resolvedSurface} | " +
-                $"Ignored Surfaces: {string.Join(", ", ignoredLaunchSurfaces)} | " +
-                $"Ignored Edge Surfaces: {string.Join(", ", ignoredLaunchEdgeSurfaces)} | " +
-                $"Blocked Timer: {landingIgnoreBlockedTimer:F3} | " +
-                $"Ground Contact Timer: {landingIgnoreGroundContactTimer:F3} | " +
-                $"Air Time: {landingIgnoreFailSafeAirTime:F3}"
-            );
-
             return false;
         }
 
