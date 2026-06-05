@@ -49,14 +49,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         Edge
     }
 
-    public enum BounceEdgePoint
-    {
-        None,
-        UpLeft,
-        UpRight,
-        DownLeft,
-        DownRight
-    }
+    
 
     #endregion
 
@@ -88,10 +81,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected BounceSurface currentSurface = BounceSurface.Floor;
     protected Vector2 currentSurfaceNormal = Vector2.up;
 
-    protected float surfaceTargetZ;
-    protected float surfaceRotateVelocity;
-    protected const float SURFACE_ALIGN_TIME = 0.06f;
-    protected const float SURFACE_ALIGN_EPS_DEG = 0.75f;
 
     #endregion
 
@@ -104,11 +93,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected Vector2 landingPoint;
     protected bool hasLandingHit;
 
-    protected float curveTravelDistance;
-    protected bool curveReachedEnd;
-
-    protected const float AIRBORNE_ROTATE_SPEED = 720f;
-    protected const float LANDING_NORMAL_MIN_DOT = 0.1f;
     #endregion
 
     #region Plan Settings
@@ -121,27 +105,12 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected float plannedJumpHeight;
     protected BounceSurface launchSurface = BounceSurface.Floor;
 
-    protected Vector2 airStartPosition;
-    protected float airTravelDistance;
-    protected bool airMoveInitialized;
-    protected bool arcReachedEnd;
-
     protected Vector2 plannedArcAwayAxis = Vector2.up;
     protected float plannedArcStartZ;
 
-    protected bool edgeBouncePlanBuilt;
-    protected Vector2 edgeBounceHitDirection;
-    protected Vector2 edgeBounceSurfaceNormal;
-
-    protected bool edgeSurfaceReleaseActive;
-    protected bool edgeSurfaceReleased;
-
-    protected BounceEdgePoint edgeBouncePoint = BounceEdgePoint.None;
     #endregion
 
     #endregion
-
-    protected Vector2 edgeBounceProbeHitPoint;
 
     #region State
     public BounceStateBase(
@@ -208,37 +177,56 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     #region Movement handler bridge
 
     internal Rigidbody2D MovementRigidbody => rb;
-    internal BounceSurface MovementCurrentSurface => currentSurface;
-    internal BounceAirMoveType MovementPlannedAirMoveType => plannedAirMoveType;
-    internal bool MovementEdgeBouncePlanBuilt => edgeBouncePlanBuilt;
 
-    internal BounceEdgePoint MovementEdgeBouncePoint
+    internal BounceSurface MovementCurrentSurface
     {
-        get => edgeBouncePoint;
-        set => edgeBouncePoint = value;
+        get => currentSurface;
+        set => currentSurface = value;
     }
 
-    internal Vector2 MovementEdgeBounceProbeHitPoint
+    internal Vector2 MovementCurrentSurfaceNormal
     {
-        get => edgeBounceProbeHitPoint;
-        set => edgeBounceProbeHitPoint = value;
+        get => currentSurfaceNormal;
+        set => currentSurfaceNormal = value;
     }
 
-    internal BounceSurface MovementClassifySurface(Vector2 normal)
+    internal BounceAirMoveType MovementPlannedAirMoveType
     {
-        return ClassifySurface(normal);
+        get => plannedAirMoveType;
+        set => plannedAirMoveType = value;
     }
 
-    internal Vector2 MovementSurfaceNormal(BounceSurface surface)
+    internal BounceJumpSide MovementPlannedJumpSide
     {
-        return SurfaceNormal(surface);
+        get => plannedJumpSide;
+        set => plannedJumpSide = value;
     }
 
-    internal Vector2 MovementCurrentSurfaceNormal => currentSurfaceNormal;
-
-    internal float MovementMoveSpeed()
+    internal Vector2 MovementPlannedJumpDirection
     {
-        return MoveSpeed();
+        get => plannedJumpDirection;
+        set => plannedJumpDirection = value;
+    }
+
+    internal float MovementPlannedJumpDistance
+    {
+        get => plannedJumpDistance;
+        set => plannedJumpDistance = value;
+    }
+
+    internal float MovementPlannedJumpHeight => plannedJumpHeight;
+    internal BounceSurface MovementLaunchSurface => launchSurface;
+
+    internal Vector2 MovementPlannedArcAwayAxis
+    {
+        get => plannedArcAwayAxis;
+        set => plannedArcAwayAxis = value;
+    }
+
+    internal float MovementPlannedArcStartZ
+    {
+        get => plannedArcStartZ;
+        set => plannedArcStartZ = value;
     }
 
     internal Vector2 MovementGetLocalJumpDirection(BounceJumpSide jumpSide)
@@ -256,21 +244,24 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         return GetJumpSideProbeDistance(col);
     }
 
-    internal BounceSurface MovementResolveSurfaceFromProbeScan(
-        BounceSurface rawSurface,
-        BounceMovementHandler<TEnemy>.LandingProbeScan scan
-    )
+    internal float MovementGetFloorToCeilingSpan()
     {
-        return ResolveSurfaceFromProbeScan(rawSurface, scan);
+        return GetFloorToCeilingSpan();
     }
 
-    internal void MovementRequestEdgeBouncePlan(
-        BounceMovementHandler<TEnemy>.LandingProbeScan scan,
-        Vector2 rawNormal,
-        bool forceRebuild
-    )
+    internal float MovementGetSurfaceClearance()
     {
-        RequestEdgeBouncePlan(scan, rawNormal, forceRebuild);
+        return GetSurfaceClearance();
+    }
+
+    internal void MovementSetAttachedGravity()
+    {
+        SetAttachedGravity();
+    }
+
+    internal void MovementSetAirborneGravity()
+    {
+        SetAirborneGravity();
     }
 
     #endregion
@@ -281,7 +272,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     {
         SurfacePhase();
 
-        bool isAligned = IsFeetAlignedToSurface();
+        bool isAligned = movementHandler.IsFeetAlignedToSurface();
         if (!isAligned)
             return;
 
@@ -295,7 +286,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     {
         SetAttachedGravity();
         enemy.SetZeroVelocity();
-        RotateFeetToSurface();
+        movementHandler.RotateFeetToSurface();
     }
 
     protected virtual void LaunchPhase()
@@ -305,11 +296,11 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         movementHandler.CacheIgnoredSecondarySurface();
 
         Vector2 launchDirection = currentSurfaceNormal.normalized;
-        Vector2 targetPosition = rb.position + launchDirection * (MoveSpeed() * Time.deltaTime);
+        Vector2 targetPosition = rb.position + launchDirection * (movementHandler.MoveSpeed() * Time.deltaTime);
 
-        ApplyBounceMovement(targetPosition, launchDirection);
+        movementHandler.ApplyBounceMovement(targetPosition, launchDirection);
 
-        if (!HasLeftCurrentSurface())
+        if (!movementHandler.HasLeftCurrentSurface())
             return;
 
         currentPhase = BouncePhase.Airborne;
@@ -317,7 +308,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     protected virtual void AirbornePhase()
     {
-        MoveAirborne();
+        movementHandler.MoveAirborne();
 
         movementHandler.UpdateIgnoredSecondarySurface();
 
@@ -326,8 +317,8 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
             landingPoint = hitPoint;
             hasLandingHit = true;
 
-            currentSurface = ClassifySurface(hitNormal);
-            AlignToSurfaceNormal(hitNormal);
+            currentSurface = movementHandler.ClassifySurface(hitNormal);
+            movementHandler.AlignToSurfaceNormal(hitNormal);
 
             currentPhase = BouncePhase.Attach;
             return;
@@ -354,26 +345,12 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         plannedJumpHeight = GetJumpHeight(plannedJumpType);
 
         launchSurface = currentSurface;
-        plannedArcAwayAxis = SurfaceNormal(launchSurface).normalized;
-        plannedArcStartZ = GetSurfaceTargetZ(launchSurface);
+        plannedArcAwayAxis = movementHandler.SurfaceNormal(launchSurface).normalized;
+        plannedArcStartZ = movementHandler.GetSurfaceTargetZ(launchSurface);
 
         plannedAirMoveType = GetAirMoveType(launchSurface, plannedJumpType);
 
-        airStartPosition = enemy.transform.position;
-        airTravelDistance = 0f;
-        curveTravelDistance = 0f;
-        airMoveInitialized = false;
-        arcReachedEnd = false;
-        curveReachedEnd = false;
-
-        edgeBouncePlanBuilt = false;
-        edgeBounceHitDirection = Vector2.zero;
-        edgeBounceSurfaceNormal = Vector2.zero;
-        edgeBouncePoint = BounceEdgePoint.None;
-        edgeBounceProbeHitPoint = Vector2.zero;
-
-        edgeSurfaceReleaseActive = false;
-        edgeSurfaceReleased = false;
+        movementHandler.ResetMovementRuntimeForNewPlan(enemy.transform.position);
 
         //Debug.Log($"{enemy.name} PlanJump | Surface={launchSurface} | JumpType={plannedJumpType} | Side={plannedJumpSide} | AirMoveType={plannedAirMoveType} | Distance={plannedJumpDistance} | Height={plannedJumpHeight} | Direction={plannedJumpDirection}");
     }
@@ -684,797 +661,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     #endregion
 
-    #region Movement
-    protected virtual float MoveSpeed()
-    {
-        return enemy.moveSpeed * enemy.moveSpeedMultiplier;
-    }
-
-    private void ApplyBounceMovement(Vector2 targetPosition, Vector2 pathDirection)
-    {
-        if (pathDirection.sqrMagnitude > 0.0001f)
-            movementHandler.LandingIgnoreFailSafePathDirection = pathDirection.normalized;
-
-        rb.MovePosition(targetPosition);
-        rb.linearVelocity = pathDirection.normalized * MoveSpeed();
-    }
-
-    private void MoveAirborne()
-    {
-        switch (plannedAirMoveType)
-        {
-            case BounceAirMoveType.Arc:
-                MoveAirborneArc();
-                break;
-
-            case BounceAirMoveType.Curve:
-                MoveAirborneCurve();
-                break;
-
-            case BounceAirMoveType.Edge:
-                MoveAirborneEdge();
-                break;
-        }
-    }
-
-    private void MoveAirborneArc()
-    {
-        float moveSpeed = MoveSpeed();
-        float deltaTime = Time.deltaTime;
-
-        if (deltaTime <= 0f)
-            return;
-
-        if (!airMoveInitialized)
-        {
-            airStartPosition = rb.position;
-            airTravelDistance = 0f;
-            airMoveInitialized = true;
-            arcReachedEnd = false;
-        }
-
-        Vector2 alongAxis = plannedJumpDirection.sqrMagnitude > 0.0001f
-            ? plannedJumpDirection.normalized
-            : Vector2.right;
-
-        Vector2 awayAxis = plannedArcAwayAxis.sqrMagnitude > 0.0001f
-            ? plannedArcAwayAxis.normalized
-            : SurfaceNormal(launchSurface).normalized;
-
-        MoveAirborneArcTravel(moveSpeed, deltaTime, alongAxis, awayAxis);
-    }
-
-    private void MoveAirborneCurve()
-    {
-        switch (launchSurface)
-        {
-            case BounceSurface.Floor:
-                MoveAirborneCurveFromFloor();
-                break;
-
-            case BounceSurface.RightWall:
-            case BounceSurface.LeftWall:
-                MoveAirborneCurveFromWall();
-                break;
-
-            case BounceSurface.Ceiling:
-                MoveAirborneCurveFromCeiling();
-                break;
-        }
-    }
-
-    private void MoveAirborneEdge()
-    {
-        if (!edgeBouncePlanBuilt)
-            BuildEdgeBouncePlan();
-
-        if (!CheckEdgeSurfaceRelease())
-            return;
-
-        MoveAirborneCurveFromEdge();
-    }
-
-    #region Helpers
-    #region Edge
-
-    #region Plan
-    private void RequestEdgeBouncePlan(
-    BounceMovementHandler<TEnemy>.LandingProbeScan scan,
-    Vector2 rawNormal,
-    bool forceRebuild
-)
-    {
-        if (plannedAirMoveType != BounceAirMoveType.Edge)
-            edgeBouncePlanBuilt = false;
-
-        if (forceRebuild)
-            edgeBouncePlanBuilt = false;
-
-        if (edgeBouncePlanBuilt)
-            return;
-
-        edgeBounceHitDirection = GetEdgeBounceHitDirection(scan);
-
-        edgeBounceSurfaceNormal = rawNormal.sqrMagnitude > 0.0001f
-            ? rawNormal.normalized
-            : Vector2.zero;
-
-        plannedAirMoveType = BounceAirMoveType.Edge;
-
-    }
-
-    private void BuildEdgeBouncePlan()
-    {
-        PrepareEdgeSurfaceContact();
-
-        LaunchFromEdge();
-
-        edgeBouncePlanBuilt = true;
-    }
-
-    private void PrepareEdgeSurfaceContact()
-    {
-        SetAttachedGravity();
-
-        enemy.SetZeroVelocity();
-
-        RotateFeetToEdgePoint();
-    }
-
-    #endregion
-
-    #region Move
-    private void MoveAirborneCurveFromEdge()
-    {
-        if (!airMoveInitialized)
-        {
-            airStartPosition = rb.position;
-            airTravelDistance = 0f;
-            curveTravelDistance = 0f;
-            airMoveInitialized = true;
-            curveReachedEnd = false;
-        }
-
-        float deltaTime = Time.deltaTime;
-        if (deltaTime <= 0f)
-            return;
-
-        Vector2 edgeDirection = plannedJumpDirection.sqrMagnitude > 0.0001f
-            ? plannedJumpDirection.normalized
-            : plannedArcAwayAxis.normalized;
-
-        float xDirection = Mathf.Sign(edgeDirection.x);
-        if (Mathf.Abs(xDirection) <= 0.0001f)
-            xDirection = plannedJumpSide == BounceJumpSide.Right ? 1f : -1f;
-
-        float bendDirection = Mathf.Sign(edgeDirection.y);
-        if (Mathf.Abs(bendDirection) <= 0.0001f)
-            bendDirection = movementHandler.LandingIgnoreFailSafePathDirection.y >= 0f ? 1f : -1f;
-
-        float totalDistance = Mathf.Max(0.001f, plannedJumpDistance);
-        float targetBend = Mathf.Max(0.001f, GetFloorToCeilingSpan());
-
-        float slope = GetCurveSlope(curveTravelDistance, totalDistance, targetBend);
-
-        float xStep = MoveSpeed() * deltaTime / Mathf.Sqrt(1f + (slope * slope));
-        curveTravelDistance += xStep;
-
-        float progress = Mathf.Clamp01(curveTravelDistance / totalDistance);
-        float bendAmount = GetCurveRise(progress, targetBend);
-
-        Vector2 alongAxis = new Vector2(xDirection, 0f);
-        Vector2 bendAxis = new Vector2(0f, bendDirection);
-
-        Vector2 targetPosition = airStartPosition
-                               + alongAxis * curveTravelDistance
-                               + bendAxis * bendAmount;
-
-        float tangentSlope = GetCurveSlope(curveTravelDistance, totalDistance, targetBend);
-        Vector2 pathDirection = (alongAxis + bendAxis * tangentSlope).normalized;
-
-        MoveAirborneCurveTravel(targetPosition, pathDirection);
-    }
-
-    #endregion
-
-    #region Helpers
-
-    #region Feet Rotation
-    private void RotateFeetToEdgePoint()
-    {
-        Vector2 snapSurfaceNormal = edgeBounceSurfaceNormal.sqrMagnitude > 0.0001f
-            ? edgeBounceSurfaceNormal.normalized
-            : plannedArcAwayAxis.normalized;
-
-        if (snapSurfaceNormal.sqrMagnitude <= 0.0001f)
-            snapSurfaceNormal = SurfaceNormal(launchSurface).normalized;
-
-        Vector2 feetTarget = -snapSurfaceNormal;
-        float edgeSurfaceZ = Normalize360(Vector2.SignedAngle(Vector2.down, feetTarget));
-
-        var eulerAngles = enemy.transform.eulerAngles;
-        eulerAngles.z = edgeSurfaceZ;
-        enemy.transform.eulerAngles = eulerAngles;
-
-        surfaceRotateVelocity = 0f;
-        plannedArcStartZ = edgeSurfaceZ;
-
-        if (ValidateEdgeFeetRotation())
-            return;
-
-        feetTarget = snapSurfaceNormal;
-        edgeSurfaceZ = Normalize360(Vector2.SignedAngle(Vector2.down, feetTarget));
-
-        eulerAngles = enemy.transform.eulerAngles;
-        eulerAngles.z = edgeSurfaceZ;
-        enemy.transform.eulerAngles = eulerAngles;
-
-        surfaceRotateVelocity = 0f;
-        plannedArcStartZ = edgeSurfaceZ;
-
-        ValidateEdgeFeetRotation();
-    }
-
-    private bool ValidateEdgeFeetRotation()
-    {
-        if (edgeBounceProbeHitPoint.sqrMagnitude <= 0.0001f)
-            return true;
-
-        Vector3 localEdgePoint3 = enemy.transform.InverseTransformPoint(edgeBounceProbeHitPoint);
-        Vector2 localEdgePoint = new Vector2(localEdgePoint3.x, localEdgePoint3.y);
-
-        bool edgePointIsOnFeetSide = localEdgePoint.y <= 0f;
-
-        return edgePointIsOnFeetSide;
-    }
-    #endregion
-
-    #region Launch
-    private void LaunchFromEdge()
-    {
-        SetAirborneGravity();
-
-        Vector2 incomingDirection = GetEdgeIncomingDirection();
-        Vector2 awayAxis = GetEdgeBounceAwayAxis(incomingDirection);
-
-        plannedArcAwayAxis = awayAxis.sqrMagnitude > 0.0001f
-            ? awayAxis.normalized
-            : SurfaceNormal(launchSurface).normalized;
-
-        Vector2 beforeLaunchPosition = rb.position;
-        Vector2 afterLaunchPosition = MoveEnemySlightlyOffEdge(plannedArcAwayAxis);
-
-        StoreEdgeLaunchDirection(beforeLaunchPosition, afterLaunchPosition, plannedArcAwayAxis);
-
-        ResetEdgeCurveTravelFromLaunch(afterLaunchPosition);
-
-        StartEdgeSurfaceRelease();
-    }
-    private void ResetEdgeCurveTravelFromLaunch(Vector2 launchStartPosition)
-    {
-        airStartPosition = launchStartPosition;
-        airTravelDistance = 0f;
-        curveTravelDistance = 0f;
-        airMoveInitialized = true;
-        arcReachedEnd = false;
-        curveReachedEnd = false;
-    }
-    private void StoreEdgeLaunchDirection(Vector2 beforeLaunchPosition, Vector2 afterLaunchPosition, Vector2 fallbackDirection)
-    {
-        Vector2 launchDirection = afterLaunchPosition - beforeLaunchPosition;
-
-        if (launchDirection.sqrMagnitude <= 0.0001f)
-            launchDirection = fallbackDirection;
-
-        if (launchDirection.sqrMagnitude <= 0.0001f)
-            launchDirection = plannedArcAwayAxis;
-
-        if (launchDirection.sqrMagnitude <= 0.0001f)
-            launchDirection = SurfaceNormal(launchSurface);
-
-        plannedJumpDirection = launchDirection.normalized;
-
-        movementHandler.LandingIgnoreFailSafePathDirection = plannedJumpDirection;
-
-        float originalDistance = Mathf.Max(0.001f, plannedJumpDistance);
-        float maxEdgeDistance = originalDistance * 0.5f;
-        float minEdgeDistance = maxEdgeDistance * 0.75f;
-
-        plannedJumpDistance = UnityEngine.Random.Range(minEdgeDistance, maxEdgeDistance);
-
-        Vector2 localRight = new Vector2(enemy.transform.right.x, enemy.transform.right.y).normalized;
-        float localSideValue = Vector2.Dot(plannedJumpDirection, localRight);
-
-        plannedJumpSide = localSideValue < 0f
-            ? BounceJumpSide.Left
-            : BounceJumpSide.Right;
-    }
-    private void StartEdgeSurfaceRelease()
-    {
-        movementHandler.StartEdgeSurfaceRelease();
-
-        edgeSurfaceReleaseActive = true;
-        edgeSurfaceReleased = false;
-    }
-
-    private bool CheckEdgeSurfaceRelease()
-    {
-        if (edgeSurfaceReleased)
-            return true;
-
-        movementHandler.UpdateIgnoredSecondarySurface();
-
-        edgeSurfaceReleaseActive = false;
-        edgeSurfaceReleased = true;
-
-        return true;
-    }
-    #endregion
-
-    #region Move
-    private Vector2 MoveEnemySlightlyOffEdge(Vector2 awayAxis)
-    {
-        Vector2 moveDirection = awayAxis.sqrMagnitude > 0.0001f
-            ? awayAxis.normalized
-            : GetEdgeIncomingDirection();
-
-        float moveAmount = Mathf.Max(GetSurfaceClearance(), MoveSpeed() * Time.deltaTime);
-        Vector2 targetPosition = rb.position + moveDirection * moveAmount;
-
-        ApplyBounceMovement(targetPosition, moveDirection);
-
-        return targetPosition;
-    }
-    private Vector2 GetEdgeBounceAwayAxis(Vector2 incomingDirection)
-    {
-        Vector2 awayAxis = edgeBounceSurfaceNormal;
-
-        if (awayAxis.sqrMagnitude <= 0.0001f && edgeBounceHitDirection.sqrMagnitude > 0.0001f)
-            awayAxis = -edgeBounceHitDirection.normalized;
-
-        if (awayAxis.sqrMagnitude <= 0.0001f)
-        {
-            awayAxis = plannedArcAwayAxis.sqrMagnitude > 0.0001f
-                ? plannedArcAwayAxis.normalized
-                : SurfaceNormal(launchSurface).normalized;
-        }
-
-        awayAxis.Normalize();
-
-        if (incomingDirection.sqrMagnitude > 0.0001f && Vector2.Dot(incomingDirection.normalized, awayAxis) > 0f)
-            awayAxis = -awayAxis;
-
-        return awayAxis.normalized;
-    }
-    private Vector2 GetEdgeIncomingDirection()
-    {
-        Vector2 incomingDirection = rb.linearVelocity;
-
-        if (incomingDirection.sqrMagnitude > 0.0001f)
-            return incomingDirection.normalized;
-
-        incomingDirection = movementHandler.LandingIgnoreFailSafePathDirection;
-
-        if (incomingDirection.sqrMagnitude > 0.0001f)
-            return incomingDirection.normalized;
-
-        incomingDirection = plannedJumpDirection + plannedArcAwayAxis;
-
-        if (incomingDirection.sqrMagnitude > 0.0001f)
-            return incomingDirection.normalized;
-
-        return SurfaceNormal(launchSurface).normalized;
-    }
-    private Vector2 GetEdgeBounceHitDirection(BounceMovementHandler<TEnemy>.LandingProbeScan scan)
-    {
-        Vector2 direction = Vector2.zero;
-
-        if (scan.upLeft)
-            direction += (Vector2.up + Vector2.left).normalized;
-
-        if (scan.upRight)
-            direction += (Vector2.up + Vector2.right).normalized;
-
-        if (scan.downLeft)
-            direction += (Vector2.down + Vector2.left).normalized;
-
-        if (scan.downRight)
-            direction += (Vector2.down + Vector2.right).normalized;
-
-        if (direction.sqrMagnitude > 0.0001f)
-            return direction.normalized;
-
-        return GetEdgeIncomingDirection();
-    }
-    #endregion
-
-    #endregion
-
-    #endregion
-
-    #region Arc
-    private void MoveAirborneArcTravel(float moveSpeed, float deltaTime, Vector2 alongAxis, Vector2 awayAxis)
-    {
-        if (!arcReachedEnd)
-        {
-            float totalDistance = Mathf.Max(0.001f, plannedJumpDistance);
-
-            float slope = GetArcHeightSlope(airTravelDistance, totalDistance, plannedJumpHeight);
-            float alongStep = moveSpeed * deltaTime / Mathf.Sqrt(1f + (slope * slope));
-
-            airTravelDistance = Mathf.Min(totalDistance, airTravelDistance + alongStep);
-
-            float progress = Mathf.Clamp01(airTravelDistance / totalDistance);
-            float heightAmount = Mathf.Sin(progress * Mathf.PI) * plannedJumpHeight;
-
-            Vector2 targetPosition = airStartPosition
-                                   + alongAxis * airTravelDistance
-                                   + awayAxis * heightAmount;
-
-            float tangentSlope = GetArcHeightSlope(airTravelDistance, totalDistance, plannedJumpHeight);
-            Vector2 pathDirection = (alongAxis + awayAxis * tangentSlope).normalized;
-
-            ApplyBounceMovement(targetPosition, pathDirection);
-            RotateAirborne(pathDirection);
-
-            if (progress >= 1f)
-                arcReachedEnd = true;
-
-            return;
-        }
-
-        rb.linearVelocity = rb.linearVelocity;
-    }
-
-    private float GetArcHeightSlope(float travelDistance, float totalDistance, float maxHeight)
-    {
-        float progress = Mathf.Clamp01(travelDistance / Mathf.Max(0.001f, totalDistance));
-        return (Mathf.PI * maxHeight / Mathf.Max(0.001f, totalDistance)) * Mathf.Cos(progress * Mathf.PI);
-    }
-
-    #endregion
-
-    #region Curve
-    private void MoveAirborneCurveFromFloor()
-    {
-        if (!airMoveInitialized)
-        {
-            airStartPosition = rb.position;
-            airTravelDistance = 0f;
-            curveTravelDistance = 0f;
-            airMoveInitialized = true;
-            curveReachedEnd = false;
-        }
-
-        float deltaTime = Time.deltaTime;
-        if (deltaTime <= 0f)
-            return;
-
-        if (!curveReachedEnd)
-        {
-            Vector2 endPoint = GetCurveEndPoint();
-
-            float totalDistance = Mathf.Max(0.001f, Mathf.Abs(endPoint.x - airStartPosition.x));
-            float xDirection = Mathf.Sign(endPoint.x - airStartPosition.x);
-
-            if (Mathf.Abs(xDirection) <= 0.0001f)
-                xDirection = plannedJumpDirection.x >= 0f ? 1f : -1f;
-
-            float targetRise = endPoint.y - airStartPosition.y;
-            float slope = GetCurveSlope(curveTravelDistance, totalDistance, targetRise);
-
-            float xStep = MoveSpeed() * deltaTime / Mathf.Sqrt(1f + (slope * slope));
-            curveTravelDistance = Mathf.Min(totalDistance, curveTravelDistance + xStep);
-
-            float progress = Mathf.Clamp01(curveTravelDistance / totalDistance);
-            float riseAmount = GetCurveRise(progress, targetRise);
-
-            Vector2 alongAxis = new Vector2(xDirection, 0f);
-            Vector2 riseAxis = Vector2.up;
-
-            Vector2 targetPosition = airStartPosition
-                                   + alongAxis * curveTravelDistance
-                                   + riseAxis * riseAmount;
-
-            float tangentSlope = GetCurveSlope(curveTravelDistance, totalDistance, targetRise);
-            Vector2 pathDirection = (alongAxis + riseAxis * tangentSlope).normalized;
-
-            MoveAirborneCurveTravel(targetPosition, pathDirection);
-
-            if (progress >= 1f)
-                curveReachedEnd = true;
-
-            return;
-        }
-
-        Vector2 upDirection = Vector2.up;
-        Vector2 continuePosition = rb.position + upDirection * (MoveSpeed() * deltaTime);
-
-        MoveAirborneCurveTravel(continuePosition, upDirection);
-    }
-
-    private void MoveAirborneCurveFromWall()
-    {
-        if (!airMoveInitialized)
-        {
-            airStartPosition = rb.position;
-            airTravelDistance = 0f;
-            curveTravelDistance = 0f;
-            airMoveInitialized = true;
-            curveReachedEnd = false;
-        }
-
-        float deltaTime = Time.deltaTime;
-        if (deltaTime <= 0f)
-            return;
-
-        float verticalDistance = Mathf.Max(0.001f, GetFloorToCeilingSpan());
-
-        float verticalDirection = Mathf.Sign(plannedJumpDirection.y);
-        if (Mathf.Abs(verticalDirection) <= 0.0001f)
-            verticalDirection = plannedJumpSide == BounceJumpSide.Right ? 1f : -1f;
-
-        float outwardDirection = currentSurface == BounceSurface.RightWall ? -1f : 1f;
-        float outwardDistance = Mathf.Max(0.001f, plannedJumpDistance);
-
-        float slope = GetCurveSlope(curveTravelDistance, verticalDistance, outwardDistance);
-
-        float yStep = MoveSpeed() * deltaTime / Mathf.Sqrt(1f + (slope * slope));
-        curveTravelDistance += yStep;
-
-        float progress = Mathf.Clamp01(curveTravelDistance / verticalDistance);
-        float outwardAmount = GetCurveRise(progress, outwardDistance);
-
-        Vector2 alongAxis = new Vector2(0f, verticalDirection);
-        Vector2 riseAxis = new Vector2(outwardDirection, 0f);
-
-        Vector2 targetPosition = airStartPosition
-                               + alongAxis * curveTravelDistance
-                               + riseAxis * outwardAmount;
-
-        float tangentSlope = GetCurveSlope(curveTravelDistance, verticalDistance, outwardDistance);
-        Vector2 pathDirection = (alongAxis + riseAxis * tangentSlope).normalized;
-
-        MoveAirborneCurveTravel(targetPosition, pathDirection);
-    }
-
-    private void MoveAirborneCurveFromCeiling()
-    {
-        if (!airMoveInitialized)
-        {
-            airStartPosition = rb.position;
-            airTravelDistance = 0f;
-            curveTravelDistance = 0f;
-            airMoveInitialized = true;
-            curveReachedEnd = false;
-        }
-
-        float deltaTime = Time.deltaTime;
-        if (deltaTime <= 0f)
-            return;
-
-        if (!curveReachedEnd)
-        {
-            Vector2 floorEndPoint = GetCurveEndPoint();
-
-            float totalDistance = Mathf.Max(0.001f, Mathf.Abs(floorEndPoint.x - airStartPosition.x));
-            float xDirection = Mathf.Sign(floorEndPoint.x - airStartPosition.x);
-
-            if (Mathf.Abs(xDirection) <= 0.0001f)
-                xDirection = plannedJumpDirection.x >= 0f ? 1f : -1f;
-
-            float targetDrop = Mathf.Abs(floorEndPoint.y - airStartPosition.y);
-            float slope = GetCurveSlope(curveTravelDistance, totalDistance, targetDrop);
-
-            float xStep = MoveSpeed() * deltaTime / Mathf.Sqrt(1f + (slope * slope));
-            curveTravelDistance = Mathf.Min(totalDistance, curveTravelDistance + xStep);
-
-            float progress = Mathf.Clamp01(curveTravelDistance / totalDistance);
-            float dropAmount = GetCurveRise(progress, targetDrop);
-
-            Vector2 alongAxis = new Vector2(xDirection, 0f);
-            Vector2 dropAxis = Vector2.down;
-
-            Vector2 targetPosition = airStartPosition
-                                   + alongAxis * curveTravelDistance
-                                   + dropAxis * dropAmount;
-
-            float tangentSlope = GetCurveSlope(curveTravelDistance, totalDistance, targetDrop);
-            Vector2 pathDirection = (alongAxis + dropAxis * tangentSlope).normalized;
-
-            MoveAirborneCurveTravel(targetPosition, pathDirection);
-
-            if (progress >= 1f)
-                curveReachedEnd = true;
-
-            return;
-        }
-
-        float fallX = plannedJumpDirection.x;
-        if (Mathf.Abs(fallX) <= 0.0001f)
-            fallX = plannedJumpSide == BounceJumpSide.Right ? 1f : -1f;
-
-        Vector2 fallDirection = new Vector2(fallX * 0.35f, -1f).normalized;
-        Vector2 continuePosition = rb.position + (fallDirection * (MoveSpeed() * deltaTime));
-
-        MoveAirborneCurveTravel(continuePosition, fallDirection);
-    }
-
-    #region Helpers
-    protected virtual void MoveAirborneCurveTravel(Vector2 targetPosition, Vector2 pathDirection)
-    {
-        ApplyBounceMovement(targetPosition, pathDirection);
-        RotateAirborne(pathDirection);
-    }
-    protected virtual float GetCurveSlope(float travelDistance, float totalDistance, float targetRise)
-    {
-        float safeDistance = Mathf.Max(0.001f, totalDistance);
-        float progress = Mathf.Clamp01(travelDistance / safeDistance);
-
-        return (targetRise * (Mathf.PI * 0.5f) / safeDistance) * Mathf.Cos(progress * Mathf.PI * 0.5f);
-    }
-
-    protected virtual Vector2 GetCurveEndPoint()
-    {
-        float targetX = airStartPosition.x + (plannedJumpDirection.x * plannedJumpDistance);
-        float targetY = airStartPosition.y + GetFloorToCeilingSpan();
-
-        return new Vector2(targetX, targetY);
-    }
-
-    protected virtual float GetCurveRise(float progress, float targetRise)
-    {
-        targetRise = Mathf.Max(0.001f, targetRise);
-        return Mathf.Sin(progress * Mathf.PI * 0.5f) * targetRise;
-    }
-
-
-    #endregion
-
-    #endregion
-
-    private void RotateAirborne(Vector2 pathDirection)
-    {
-        if (pathDirection.sqrMagnitude <= 0.0001f)
-            return;
-
-        pathDirection.Normalize();
-
-        float targetZ = Normalize360(Vector2.SignedAngle(Vector2.up, pathDirection));
-
-        var eulerAngles = enemy.transform.eulerAngles;
-        eulerAngles.z = Mathf.MoveTowardsAngle(
-            eulerAngles.z,
-            targetZ,
-            AIRBORNE_ROTATE_SPEED * Time.deltaTime
-        );
-
-        enemy.transform.eulerAngles = eulerAngles;
-    }
-
-    #endregion
-    #endregion
-
-    #region Helpers
-    #region Surface
-    private bool HasLeftCurrentSurface()
-    {
-        ContactFilter2D filter = new ContactFilter2D();
-        filter.useLayerMask = true;
-        filter.layerMask = enemy.GetWhatIsGround();
-        filter.useTriggers = false;
-
-        ContactPoint2D[] contacts = new ContactPoint2D[16];
-        int count = rb.GetContacts(filter, contacts);
-
-        if (count <= 0)
-            return true;
-
-        Vector2 currentNormal = SurfaceNormal(currentSurface);
-
-        for (int i = 0; i < count; i++)
-        {
-            ContactPoint2D contact = contacts[i];
-
-            if (contact.collider == null)
-                continue;
-
-            Vector2 normal = contact.normal;
-            if (normal.sqrMagnitude <= 0.0001f)
-                continue;
-
-            normal.Normalize();
-
-            float sameSurfaceDot = Vector2.Dot(normal, currentNormal);
-
-            if (sameSurfaceDot > 0.9f)
-                return false;
-        }
-
-        return true;
-    }
-    private BounceSurface ClassifySurface(Vector2 normal)
-    {
-        Vector2 normalizedNormal = (normal.sqrMagnitude > 0.0001f) ? normal.normalized : Vector2.up;
-
-        if (normalizedNormal.y > 0.7071f)
-            return BounceSurface.Floor;
-
-        if (normalizedNormal.y < -0.7071f)
-            return BounceSurface.Ceiling;
-
-        return (normalizedNormal.x < 0f) ? BounceSurface.RightWall : BounceSurface.LeftWall;
-    }
-    private Vector2 SurfaceNormal(BounceSurface surface)
-    {
-        switch (surface)
-        {
-            case BounceSurface.Floor:
-                return Vector2.up;
-
-            case BounceSurface.Ceiling:
-                return Vector2.down;
-
-            case BounceSurface.RightWall:
-                return Vector2.left;
-
-            case BounceSurface.LeftWall:
-                return Vector2.right;
-        }
-
-        return Vector2.up;
-    }
-    private void AlignToSurfaceNormal(Vector2 normal)
-    {
-        currentSurfaceNormal = (normal.sqrMagnitude > 0.0001f) ? normal.normalized : Vector2.up;
-    }
-    private float GetSurfaceTargetZ(BounceSurface surface)
-    {
-        Vector2 surfaceNormal = SurfaceNormal(surface);
-
-        Vector2 feetTarget = -surfaceNormal;
-        return Normalize360(Vector2.SignedAngle(Vector2.down, feetTarget));
-    }
-    private void RotateFeetToSurface()
-    {
-        float targetZ = GetSurfaceTargetZ(currentSurface);
-
-        var eulerAngles = enemy.transform.eulerAngles;
-
-        float smoothTime = Mathf.Max(0.0001f, SURFACE_ALIGN_TIME);
-        eulerAngles.z = Mathf.SmoothDampAngle(
-            eulerAngles.z,
-            targetZ,
-            ref surfaceRotateVelocity,
-            smoothTime
-        );
-
-        enemy.transform.eulerAngles = eulerAngles;
-
-        float remaining = Mathf.Abs(Mathf.DeltaAngle(eulerAngles.z, targetZ));
-        if (remaining <= SURFACE_ALIGN_EPS_DEG)
-        {
-            eulerAngles.z = targetZ;
-            enemy.transform.eulerAngles = eulerAngles;
-            surfaceRotateVelocity = 0f;
-        }
-    }
-    private bool IsFeetAlignedToSurface()
-    {
-        float targetZ = GetSurfaceTargetZ(currentSurface);
-        float currentZ = enemy.transform.eulerAngles.z;
-
-        return Mathf.Abs(Mathf.DeltaAngle(currentZ, targetZ)) <= SURFACE_ALIGN_EPS_DEG;
-    }
-    protected virtual BounceSurface ResolveSurfaceFromProbeScan(
-    BounceSurface rawSurface,
-    BounceMovementHandler<TEnemy>.LandingProbeScan scan
-)
-    {
-        return movementHandler.ResolveSurfaceFromProbeScanDefault(rawSurface, scan);
-    }
-    #endregion
-
     #region Gravity
     private void CacheDefaultGravity()
     {
@@ -1511,15 +697,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     #endregion
 
-    private float Normalize360(float angle)
-    {
-        angle %= 360f;
-
-        if (angle < 0f)
-            angle += 360f;
-
-        return angle;
-    }
 
     protected virtual void PlayAll(List<StateSound> sounds)
     {
@@ -1530,5 +707,4 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
             sounds[i].Play(t);
     }
 
-    #endregion
 }
