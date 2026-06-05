@@ -8,10 +8,12 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     protected readonly List<StateSound> enterSounds;
     protected readonly List<StateSound> exitSounds;
 
+    protected readonly BounceMovementHandler<TEnemy> movementHandler;
+
     #region Bounce runtime
 
     #region Enum
-    protected enum BounceSurface
+    public enum BounceSurface
     {
         Floor,
         RightWall,
@@ -19,7 +21,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         LeftWall
     }
 
-    protected enum BouncePhase
+    public enum BouncePhase
     {
         Attach,
         Launch,
@@ -27,26 +29,27 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         Complete
     }
 
-    protected enum BounceJumpType
+    public enum BounceJumpType
     {
         Normal,
         FloorToCeiling
     }
 
-    protected enum BounceJumpSide
+    public enum BounceJumpSide
     {
         Left,
         Right
     }
 
-    protected enum BounceAirMoveType
+    public enum BounceAirMoveType
     {
         None,
         Arc,
         Curve,
         Edge
     }
-    protected enum BounceEdgePoint
+
+    public enum BounceEdgePoint
     {
         None,
         UpLeft,
@@ -84,21 +87,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     #region Surface Settings
     protected BounceSurface currentSurface = BounceSurface.Floor;
     protected Vector2 currentSurfaceNormal = Vector2.up;
-
-    protected readonly List<BounceSurface> ignoredLaunchSurfaces = new();
-    protected List<BounceSurface> ignoredLaunchEdgeSurfaces = new List<BounceSurface>();
-
-    protected Vector2 landingIgnoreFailSafeLastPosition;
-    protected Vector2 landingIgnoreFailSafePathDirection = Vector2.right;
-    protected float landingIgnoreFailSafeAirTime;
-    protected float landingIgnoreBlockedTimer;
-    protected float landingIgnoreGroundContactTimer;
-
-    protected const float LANDING_IGNORE_EDGE_BLOCKED_TIME = 0.28f;
-    protected const float LANDING_IGNORE_GROUND_CONTACT_TIME = 0.06f;
-    protected const float LANDING_IGNORE_FAIL_SAFE_GRACE = 0.08f;
-    protected const float LANDING_IGNORE_BLOCKED_TIME = 0.12f;
-    protected const float LANDING_IGNORE_FORWARD_PROGRESS_FACTOR = 0.15f;
 
     protected float surfaceTargetZ;
     protected float surfaceRotateVelocity;
@@ -166,6 +154,8 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     {
         this.enterSounds = enterSounds ?? Empty;
         this.exitSounds = exitSounds ?? Empty;
+
+        movementHandler = new BounceMovementHandler<TEnemy>(this, enemyBase);
     }
 
     public override void Enter()
@@ -215,6 +205,76 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     #endregion
 
+    #region Movement handler bridge
+
+    internal Rigidbody2D MovementRigidbody => rb;
+    internal BounceSurface MovementCurrentSurface => currentSurface;
+    internal BounceAirMoveType MovementPlannedAirMoveType => plannedAirMoveType;
+    internal bool MovementEdgeBouncePlanBuilt => edgeBouncePlanBuilt;
+
+    internal BounceEdgePoint MovementEdgeBouncePoint
+    {
+        get => edgeBouncePoint;
+        set => edgeBouncePoint = value;
+    }
+
+    internal Vector2 MovementEdgeBounceProbeHitPoint
+    {
+        get => edgeBounceProbeHitPoint;
+        set => edgeBounceProbeHitPoint = value;
+    }
+
+    internal BounceSurface MovementClassifySurface(Vector2 normal)
+    {
+        return ClassifySurface(normal);
+    }
+
+    internal Vector2 MovementSurfaceNormal(BounceSurface surface)
+    {
+        return SurfaceNormal(surface);
+    }
+
+    internal Vector2 MovementCurrentSurfaceNormal => currentSurfaceNormal;
+
+    internal float MovementMoveSpeed()
+    {
+        return MoveSpeed();
+    }
+
+    internal Vector2 MovementGetLocalJumpDirection(BounceJumpSide jumpSide)
+    {
+        return GetLocalJumpDirection(jumpSide);
+    }
+
+    internal Vector2 MovementGetJumpSideProbeOrigin(Collider2D col, Vector2 direction)
+    {
+        return GetJumpSideProbeOrigin(col, direction);
+    }
+
+    internal float MovementGetJumpSideProbeDistance(Collider2D col)
+    {
+        return GetJumpSideProbeDistance(col);
+    }
+
+    internal BounceSurface MovementResolveSurfaceFromProbeScan(
+        BounceSurface rawSurface,
+        BounceMovementHandler<TEnemy>.LandingProbeScan scan
+    )
+    {
+        return ResolveSurfaceFromProbeScan(rawSurface, scan);
+    }
+
+    internal void MovementRequestEdgeBouncePlan(
+        BounceMovementHandler<TEnemy>.LandingProbeScan scan,
+        Vector2 rawNormal,
+        bool forceRebuild
+    )
+    {
+        RequestEdgeBouncePlan(scan, rawNormal, forceRebuild);
+    }
+
+    #endregion
+
     #region Bounce phases
 
     protected virtual void AttachPhase()
@@ -226,7 +286,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
             return;
 
         hasLandingHit = false;
-        ignoredLaunchSurfaces.Clear();
+        movementHandler.ClearIgnoredLaunchSurfaces();
         currentPhase = BouncePhase.Complete;
         OnAttachComplete();
     }
@@ -242,7 +302,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     {
         SetAirborneGravity();
 
-        CacheIgnoredSecondarySurface();
+        movementHandler.CacheIgnoredSecondarySurface();
 
         Vector2 launchDirection = currentSurfaceNormal.normalized;
         Vector2 targetPosition = rb.position + launchDirection * (MoveSpeed() * Time.deltaTime);
@@ -259,9 +319,9 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     {
         MoveAirborne();
 
-        UpdateIgnoredSecondarySurface();
+        movementHandler.UpdateIgnoredSecondarySurface();
 
-        if (TryFindLandingSurface(out Vector2 hitPoint, out Vector2 hitNormal))
+        if (movementHandler.TryFindLandingSurface(out Vector2 hitPoint, out Vector2 hitNormal))
         {
             landingPoint = hitPoint;
             hasLandingHit = true;
@@ -633,7 +693,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     private void ApplyBounceMovement(Vector2 targetPosition, Vector2 pathDirection)
     {
         if (pathDirection.sqrMagnitude > 0.0001f)
-            landingIgnoreFailSafePathDirection = pathDirection.normalized;
+            movementHandler.LandingIgnoreFailSafePathDirection = pathDirection.normalized;
 
         rb.MovePosition(targetPosition);
         rb.linearVelocity = pathDirection.normalized * MoveSpeed();
@@ -718,7 +778,11 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     #region Edge
 
     #region Plan
-    private void RequestEdgeBouncePlan(LandingProbeScan scan, Vector2 rawNormal, bool forceRebuild)
+    private void RequestEdgeBouncePlan(
+    BounceMovementHandler<TEnemy>.LandingProbeScan scan,
+    Vector2 rawNormal,
+    bool forceRebuild
+)
     {
         if (plannedAirMoveType != BounceAirMoveType.Edge)
             edgeBouncePlanBuilt = false;
@@ -785,7 +849,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
         float bendDirection = Mathf.Sign(edgeDirection.y);
         if (Mathf.Abs(bendDirection) <= 0.0001f)
-            bendDirection = landingIgnoreFailSafePathDirection.y >= 0f ? 1f : -1f;
+            bendDirection = movementHandler.LandingIgnoreFailSafePathDirection.y >= 0f ? 1f : -1f;
 
         float totalDistance = Mathf.Max(0.001f, plannedJumpDistance);
         float targetBend = Mathf.Max(0.001f, GetFloorToCeilingSpan());
@@ -910,7 +974,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
         plannedJumpDirection = launchDirection.normalized;
 
-        landingIgnoreFailSafePathDirection = plannedJumpDirection;
+        movementHandler.LandingIgnoreFailSafePathDirection = plannedJumpDirection;
 
         float originalDistance = Mathf.Max(0.001f, plannedJumpDistance);
         float maxEdgeDistance = originalDistance * 0.5f;
@@ -927,12 +991,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     }
     private void StartEdgeSurfaceRelease()
     {
-        ignoredLaunchSurfaces.Clear();
-        ignoredLaunchEdgeSurfaces.Clear();
-
-        CacheIgnoredSurfacesFromEdgePoint();
-
-        ResetLandingIgnoreFailSafeTracking();
+        movementHandler.StartEdgeSurfaceRelease();
 
         edgeSurfaceReleaseActive = true;
         edgeSurfaceReleased = false;
@@ -943,7 +1002,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         if (edgeSurfaceReleased)
             return true;
 
-        UpdateIgnoredSecondarySurface();
+        movementHandler.UpdateIgnoredSecondarySurface();
 
         edgeSurfaceReleaseActive = false;
         edgeSurfaceReleased = true;
@@ -994,7 +1053,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         if (incomingDirection.sqrMagnitude > 0.0001f)
             return incomingDirection.normalized;
 
-        incomingDirection = landingIgnoreFailSafePathDirection;
+        incomingDirection = movementHandler.LandingIgnoreFailSafePathDirection;
 
         if (incomingDirection.sqrMagnitude > 0.0001f)
             return incomingDirection.normalized;
@@ -1006,7 +1065,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
         return SurfaceNormal(launchSurface).normalized;
     }
-    private Vector2 GetEdgeBounceHitDirection(LandingProbeScan scan)
+    private Vector2 GetEdgeBounceHitDirection(BounceMovementHandler<TEnemy>.LandingProbeScan scan)
     {
         Vector2 direction = Vector2.zero;
 
@@ -1407,399 +1466,13 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
         return Mathf.Abs(Mathf.DeltaAngle(currentZ, targetZ)) <= SURFACE_ALIGN_EPS_DEG;
     }
-    #endregion
-
-    #region Airborne
-    private bool TryFindLandingSurface(out Vector2 hitPoint, out Vector2 hitNormal)
-    {
-        hitPoint = default;
-        hitNormal = default;
-
-        Collider2D enemyCollider = enemy.GetComponent<Collider2D>();
-        if (enemyCollider == null)
-            return false;
-
-        ContactFilter2D filter = new ContactFilter2D();
-        filter.useLayerMask = true;
-        filter.layerMask = enemy.GetWhatIsGround();
-        filter.useTriggers = false;
-
-        Collider2D[] hitColliders = new Collider2D[16];
-        int count = enemyCollider.GetContacts(filter, hitColliders);
-
-        if (count <= 0)
-            return false;
-
-        for (int i = 0; i < count; i++)
-        {
-            Collider2D hitCollider = hitColliders[i];
-
-            if (hitCollider == null)
-                continue;
-
-            ColliderDistance2D distance = enemyCollider.Distance(hitCollider);
-
-            Vector2 rawNormal = -distance.normal;
-            if (rawNormal.sqrMagnitude <= 0.0001f)
-                continue;
-
-            BounceSurface rawSurface = ClassifySurface(rawNormal);
-
-            if (ResolveLandingSurfaceWithProbes(
-                rawSurface,
-                rawNormal,
-                distance.pointA,
-                out hitPoint,
-                out hitNormal
-            ))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    #region Probe
-    protected struct LandingProbeScan
-    {
-        public bool up;
-        public bool down;
-        public bool left;
-        public bool right;
-
-        public bool upLeft;
-        public bool upRight;
-        public bool downLeft;
-        public bool downRight;
-
-        public RaycastHit2D upHit;
-        public RaycastHit2D downHit;
-        public RaycastHit2D leftHit;
-        public RaycastHit2D rightHit;
-
-        public RaycastHit2D upLeftHit;
-        public RaycastHit2D upRightHit;
-        public RaycastHit2D downLeftHit;
-        public RaycastHit2D downRightHit;
-    }
-
-    private bool ResolveLandingSurfaceWithProbes(
+    protected virtual BounceSurface ResolveSurfaceFromProbeScan(
     BounceSurface rawSurface,
-    Vector2 rawNormal,
-    Vector2 rawPoint,
-    out Vector2 resolvedPoint,
-    out Vector2 resolvedNormal
+    BounceMovementHandler<TEnemy>.LandingProbeScan scan
 )
     {
-        resolvedPoint = rawPoint;
-        resolvedNormal = SurfaceNormal(rawSurface);
-
-        if (!ScanLandingProbes(out LandingProbeScan scan))
-            return false;
-
-        if (!HasMainLandingProbeHit(scan))
-        {
-            if (HasDiagonalLandingProbeHit(scan))
-            {
-                BounceEdgePoint previousEdgePoint = edgeBouncePoint;
-                BounceEdgePoint detectedEdgePoint = GetEdgeBouncePointFromProbeScan(scan);
-
-                edgeBouncePoint = detectedEdgePoint;
-                edgeBounceProbeHitPoint = GetEdgeBounceProbeHitPointFromProbeScan(scan);
-
-                bool forceRebuild =
-                    plannedAirMoveType != BounceAirMoveType.Edge ||
-                    !edgeBouncePlanBuilt ||
-                    previousEdgePoint != detectedEdgePoint;
-
-                RequestEdgeBouncePlan(scan, rawNormal, forceRebuild);
-            }
-
-            return false;
-        }
-
-        BounceSurface resolvedSurface = ResolveSurfaceFromProbeScan(rawSurface, scan);
-
-        if (IsLandingSurfaceIgnored(resolvedSurface))
-        {
-            return false;
-        }
-
-        if (TryGetProbePointForSurface(scan, resolvedSurface, out Vector2 probePoint))
-            resolvedPoint = probePoint;
-
-        resolvedNormal = SurfaceNormal(resolvedSurface);
-        return true;
+        return movementHandler.ResolveSurfaceFromProbeScanDefault(rawSurface, scan);
     }
-
-    private bool HasMainLandingProbeHit(LandingProbeScan scan)
-    {
-        return scan.up || scan.down || scan.left || scan.right;
-    }
-
-    private bool HasDiagonalLandingProbeHit(LandingProbeScan scan)
-    {
-        return scan.upLeft || scan.upRight || scan.downLeft || scan.downRight;
-    }
-
-    private Vector2 GetEdgeBounceProbeHitPointFromProbeScan(LandingProbeScan scan)
-    {
-        switch (edgeBouncePoint)
-        {
-            case BounceEdgePoint.UpLeft:
-                return scan.downRightHit.point;
-
-            case BounceEdgePoint.UpRight:
-                return scan.downLeftHit.point;
-
-            case BounceEdgePoint.DownLeft:
-                return scan.upRightHit.point;
-
-            case BounceEdgePoint.DownRight:
-                return scan.upLeftHit.point;
-        }
-
-        return Vector2.zero;
-    }
-
-    private BounceEdgePoint GetEdgeBouncePointFromProbeScan(LandingProbeScan scan)
-    {
-        if (scan.upLeft)
-            return BounceEdgePoint.DownRight;
-
-        if (scan.upRight)
-            return BounceEdgePoint.DownLeft;
-
-        if (scan.downLeft)
-            return BounceEdgePoint.UpRight;
-
-        if (scan.downRight)
-            return BounceEdgePoint.UpLeft;
-
-        return BounceEdgePoint.None;
-    }
-
-    private bool ScanLandingProbes(out LandingProbeScan scan)
-    {
-        scan = default;
-
-        Collider2D col = enemy.GetComponent<Collider2D>();
-        if (col == null)
-            return false;
-
-        Bounds bounds = col.bounds;
-        Vector2 origin = bounds.center;
-
-        scan.up = CastLandingProbe(origin, bounds, Vector2.up, out scan.upHit);
-        scan.down = CastLandingProbe(origin, bounds, Vector2.down, out scan.downHit);
-        scan.left = CastLandingProbe(origin, bounds, Vector2.left, out scan.leftHit);
-        scan.right = CastLandingProbe(origin, bounds, Vector2.right, out scan.rightHit);
-
-        scan.upLeft = CastLandingProbe(origin, bounds, (Vector2.up + Vector2.left).normalized, out scan.upLeftHit);
-        scan.upRight = CastLandingProbe(origin, bounds, (Vector2.up + Vector2.right).normalized, out scan.upRightHit);
-        scan.downLeft = CastLandingProbe(origin, bounds, (Vector2.down + Vector2.left).normalized, out scan.downLeftHit);
-        scan.downRight = CastLandingProbe(origin, bounds, (Vector2.down + Vector2.right).normalized, out scan.downRightHit);
-
-        return scan.up || scan.down || scan.left || scan.right ||
-               scan.upLeft || scan.upRight || scan.downLeft || scan.downRight;
-    }
-
-    private bool CastLandingProbe(
-        Vector2 origin,
-        Bounds bounds,
-        Vector2 direction,
-        out RaycastHit2D hit
-    )
-    {
-        hit = default;
-
-        if (direction.sqrMagnitude <= 0.0001f)
-            return false;
-
-        direction.Normalize();
-
-        float distance = GetLandingProbeDistance(bounds, direction);
-
-        hit = Physics2D.Raycast(
-            origin,
-            direction,
-            distance,
-            enemy.GetWhatIsGround()
-        );
-
-        return hit.collider != null;
-    }
-
-    private float GetLandingProbeDistance(Bounds bounds, Vector2 direction)
-    {
-        Vector2 absDirection = new Vector2(Mathf.Abs(direction.x), Mathf.Abs(direction.y));
-        float bodyReach = Vector2.Dot(bounds.extents, absDirection);
-        float extraReach = Mathf.Max(0.05f, Physics2D.defaultContactOffset * 4f);
-
-        return Mathf.Max(0.05f, bodyReach + extraReach);
-    }
-
-    protected virtual BounceSurface ResolveSurfaceFromProbeScan(BounceSurface rawSurface, LandingProbeScan scan)
-    {
-        if (TryResolveFlatProbeSurface(scan, out BounceSurface flatSurface))
-            return flatSurface;
-
-        return ResolveSurfaceByProbeScore(rawSurface, scan);
-    }
-
-    private bool TryResolveFlatProbeSurface(LandingProbeScan scan, out BounceSurface surface)
-    {
-        surface = BounceSurface.Floor;
-
-        bool floorFlat = scan.down && scan.downLeft && scan.downRight;
-        bool ceilingFlat = scan.up && scan.upLeft && scan.upRight;
-        bool leftWallFlat = scan.left && scan.upLeft && scan.downLeft;
-        bool rightWallFlat = scan.right && scan.upRight && scan.downRight;
-
-        int flatCount = 0;
-
-        if (floorFlat)
-        {
-            surface = BounceSurface.Floor;
-            flatCount++;
-        }
-
-        if (ceilingFlat)
-        {
-            surface = BounceSurface.Ceiling;
-            flatCount++;
-        }
-
-        if (leftWallFlat)
-        {
-            surface = BounceSurface.LeftWall;
-            flatCount++;
-        }
-
-        if (rightWallFlat)
-        {
-            surface = BounceSurface.RightWall;
-            flatCount++;
-        }
-
-        return flatCount == 1;
-    }
-
-    private BounceSurface ResolveSurfaceByProbeScore(BounceSurface rawSurface, LandingProbeScan scan)
-    {
-        int floorScore = GetProbeScore(BounceSurface.Floor, scan);
-        int ceilingScore = GetProbeScore(BounceSurface.Ceiling, scan);
-        int leftWallScore = GetProbeScore(BounceSurface.LeftWall, scan);
-        int rightWallScore = GetProbeScore(BounceSurface.RightWall, scan);
-
-        int bestScore = Mathf.Max(
-            Mathf.Max(floorScore, ceilingScore),
-            Mathf.Max(leftWallScore, rightWallScore)
-        );
-
-        if (bestScore <= 0)
-            return rawSurface;
-
-        if (GetProbeScore(rawSurface, scan) == bestScore)
-            return rawSurface;
-
-        BounceSurface movementSurface = GetSurfaceFromAirVelocity();
-        if (GetProbeScore(movementSurface, scan) == bestScore)
-            return movementSurface;
-
-        if (floorScore == bestScore)
-            return BounceSurface.Floor;
-
-        if (ceilingScore == bestScore)
-            return BounceSurface.Ceiling;
-
-        if (leftWallScore == bestScore)
-            return BounceSurface.LeftWall;
-
-        return BounceSurface.RightWall;
-    }
-
-    private int GetProbeScore(BounceSurface surface, LandingProbeScan scan)
-    {
-        switch (surface)
-        {
-            case BounceSurface.Floor:
-                return (scan.down ? 4 : 0) +
-                       (scan.downLeft ? 1 : 0) +
-                       (scan.downRight ? 1 : 0);
-
-            case BounceSurface.Ceiling:
-                return (scan.up ? 4 : 0) +
-                       (scan.upLeft ? 1 : 0) +
-                       (scan.upRight ? 1 : 0);
-
-            case BounceSurface.LeftWall:
-                return (scan.left ? 4 : 0) +
-                       (scan.upLeft ? 1 : 0) +
-                       (scan.downLeft ? 1 : 0);
-
-            case BounceSurface.RightWall:
-                return (scan.right ? 4 : 0) +
-                       (scan.upRight ? 1 : 0) +
-                       (scan.downRight ? 1 : 0);
-        }
-
-        return 0;
-    }
-
-    private BounceSurface GetSurfaceFromAirVelocity()
-    {
-        Vector2 velocity = rb.linearVelocity;
-
-        if (velocity.sqrMagnitude <= 0.0001f)
-            return currentSurface;
-
-        if (Mathf.Abs(velocity.x) > Mathf.Abs(velocity.y))
-            return velocity.x < 0f ? BounceSurface.LeftWall : BounceSurface.RightWall;
-
-        return velocity.y > 0f ? BounceSurface.Ceiling : BounceSurface.Floor;
-    }
-
-    private bool TryGetProbePointForSurface(
-        LandingProbeScan scan,
-        BounceSurface surface,
-        out Vector2 point
-    )
-    {
-        point = default;
-
-        switch (surface)
-        {
-            case BounceSurface.Floor:
-                if (scan.down) { point = scan.downHit.point; return true; }
-                if (scan.downLeft) { point = scan.downLeftHit.point; return true; }
-                if (scan.downRight) { point = scan.downRightHit.point; return true; }
-                break;
-
-            case BounceSurface.Ceiling:
-                if (scan.up) { point = scan.upHit.point; return true; }
-                if (scan.upLeft) { point = scan.upLeftHit.point; return true; }
-                if (scan.upRight) { point = scan.upRightHit.point; return true; }
-                break;
-
-            case BounceSurface.LeftWall:
-                if (scan.left) { point = scan.leftHit.point; return true; }
-                if (scan.upLeft) { point = scan.upLeftHit.point; return true; }
-                if (scan.downLeft) { point = scan.downLeftHit.point; return true; }
-                break;
-
-            case BounceSurface.RightWall:
-                if (scan.right) { point = scan.rightHit.point; return true; }
-                if (scan.upRight) { point = scan.upRightHit.point; return true; }
-                if (scan.downRight) { point = scan.downRightHit.point; return true; }
-                break;
-        }
-
-        return false;
-    }
-    #endregion
-
     #endregion
 
     #region Gravity
@@ -1838,286 +1511,6 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
 
     #endregion
 
-    #region Secondary Surface
-    private void CacheIgnoredSecondarySurface()
-    {
-        ignoredLaunchSurfaces.Clear();
-        ignoredLaunchEdgeSurfaces.Clear();
-
-        ProbeIgnoredLaunchSurface(BounceJumpSide.Left);
-        ProbeIgnoredLaunchSurface(BounceJumpSide.Right);
-        ProbeIgnoredLaunchEdgeSurface(BounceJumpSide.Left);
-        ProbeIgnoredLaunchEdgeSurface(BounceJumpSide.Right);
-
-        ResetLandingIgnoreFailSafeTracking();
-    }
-
-    private void UpdateIgnoredSecondarySurface()
-    {
-        for (int i = ignoredLaunchSurfaces.Count - 1; i >= 0; i--)
-        {
-            BounceSurface surface = ignoredLaunchSurfaces[i];
-
-            bool stillOnLeft = IsTouchingSurface(BounceJumpSide.Left, surface);
-            bool stillOnRight = IsTouchingSurface(BounceJumpSide.Right, surface);
-
-            if (!stillOnLeft && !stillOnRight)
-                ignoredLaunchSurfaces.RemoveAt(i);
-        }
-
-        for (int i = ignoredLaunchEdgeSurfaces.Count - 1; i >= 0; i--)
-        {
-            BounceSurface surface = ignoredLaunchEdgeSurfaces[i];
-
-            bool stillOnLeft = IsTouchingSurface(BounceJumpSide.Left, surface);
-            bool stillOnRight = IsTouchingSurface(BounceJumpSide.Right, surface);
-
-            bool stillOnLeftEdge = IsLaunchEdgeProbeHit(BounceJumpSide.Left, surface);
-            bool stillOnRightEdge = IsLaunchEdgeProbeHit(BounceJumpSide.Right, surface);
-
-            if (!stillOnLeft && !stillOnRight && !stillOnLeftEdge && !stillOnRightEdge)
-                ignoredLaunchEdgeSurfaces.RemoveAt(i);
-        }
-
-        UpdateLandingIgnoreFailSafe();
-
-    }
-
-    private bool IsTouchingSurface(BounceJumpSide jumpSide, BounceSurface surface)
-    {
-        Vector2 direction = GetLocalJumpDirection(jumpSide).normalized;
-        if (direction.sqrMagnitude <= 0.0001f)
-            return false;
-
-        if (!ProbeSurface(direction, out BounceSurface hitSurface))
-            return false;
-
-        return hitSurface == surface;
-    }
-
-    private void ResetLandingIgnoreFailSafeTracking()
-    {
-        landingIgnoreFailSafeLastPosition = rb.position;
-        landingIgnoreFailSafeAirTime = 0f;
-        landingIgnoreBlockedTimer = 0f;
-        landingIgnoreGroundContactTimer = 0f;
-
-        if (landingIgnoreFailSafePathDirection.sqrMagnitude <= 0.0001f)
-            landingIgnoreFailSafePathDirection = currentSurfaceNormal.normalized;
-    }
-
-    private void UpdateLandingIgnoreFailSafe()
-    {
-        bool hasIgnoredSurface = ignoredLaunchSurfaces.Count > 0 || ignoredLaunchEdgeSurfaces.Count > 0;
-
-        if (!hasIgnoredSurface)
-        {
-            ResetLandingIgnoreFailSafeTracking();
-            return;
-        }
-
-        float deltaTime = Time.deltaTime;
-        if (deltaTime <= 0f)
-            return;
-
-        landingIgnoreFailSafeAirTime += deltaTime;
-
-        Vector2 currentPosition = rb.position;
-        Vector2 actualMove = currentPosition - landingIgnoreFailSafeLastPosition;
-        landingIgnoreFailSafeLastPosition = currentPosition;
-
-        if (landingIgnoreFailSafeAirTime < LANDING_IGNORE_FAIL_SAFE_GRACE)
-            return;
-
-        if (!HasGroundContactWhileLandingBlocked())
-        {
-            landingIgnoreGroundContactTimer = 0f;
-            landingIgnoreBlockedTimer = 0f;
-            return;
-        }
-
-        landingIgnoreGroundContactTimer += deltaTime;
-
-        if (landingIgnoreGroundContactTimer < LANDING_IGNORE_GROUND_CONTACT_TIME)
-            return;
-
-        Vector2 expectedDirection = landingIgnoreFailSafePathDirection;
-
-        if (expectedDirection.sqrMagnitude <= 0.0001f)
-        {
-            ResetLandingIgnoreFailSafeTracking();
-            return;
-        }
-
-        expectedDirection.Normalize();
-
-        float forwardProgress = Vector2.Dot(actualMove, expectedDirection);
-        float expectedMove = MoveSpeed() * deltaTime;
-        float minForwardProgress = expectedMove * LANDING_IGNORE_FORWARD_PROGRESS_FACTOR;
-
-        bool forwardProgressStopped = forwardProgress <= minForwardProgress;
-
-        if (forwardProgressStopped)
-            landingIgnoreBlockedTimer += deltaTime;
-        else
-            landingIgnoreBlockedTimer = 0f;
-
-        float blockedTimeLimit = ignoredLaunchEdgeSurfaces.Count > 0
-            ? LANDING_IGNORE_EDGE_BLOCKED_TIME
-            : LANDING_IGNORE_BLOCKED_TIME;
-
-        if (landingIgnoreBlockedTimer < blockedTimeLimit)
-            return;
-
-        ClearLandingIgnoreBlocks();
-    }
-
-    private void ClearLandingIgnoreBlocks()
-    {
-        ignoredLaunchSurfaces.Clear();
-        ignoredLaunchEdgeSurfaces.Clear();
-
-        landingIgnoreBlockedTimer = 0f;
-        landingIgnoreFailSafeAirTime = 0f;
-    }
-
-    #region Helpers
-    private void ProbeIgnoredLaunchSurface(BounceJumpSide jumpSide)
-    {
-        Vector2 direction = GetLocalJumpDirection(jumpSide).normalized;
-        if (direction.sqrMagnitude <= 0.0001f)
-            return;
-
-        if (!ProbeSurface(direction, out BounceSurface hitSurface))
-            return;
-
-        if (hitSurface == currentSurface)
-            return;
-
-        if (ignoredLaunchSurfaces.Contains(hitSurface))
-            return;
-
-        ignoredLaunchSurfaces.Add(hitSurface);
-    }
-
-    private void ProbeIgnoredLaunchEdgeSurface(BounceJumpSide jumpSide)
-    {
-        if (!ProbeLaunchEdgeSurface(jumpSide, out BounceSurface hitSurface))
-            return;
-
-        if (hitSurface == currentSurface)
-            return;
-
-        if (ignoredLaunchEdgeSurfaces.Contains(hitSurface))
-            return;
-
-        ignoredLaunchEdgeSurfaces.Add(hitSurface);
-    }
-
-    private bool IsLaunchEdgeProbeHit(BounceJumpSide jumpSide, BounceSurface surface)
-    {
-        if (!ProbeLaunchEdgeSurface(jumpSide, out BounceSurface hitSurface))
-            return false;
-
-        return hitSurface == surface;
-    }
-
-    private bool ProbeLaunchEdgeSurface(BounceJumpSide jumpSide, out BounceSurface hitSurface)
-    {
-        hitSurface = BounceSurface.Floor;
-
-        Vector2 sideDirection = GetLocalJumpDirection(jumpSide).normalized;
-        if (sideDirection.sqrMagnitude <= 0.0001f)
-            return false;
-
-        Vector2 awayFromSurface = -currentSurfaceNormal.normalized;
-        Vector2 edgeDirection = (sideDirection + awayFromSurface).normalized;
-
-        if (edgeDirection.sqrMagnitude <= 0.0001f)
-            return false;
-
-        return ProbeSurface(edgeDirection, out hitSurface);
-    }
-
-    private bool ProbeSurface(Vector2 direction, out BounceSurface hitSurface)
-    {
-        hitSurface = BounceSurface.Floor;
-
-        Collider2D col = enemy.GetComponent<Collider2D>();
-        if (col == null)
-            return false;
-
-        Vector2 origin = GetJumpSideProbeOrigin(col, direction);
-        float distance = GetJumpSideProbeDistance(col);
-
-        RaycastHit2D hit = Physics2D.Raycast(origin, direction, distance, enemy.GetWhatIsGround());
-        if (!hit.collider)
-            return false;
-
-        hitSurface = ClassifySurface(hit.normal);
-        return true;
-    }
-
-    private bool HasGroundContactWhileLandingBlocked()
-    {
-        Collider2D enemyCollider = enemy.GetComponent<Collider2D>();
-        if (enemyCollider == null)
-            return false;
-
-        ContactFilter2D filter = new ContactFilter2D();
-        filter.useLayerMask = true;
-        filter.layerMask = enemy.GetWhatIsGround();
-        filter.useTriggers = false;
-
-        Collider2D[] hitColliders = new Collider2D[8];
-        int count = enemyCollider.GetContacts(filter, hitColliders);
-
-        return count > 0;
-    }
-    private bool IsLandingSurfaceIgnored(BounceSurface surface)
-    {
-        return ignoredLaunchSurfaces.Contains(surface) ||
-               ignoredLaunchEdgeSurfaces.Contains(surface);
-    }
-    private void CacheIgnoredSurfacesFromEdgePoint()
-    {
-        switch (edgeBouncePoint)
-        {
-            case BounceEdgePoint.UpLeft:
-                AddIgnoredLaunchEdgeSurface(BounceSurface.Floor);
-                AddIgnoredLaunchEdgeSurface(BounceSurface.RightWall);
-                break;
-
-            case BounceEdgePoint.UpRight:
-                AddIgnoredLaunchEdgeSurface(BounceSurface.Floor);
-                AddIgnoredLaunchEdgeSurface(BounceSurface.LeftWall);
-                break;
-
-            case BounceEdgePoint.DownLeft:
-                AddIgnoredLaunchEdgeSurface(BounceSurface.Ceiling);
-                AddIgnoredLaunchEdgeSurface(BounceSurface.RightWall);
-                break;
-
-            case BounceEdgePoint.DownRight:
-                AddIgnoredLaunchEdgeSurface(BounceSurface.Ceiling);
-                AddIgnoredLaunchEdgeSurface(BounceSurface.LeftWall);
-                break;
-        }
-    }
-    private void AddIgnoredLaunchEdgeSurface(BounceSurface surface)
-    {
-        if (ignoredLaunchEdgeSurfaces.Contains(surface))
-        {
-            return;
-        }
-
-        ignoredLaunchEdgeSurfaces.Add(surface);
-
-    }
-
-    #endregion
-
-    #endregion
     private float Normalize360(float angle)
     {
         angle %= 360f;
