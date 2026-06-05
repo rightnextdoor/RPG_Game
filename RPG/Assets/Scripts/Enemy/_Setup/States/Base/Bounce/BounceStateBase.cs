@@ -718,21 +718,25 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     #region Edge
 
     #region Plan
-    private void RequestEdgeBouncePlan(LandingProbeScan scan, Vector2 rawNormal)
+    private void RequestEdgeBouncePlan(LandingProbeScan scan, Vector2 rawNormal, bool forceRebuild)
     {
         if (plannedAirMoveType != BounceAirMoveType.Edge)
             edgeBouncePlanBuilt = false;
 
-        if (!edgeBouncePlanBuilt)
-        {
-            edgeBounceHitDirection = GetEdgeBounceHitDirection(scan);
+        if (forceRebuild)
+            edgeBouncePlanBuilt = false;
 
-            edgeBounceSurfaceNormal = rawNormal.sqrMagnitude > 0.0001f
-                ? rawNormal.normalized
-                : Vector2.zero;
-        }
+        if (edgeBouncePlanBuilt)
+            return;
+
+        edgeBounceHitDirection = GetEdgeBounceHitDirection(scan);
+
+        edgeBounceSurfaceNormal = rawNormal.sqrMagnitude > 0.0001f
+            ? rawNormal.normalized
+            : Vector2.zero;
 
         plannedAirMoveType = BounceAirMoveType.Edge;
+
     }
 
     private void BuildEdgeBouncePlan()
@@ -923,12 +927,15 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     }
     private void StartEdgeSurfaceRelease()
     {
-        CacheIgnoredSecondarySurface();
+        ignoredLaunchSurfaces.Clear();
+        ignoredLaunchEdgeSurfaces.Clear();
 
         CacheIgnoredSurfacesFromEdgePoint();
 
-        edgeSurfaceReleaseActive = HasIgnoredLandingSurfaces();
-        edgeSurfaceReleased = !edgeSurfaceReleaseActive;
+        ResetLandingIgnoreFailSafeTracking();
+
+        edgeSurfaceReleaseActive = true;
+        edgeSurfaceReleased = false;
     }
 
     private bool CheckEdgeSurfaceRelease()
@@ -936,16 +943,7 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         if (edgeSurfaceReleased)
             return true;
 
-        if (!edgeSurfaceReleaseActive)
-        {
-            edgeSurfaceReleased = true;
-            return true;
-        }
-
         UpdateIgnoredSecondarySurface();
-
-        if (HasIgnoredLandingSurfaces())
-            return false;
 
         edgeSurfaceReleaseActive = false;
         edgeSurfaceReleased = true;
@@ -1504,9 +1502,18 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         {
             if (HasDiagonalLandingProbeHit(scan))
             {
-                edgeBouncePoint = GetEdgeBouncePointFromProbeScan(scan);
+                BounceEdgePoint previousEdgePoint = edgeBouncePoint;
+                BounceEdgePoint detectedEdgePoint = GetEdgeBouncePointFromProbeScan(scan);
+
+                edgeBouncePoint = detectedEdgePoint;
                 edgeBounceProbeHitPoint = GetEdgeBounceProbeHitPointFromProbeScan(scan);
-                RequestEdgeBouncePlan(scan, rawNormal);
+
+                bool forceRebuild =
+                    plannedAirMoveType != BounceAirMoveType.Edge ||
+                    !edgeBouncePlanBuilt ||
+                    previousEdgePoint != detectedEdgePoint;
+
+                RequestEdgeBouncePlan(scan, rawNormal, forceRebuild);
             }
 
             return false;
@@ -1541,16 +1548,16 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
         switch (edgeBouncePoint)
         {
             case BounceEdgePoint.UpLeft:
-                return scan.upLeftHit.point;
+                return scan.downRightHit.point;
 
             case BounceEdgePoint.UpRight:
-                return scan.upRightHit.point;
-
-            case BounceEdgePoint.DownLeft:
                 return scan.downLeftHit.point;
 
+            case BounceEdgePoint.DownLeft:
+                return scan.upRightHit.point;
+
             case BounceEdgePoint.DownRight:
-                return scan.downRightHit.point;
+                return scan.upLeftHit.point;
         }
 
         return Vector2.zero;
@@ -1559,16 +1566,16 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     private BounceEdgePoint GetEdgeBouncePointFromProbeScan(LandingProbeScan scan)
     {
         if (scan.upLeft)
-            return BounceEdgePoint.UpLeft;
+            return BounceEdgePoint.DownRight;
 
         if (scan.upRight)
-            return BounceEdgePoint.UpRight;
-
-        if (scan.downLeft)
             return BounceEdgePoint.DownLeft;
 
+        if (scan.downLeft)
+            return BounceEdgePoint.UpRight;
+
         if (scan.downRight)
-            return BounceEdgePoint.DownRight;
+            return BounceEdgePoint.UpLeft;
 
         return BounceEdgePoint.None;
     }
@@ -2099,19 +2106,15 @@ public class BounceStateBase<TEnemy> : TypedEnemyState<TEnemy> where TEnemy : En
     }
     private void AddIgnoredLaunchEdgeSurface(BounceSurface surface)
     {
-        if (surface == currentSurface)
-            return;
-
         if (ignoredLaunchEdgeSurfaces.Contains(surface))
+        {
             return;
+        }
 
         ignoredLaunchEdgeSurfaces.Add(surface);
+
     }
-    private bool HasIgnoredLandingSurfaces()
-    {
-        return ignoredLaunchSurfaces.Count > 0 ||
-               ignoredLaunchEdgeSurfaces.Count > 0;
-    }
+
     #endregion
 
     #endregion
